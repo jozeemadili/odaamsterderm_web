@@ -11,7 +11,7 @@
     --font-sans: 'Inter', 'SF Pro Display', system-ui, -apple-system, sans-serif, 'Apple Color Emoji',
         'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 
-    /* Brand & accent — sampled from the DukaFlow logo (navy + gold) */
+    /* Brand & accent — sampled from the Odaamsterderm Hub logo (navy + gold) */
     --color-primary: #c89a44;
     --color-primary-deep: #b3873a;
     --color-primary-press: #96702f;
@@ -70,7 +70,7 @@ body {
     font-weight: 300;
 }
 
-/* Gradient mesh backdrop — cream / gold / navy wash, matching the DukaFlow mark */
+/* Gradient mesh backdrop — cream / gold / navy wash, matching the Odaamsterderm Hub mark */
 .gradient-mesh {
     position: relative;
     background-color: var(--color-canvas);

@@ -226,11 +226,11 @@
                         <p class="qr-caption">Scan to get this PDF</p>
                     </td>
                     <td class="powered-cell">
-                        <p class="powered">Powered by DukaFlow</p>
+                        <p class="powered">Powered by Odaamsterderm Hub</p>
                         <p class="contacts">
-                            {{ config('dukaflow.support_email') }}
-                            @if(config('dukaflow.support_phone')) &middot; {{ config('dukaflow.support_phone') }} @endif
-                            @if(config('dukaflow.support_address')) &middot; {{ config('dukaflow.support_address') }} @endif
+                            {{ config('hub.support_email') }}
+                            @if(config('hub.support_phone')) &middot; {{ config('hub.support_phone') }} @endif
+                            @if(config('hub.support_address')) &middot; {{ config('hub.support_address') }} @endif
                         </p>
                     </td>
                     <td class="spacer-cell">&nbsp;</td>

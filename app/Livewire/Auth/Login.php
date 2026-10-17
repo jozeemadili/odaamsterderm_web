@@ -35,7 +35,7 @@ class Login extends Component
             Auth::logout();
 
             throw ValidationException::withMessages([
-                'email' => 'This shop account has been deactivated. Contact DukaFlow support.',
+                'email' => 'This shop account has been deactivated. Contact Odaamsterderm Hub support.',
             ]);
         }
 

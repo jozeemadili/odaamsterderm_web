@@ -37,7 +37,7 @@ class GoogleController extends Controller
 
             if ($user->isMerchantUser() && $user->merchant && ! $user->merchant->isActive()) {
                 return redirect()->route('login')->withErrors([
-                    'email' => 'This shop account has been deactivated. Contact DukaFlow support.',
+                    'email' => 'This shop account has been deactivated. Contact Odaamsterderm Hub support.',
                 ]);
             }
 

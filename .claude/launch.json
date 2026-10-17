@@ -2,7 +2,7 @@
     "version": "0.0.1",
     "configurations": [
         {
-            "name": "dukaflow",
+            "name": "odaamsterderm",
             "runtimeExecutable": "php",
             "runtimeArgs": ["artisan", "dev", "--inline"],
             "port": 8001

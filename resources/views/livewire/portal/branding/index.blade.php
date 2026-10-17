@@ -26,7 +26,7 @@
 
     <x-ui.card>
         <h2 class="text-[15px] text-ink-secondary mb-1">Brand color</h2>
-        <p class="text-[12px] text-ink-mute mb-4">Used for the header and accents on your invoices and proforma PDFs. Leave it as the DukaFlow default if you'd rather not customize it.</p>
+        <p class="text-[12px] text-ink-mute mb-4">Used for the header and accents on your invoices and proforma PDFs. Leave it as the Odaamsterderm Hub default if you'd rather not customize it.</p>
 
         <form wire:submit="saveColor" class="flex flex-wrap items-end gap-4">
             <div>
@@ -38,7 +38,7 @@
             </div>
             <x-ui.button type="submit" size="sm" target="saveColor">Save color</x-ui.button>
             @if($merchant->brand_color)
-                <x-ui.button type="button" variant="secondary" size="sm" wire:click="resetColor" target="resetColor">Reset to DukaFlow default</x-ui.button>
+                <x-ui.button type="button" variant="secondary" size="sm" wire:click="resetColor" target="resetColor">Reset to Odaamsterderm Hub default</x-ui.button>
             @endif
         </form>
         @error('brand_color') <p class="text-ruby text-[12px] mt-2">{{ $message }}</p> @enderror

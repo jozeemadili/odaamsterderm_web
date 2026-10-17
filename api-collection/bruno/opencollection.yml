@@ -1,6 +1,6 @@
 opencollection: 1.0.0
 info:
-  name: DUKAFLOW BACKEND
+  name: ODAAMSTERDERM HUB BACKEND
 config:
   proxy:
     inherit: true
@@ -18,7 +18,7 @@ request:
     token: '{{token}}'
   variables:
   - name: base_url
-    value: https://dukaflow-production-lfgbd3.laravel.cloud/api/v1
+    value: https://odaamsterderm-production-lfgbd3.laravel.cloud/api/v1
   - name: token
     value: ''
   - name: item_id

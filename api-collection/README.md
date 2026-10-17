@@ -1,8 +1,8 @@
-# DukaFlow v1 API collection
+# Odaamsterderm Hub v1 API collection
 
 Covers all 60 requests of the mobile API (`routes/api.php`), organized to match the API itself.
 
-- `dukaflow-api.postman_collection.json` — import into Postman (File → Import), or into Bruno (Import Collection).
+- `odaamsterderm-api.postman_collection.json` — import into Postman (File → Import), or into Bruno (Import Collection).
 - `bruno/` — native Bruno OpenCollection format. Open this folder directly in Bruno (Open Collection), or copy it into your Bruno workspace.
 
 Both are generated from the same source list of endpoints, so they stay in sync.

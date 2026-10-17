@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ $title ?? 'Admin' }} · DukaFlow</title>
+    <title>{{ $title ?? 'Admin' }} · Odaamsterderm Hub</title>
     <link rel="icon" type="image/png" href="{{ asset('images/favicon-32.png') }}">
     <link rel="apple-touch-icon" href="{{ asset('images/favicon-180.png') }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -12,7 +12,7 @@
 <body class="bg-canvas-soft text-ink font-sans antialiased" x-data="{ sidebarOpen: false }">
     <div class="lg:hidden sticky top-0 z-30 flex items-center justify-between bg-brand-dark px-4 py-3">
         <div class="flex items-center gap-2">
-            <img src="{{ asset('images/favicon-512.png') }}" alt="DukaFlow" class="h-7 w-7 rounded-md shrink-0">
+            <img src="{{ asset('images/favicon-512.png') }}" alt="Odaamsterderm Hub" class="h-7 w-7 rounded-md shrink-0">
             <span class="text-[16px] font-light tracking-tight text-white">Duka<span class="font-medium text-primary-soft">Flow</span></span>
         </div>
         <button type="button" @click="sidebarOpen = true" class="p-1.5 text-white/80 hover:text-white" aria-label="Open menu">
@@ -38,7 +38,7 @@
             <div class="bg-brand-dark rounded-xl p-4 flex flex-col h-full lg:h-[calc(100vh-2rem)] lg:sticky lg:top-4">
                 <div class="px-2 py-2 mb-4 flex items-center justify-between gap-2">
                     <div class="flex items-center gap-2 min-w-0">
-                        <img src="{{ asset('images/favicon-512.png') }}" alt="DukaFlow" class="h-7 w-7 rounded-md shrink-0">
+                        <img src="{{ asset('images/favicon-512.png') }}" alt="Odaamsterderm Hub" class="h-7 w-7 rounded-md shrink-0">
                         <div class="min-w-0">
                             <span class="text-[17px] font-light tracking-tight text-white">Duka<span class="font-medium text-primary-soft">Flow</span></span>
                             <p class="text-[11px] text-white/40 mt-0.5 uppercase tracking-wide">Admin console</p>

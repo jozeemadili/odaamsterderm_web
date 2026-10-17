@@ -36,7 +36,7 @@ class Index extends Component
     {
         Auth::user()->merchant->update(['brand_color' => null]);
         $this->brand_color = Merchant::DEFAULT_BRAND_COLOR;
-        session()->flash('status', 'Reverted to the DukaFlow default color.');
+        session()->flash('status', 'Reverted to the Odaamsterderm Hub default color.');
     }
 
     public function saveLogo(): void

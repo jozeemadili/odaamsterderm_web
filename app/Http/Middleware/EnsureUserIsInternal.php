@@ -11,7 +11,7 @@ class EnsureUserIsInternal
     public function handle(Request $request, Closure $next): Response
     {
         if (! $request->user() || ! $request->user()->isInternal()) {
-            abort(403, 'This area is restricted to DukaFlow staff.');
+            abort(403, 'This area is restricted to Odaamsterderm Hub staff.');
         }
 
         return $next($request);

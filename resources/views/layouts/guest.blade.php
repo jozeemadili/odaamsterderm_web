@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ $title ?? 'DukaFlow' }}</title>
+    <title>{{ $title ?? 'Odaamsterderm Hub' }}</title>
     <link rel="icon" type="image/png" href="{{ asset('images/favicon-32.png') }}">
     <link rel="apple-touch-icon" href="{{ asset('images/favicon-180.png') }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -12,7 +12,7 @@
 <body class="min-h-screen bg-canvas">
     <div class="gradient-mesh min-h-screen flex flex-col">
         <header class="px-8 py-6 flex items-center gap-2.5">
-            <img src="{{ asset('images/favicon-512.png') }}" alt="DukaFlow" class="h-8 w-8 rounded-md">
+            <img src="{{ asset('images/favicon-512.png') }}" alt="Odaamsterderm Hub" class="h-8 w-8 rounded-md">
             <span class="text-[20px] font-light tracking-tight text-ink">Duka<span class="font-medium text-primary">Flow</span></span>
         </header>
 

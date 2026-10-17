@@ -125,7 +125,7 @@ class AuthController extends Controller
         }
 
         if ($user->isMerchantUser() && (! $user->merchant || ! $user->merchant->isActive())) {
-            throw ValidationException::withMessages(['email' => 'This shop account has been deactivated. Contact DukaFlow support.']);
+            throw ValidationException::withMessages(['email' => 'This shop account has been deactivated. Contact Odaamsterderm Hub support.']);
         }
 
         return $this->issueSession($user);
@@ -148,7 +148,7 @@ class AuthController extends Controller
 
     protected function issueSession(User $user): \Illuminate\Http\JsonResponse
     {
-        $token = $user->createToken('dukaflow-mobile')->plainTextToken;
+        $token = $user->createToken('odaamsterderm-mobile')->plainTextToken;
 
         return response()->json([
             'token' => $token,

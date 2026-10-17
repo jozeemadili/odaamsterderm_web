@@ -20,8 +20,8 @@ class DatabaseSeeder extends Seeder
         $this->call(RolesAndPermissionsSeeder::class);
 
         $superAdmin = User::factory()->create([
-            'name' => 'DukaFlow Super Admin',
-            'email' => 'admin@dukaflow.test',
+            'name' => 'Odaamsterderm Hub Super Admin',
+            'email' => 'admin@odaamsterderm.test',
             'user_type' => User::TYPE_INTERNAL,
         ]);
         $superAdmin->assignRole('super_admin');
@@ -41,7 +41,7 @@ class DatabaseSeeder extends Seeder
 
         $merchantOwner = User::factory()->create([
             'name' => 'Amina Hassan',
-            'email' => 'owner@dukaflow.test',
+            'email' => 'owner@odaamsterderm.test',
             'user_type' => User::TYPE_MERCHANT,
             'merchant_id' => $merchant->id,
             'phone' => $merchant->phone,

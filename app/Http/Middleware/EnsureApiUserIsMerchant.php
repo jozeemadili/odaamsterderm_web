@@ -19,7 +19,7 @@ class EnsureApiUserIsMerchant
         if (! $user->merchant || ! $user->merchant->isActive()) {
             $user->currentAccessToken()?->delete();
 
-            abort(403, 'This shop account has been deactivated. Contact DukaFlow support.');
+            abort(403, 'This shop account has been deactivated. Contact Odaamsterderm Hub support.');
         }
 
         return $next($request);
