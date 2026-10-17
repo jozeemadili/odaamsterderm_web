@@ -3,6 +3,12 @@
         <div class="rounded-lg bg-primary-subtle/30 border border-primary/20 text-primary-deep px-4 py-2.5 text-[14px]">{{ session('status') }}</div>
     @endif
 
+    @if($demo)
+        <div class="rounded-lg bg-primary-subtle/30 border border-primary/20 text-ink px-4 py-2.5 text-[14px]">
+            <strong>Demo mode (no real AI, free).</strong> No Anthropic API key is set, so a simple word-matching assistant answers instead of Claude. It understands common English and Kiswahili words and uses simple quantity rules — good for testing the screens and the ordering flow, not for judging answer quality. Add <code class="text-[13px]">ANTHROPIC_API_KEY=…</code> to the server's <code class="text-[13px]">.env</code> to switch to real AI.
+        </div>
+    @endif
+
     @unless($configured)
         <div class="rounded-lg bg-canvas-cream border border-lemon/30 text-ink px-4 py-2.5 text-[14px]">
             No Anthropic API key is set. Add <code class="text-[13px]">ANTHROPIC_API_KEY=…</code> to the server's <code class="text-[13px]">.env</code>. Until then Ask AI shows normal keyword results and the order assistant tells customers it is not available.

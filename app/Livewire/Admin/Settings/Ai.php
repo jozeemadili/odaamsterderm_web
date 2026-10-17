@@ -5,6 +5,7 @@ namespace App\Livewire\Admin\Settings;
 use App\Models\AiRequest;
 use App\Models\PlatformSetting;
 use App\Services\Ai\AiClient;
+use App\Services\Ai\DemoAiClient;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -90,7 +91,8 @@ class Ai extends Component
 
         return view('livewire.admin.settings.ai', [
             'configured' => $ai->isConfigured(),
-            'model' => config('services.anthropic.model'),
+            'demo' => $ai instanceof DemoAiClient,
+            'model' => $ai instanceof DemoAiClient ? 'demo (free, no real AI)' : config('services.anthropic.model'),
             'today' => $summarise($usage(today())),
             'month' => $summarise($usage(now()->subDays(30))),
             'recent' => AiRequest::with('user')->latest()->limit(20)->get(),

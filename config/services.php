@@ -39,6 +39,8 @@ return [
         'api_key' => env('ANTHROPIC_API_KEY'),
         'model' => env('ANTHROPIC_MODEL', 'claude-opus-5-5'),
         'effort' => env('ANTHROPIC_EFFORT', 'low'),
+        // Free word-matching stand-in used while no API key is set.
+        'demo' => (bool) env('AI_DEMO_MODE', true),
     ],
 
     'google' => [
