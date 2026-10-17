@@ -25,6 +25,7 @@ class RolesAndPermissionsSeeder extends Seeder
         'manage-lookup-data',
         'manage-catalog',
         'monitor-marketplace',
+        'manage-platform-settings',
 
         // Merchant portal
         'manage-own-business',

@@ -18,10 +18,25 @@
                 <span class="text-[18px] font-light tracking-tight">Odaamsterderm<span class="font-medium text-primary-soft"> Hub</span></span>
             </a>
 
-            <form action="{{ route('market.home') }}" method="GET" class="order-3 w-full md:order-none md:w-auto md:flex-1 md:max-w-xl">
+            @php($askAiOn = \App\Services\Ai\AiProductSearch::enabled())
+            @php($inAiMode = $askAiOn && request()->filled('ask'))
+            <form action="{{ route('market.home') }}" method="GET" class="order-3 w-full md:order-none md:w-auto md:flex-1 md:max-w-xl flex items-center gap-2"
+                x-data="{ ai: {{ $inAiMode ? 'true' : 'false' }} }">
                 <label for="market_q" class="sr-only">Search products</label>
-                <input id="market_q" type="search" name="q" value="{{ request('q') }}" placeholder="Search feeds, vaccines, medicines…"
-                    class="w-full rounded-pill bg-white/10 border border-white/15 text-white placeholder:text-white/50 px-4 py-2 text-[14px] focus:outline-none focus:border-primary-soft">
+                <input id="market_q" x-ref="q" type="search" name="{{ $inAiMode ? 'ask' : 'q' }}" :name="ai ? 'ask' : 'q'" maxlength="300"
+                    value="{{ $inAiMode ? request('ask') : request('q') }}"
+                    placeholder="{{ $inAiMode ? 'Describe what you need, e.g. feed for 200 broiler chicks' : 'Search feeds, vaccines, medicines…' }}"
+                    :placeholder="ai ? 'Describe what you need, e.g. feed for 200 broiler chicks' : 'Search feeds, vaccines, medicines…'"
+                    class="w-full rounded-pill bg-white/10 border text-white placeholder:text-white/50 px-4 py-2 text-[14px] focus:outline-none focus:border-primary-soft"
+                    :class="ai ? 'border-primary-soft' : 'border-white/15'">
+                @if($askAiOn)
+                    <button type="button" x-on:click="ai = !ai; $nextTick(() => $refs.q.focus())" :aria-pressed="ai.toString()"
+                        title="Ask AI: describe what you need in your own words (English or Kiswahili)"
+                        class="shrink-0 rounded-pill px-3.5 py-2 text-[13px] font-medium border transition"
+                        :class="ai ? 'bg-primary text-ink border-primary' : 'bg-white/10 text-white border-white/15 hover:border-primary-soft'">
+                        ✨ Ask AI
+                    </button>
+                @endif
             </form>
 
             <div class="ml-auto flex items-center gap-3 text-[13px]">

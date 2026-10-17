@@ -4,9 +4,12 @@ namespace App\Livewire\Market;
 
 use App\Models\AnimalType;
 use App\Models\ProductCategory;
+use App\Services\Ai\AiProductSearch;
 use App\Services\MarketplaceSearch;
 use App\Support\MarketLocation;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Url;
 use Livewire\Component;
@@ -20,6 +23,17 @@ class Home extends Component
 
     #[Url]
     public string $q = '';
+
+    /** Plain-language "Ask AI" question; the AI answer is fetched after first render. */
+    #[Url]
+    public string $ask = '';
+
+    /** @var array{status:string, summary:string, product_ids:list<int>, in_stock:bool, sort:string}|null */
+    #[Locked]
+    public ?array $ai = null;
+
+    #[Locked]
+    public string $aiFor = '';
 
     #[Url]
     public string $animal = '';
@@ -52,6 +66,39 @@ class Home extends Component
         }
     }
 
+    public function updatedAsk(): void
+    {
+        $this->ai = null;
+        $this->aiFor = '';
+    }
+
+    /** Runs the AI search for the current question (called by wire:init so the page shows at once). */
+    public function runAi(AiProductSearch $aiSearch): void
+    {
+        $ask = trim($this->ask);
+        if ($ask === '' || $this->aiFor === $ask || ! AiProductSearch::enabled()) {
+            return;
+        }
+
+        if (! AiProductSearch::availableTo(Auth::user())) {
+            $this->ai = ['status' => 'sign_in', 'summary' => '', 'product_ids' => [], 'in_stock' => false, 'sort' => MarketplaceSearch::SORT_RELEVANCE];
+        } else {
+            $this->ai = $aiSearch->search($ask, Auth::user(), request()->ip());
+            $this->sort = $this->ai['sort'];
+            $this->inStock = $this->inStock || $this->ai['in_stock'];
+        }
+
+        $this->aiFor = $ask;
+        $this->resetPage();
+    }
+
+    public function clearAi(): void
+    {
+        $this->reset(['ask', 'ai', 'aiFor']);
+        $this->sort = MarketLocation::current() ? MarketplaceSearch::SORT_NEAREST : MarketplaceSearch::SORT_PRICE;
+        $this->resetPage();
+    }
+
     public function chooseAnimal(?int $id): void
     {
         $this->animal = $id ? (string) $id : '';
@@ -77,6 +124,16 @@ class Home extends Component
     {
         $from = MarketLocation::current();
 
+        // Ask AI: pending until runAi() answers; the AI only picks product ids.
+        $askAi = $this->ask !== '' && AiProductSearch::enabled();
+        $aiPending = $askAi && $this->aiFor !== trim($this->ask);
+        $aiStatus = $askAi && ! $aiPending ? $this->ai['status'] : null;
+        $aiFallback = in_array($aiStatus, [AiProductSearch::STATUS_UNAVAILABLE, AiProductSearch::STATUS_LIMITED], true);
+
+        if (! $askAi && $this->sort === MarketplaceSearch::SORT_RELEVANCE) {
+            $this->sort = MarketplaceSearch::SORT_PRICE;
+        }
+
         // "Nearest" means nothing without a location — show what's really applied.
         if (! $from && $this->sort === MarketplaceSearch::SORT_NEAREST) {
             $this->sort = MarketplaceSearch::SORT_PRICE;
@@ -93,7 +150,17 @@ class Home extends Component
             'max_price' => $this->maxPrice,
         ];
 
-        $hasFilters = $this->q !== '' || array_filter([$this->animal, $this->category, $this->brand, $this->seller, $this->minPrice, $this->maxPrice]) || $this->inStock;
+        if ($askAi && ! $aiFallback) {
+            $filters['product_ids'] = $aiPending ? [] : $this->ai['product_ids'];
+        }
+
+        // No AI answer (switched off, unavailable, busy): match any meaningful word of the question.
+        if ($this->ask !== '' && (! $askAi || $aiFallback)) {
+            $filters['any_words'] = collect(preg_split('/[^\pL\pN]+/u', mb_strtolower($this->ask)))
+                ->filter(fn (string $w) => mb_strlen($w) >= 4)->unique()->take(8)->values()->all();
+        }
+
+        $hasFilters = $this->ask !== '' || $this->q !== '' || array_filter([$this->animal, $this->category, $this->brand, $this->seller, $this->minPrice, $this->maxPrice]) || $this->inStock;
 
         return view('livewire.market.home', [
             'from' => $from,
@@ -107,6 +174,9 @@ class Home extends Component
             'brands' => $search->brands(),
             'sellers' => $search->sellers(),
             'hasFilters' => $hasFilters,
-        ])->title($this->q !== '' ? "Search: {$this->q}" : 'Marketplace');
+            'askAi' => $askAi,
+            'aiPending' => $aiPending,
+            'aiStatus' => $aiStatus,
+        ])->title($this->ask !== '' ? 'Ask AI: '.$this->ask : ($this->q !== '' ? "Search: {$this->q}" : 'Marketplace'));
     }
 }

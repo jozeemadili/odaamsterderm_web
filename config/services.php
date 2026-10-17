@@ -35,6 +35,12 @@ return [
         ],
     ],
 
+    'anthropic' => [
+        'api_key' => env('ANTHROPIC_API_KEY'),
+        'model' => env('ANTHROPIC_MODEL', 'claude-opus-5-5'),
+        'effort' => env('ANTHROPIC_EFFORT', 'low'),
+    ],
+
     'google' => [
         'client_id' => env('GOOGLE_CLIENT_ID'),
         'client_secret' => env('GOOGLE_CLIENT_SECRET'),

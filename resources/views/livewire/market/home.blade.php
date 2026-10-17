@@ -25,6 +25,7 @@
             <x-ui.card padding="p-4">
                 <div class="space-y-3">
                     <x-ui.select wire:model.live="sort" label="Sort by" id="mk_sort">
+                        @if($askAi)<option value="relevance">Best match (AI)</option>@endif
                         @foreach(\App\Services\MarketplaceSearch::SORTS as $key => $label)
                             <option value="{{ $key }}" @disabled($key === 'nearest' && ! $from)>{{ $label }}{{ $key === 'nearest' && ! $from ? ' (set location)' : '' }}</option>
                         @endforeach
@@ -66,8 +67,37 @@
         </aside>
 
         <section class="space-y-5">
+            @if($askAi)
+                <div class="rounded-xl border border-primary/30 bg-primary-subtle/30 p-4 space-y-2" @if($aiPending) wire:init="runAi" @endif>
+                    <div class="flex items-center justify-between gap-3">
+                        <p class="text-[12px] uppercase tracking-wide font-medium text-primary-deep">✨ Ask AI</p>
+                        <button type="button" wire:click="clearAi" class="text-[12px] text-ink-mute hover:text-ruby">Clear AI search</button>
+                    </div>
+                    <p class="text-[15px] text-ink">“{{ $ask }}”</p>
+                    @if($aiPending)
+                        <p class="text-[14px] text-ink-secondary flex items-center gap-2">
+                            <span class="inline-block h-3 w-3 rounded-full border-2 border-primary border-t-transparent animate-spin"></span>
+                            Finding the right products in live stock…
+                        </p>
+                    @elseif($aiStatus === 'sign_in')
+                        <p class="text-[14px] text-ink-secondary"><a href="{{ route('login') }}" class="text-primary-deep font-medium underline">Sign in</a> to use Ask AI, or use the normal search.</p>
+                    @elseif($aiStatus === 'limited')
+                        <p class="text-[14px] text-ink-secondary">Ask AI is busy right now. Showing normal search results instead — please try again in a minute.</p>
+                    @elseif($aiStatus === 'unavailable')
+                        <p class="text-[14px] text-ink-secondary">Ask AI is not available right now. Showing normal search results instead.</p>
+                    @elseif($aiStatus === 'refused')
+                        <p class="text-[14px] text-ink-secondary">Ask AI can't help with that request. Try describing the animal product you need.</p>
+                    @else
+                        <p class="text-[14px] text-ink-secondary whitespace-pre-line">{{ $ai['summary'] }}</p>
+                    @endif
+                    @if(! $aiPending && in_array($aiStatus, ['ok', 'off_topic'], true))
+                        <p class="text-[11px] text-ink-mute">AI suggestions can be wrong — check each product before you buy. Prices, stock and distances are live from the stores.</p>
+                    @endif
+                </div>
+            @endif
+
             <div class="flex items-baseline justify-between">
-                <h1 class="text-[22px] font-light tracking-tight">{{ $q !== '' ? 'Results for “'.$q.'”' : 'Animal products' }}</h1>
+                <h1 class="text-[22px] font-light tracking-tight">{{ $askAi ? 'AI picks for you' : ($q !== '' ? 'Results for “'.$q.'”' : 'Animal products') }}</h1>
                 <span class="text-[13px] text-ink-mute">{{ $products->total() }} {{ \Illuminate\Support\Str::plural('product', $products->total()) }}</span>
             </div>
 
@@ -106,9 +136,15 @@
                         </x-ui.card>
                     </a>
                 @empty
-                    <div class="col-span-full rounded-xl border border-dashed border-hairline bg-canvas p-10 text-center text-ink-mute">
-                        No products match. Try another search or clear the filters.
-                    </div>
+                    @if($aiPending)
+                        @foreach(range(1, 3) as $i)
+                            <div class="h-64 rounded-xl bg-canvas-soft animate-pulse"></div>
+                        @endforeach
+                    @else
+                        <div class="col-span-full rounded-xl border border-dashed border-hairline bg-canvas p-10 text-center text-ink-mute">
+                            No products match. Try another search or clear the filters.
+                        </div>
+                    @endif
                 @endforelse
             </div>
 

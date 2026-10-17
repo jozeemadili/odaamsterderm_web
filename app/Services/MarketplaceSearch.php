@@ -33,6 +33,9 @@ class MarketplaceSearch
 
     public const SORT_NAME = 'name';
 
+    /** Order of filters['product_ids'] (AI search ranking); not offered in the sort menu. */
+    public const SORT_RELEVANCE = 'relevance';
+
     public const SORTS = [
         self::SORT_NEAREST => 'Nearest',
         self::SORT_PRICE => 'Lowest price',
@@ -48,7 +51,7 @@ class MarketplaceSearch
      * Products with at least one public offer, with per-product price,
      * seller count, available units and nearest available store.
      *
-     * @param  array{search?:?string, animal_type_id?:int|string|null, category_id?:int|string|null, brand?:?string, merchant_id?:int|string|null, min_price?:mixed, max_price?:mixed, in_stock?:bool, radius_km?:mixed}  $filters
+     * @param  array{search?:?string, animal_type_id?:int|string|null, category_id?:int|string|null, brand?:?string, merchant_id?:int|string|null, min_price?:mixed, max_price?:mixed, in_stock?:bool, radius_km?:mixed, product_ids?:list<int>, any_words?:list<string>}  $filters
      */
     public function products(array $filters = [], ?GeoPoint $from = null, string $sort = self::SORT_NEAREST, int $perPage = 20): LengthAwarePaginator
     {
@@ -94,7 +97,12 @@ class MarketplaceSearch
             ->fromSub($query->toBase(), 'products')
             ->with(['animalType', 'category.parent', 'media']);
 
+        $ids = array_values(array_map('intval', $filters['product_ids'] ?? []));
+
         match ($sort === self::SORT_NEAREST && ! $from ? self::SORT_PRICE : $sort) {
+            self::SORT_RELEVANCE => $ids
+                ? $results->orderByRaw('CASE id '.collect($ids)->map(fn (int $id, int $i) => "WHEN {$id} THEN {$i}")->implode(' ').' ELSE '.count($ids).' END')
+                : $results->orderBy('name'),
             self::SORT_NEAREST => $results->orderByRaw('nearest_km IS NULL, nearest_km'),
             self::SORT_PRICE => $results->orderByRaw('min_price IS NULL, min_price'),
             self::SORT_AVAILABILITY => $results->orderByDesc('available_quantity'),
@@ -256,6 +264,19 @@ class MarketplaceSearch
                 ->where('products.name', 'like', "%{$term}%")
                 ->orWhere('products.brand', 'like', "%{$term}%")
                 ->orWhere('products.pack_size', 'like', "%{$term}%"));
+        }
+
+        // Any of these words (e.g. a sentence when Ask AI is unavailable).
+        if ($words = array_filter($filters['any_words'] ?? [])) {
+            $query->where(function (Builder $q) use ($words) {
+                foreach ($words as $word) {
+                    $q->orWhere('products.name', 'like', "%{$word}%")->orWhere('products.brand', 'like', "%{$word}%");
+                }
+            });
+        }
+
+        if (array_key_exists('product_ids', $filters)) {
+            $query->whereIn('products.id', array_map('intval', $filters['product_ids']));
         }
 
         if ($animal = AnimalType::find($filters['animal_type_id'] ?? null)) {

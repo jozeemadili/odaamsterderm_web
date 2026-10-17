@@ -118,6 +118,13 @@
                     </a>
                     @endcan
 
+                    @can('manage-platform-settings')
+                    <p class="px-3 pt-4 pb-1 text-[10px] uppercase tracking-wider text-white/35">Settings</p>
+                    <a href="{{ route('admin.settings.ai') }}" class="icon-dock-item {{ request()->routeIs('admin.settings.*') ? 'is-active' : '' }}">
+                        <x-icon.settings class="h-4 w-4 shrink-0" /> AI Assistant
+                    </a>
+                    @endcan
+
                     @can('view-audit-log')
                     <a href="{{ route('admin.audit-log.index') }}" class="icon-dock-item {{ request()->routeIs('admin.audit-log.*') ? 'is-active' : '' }}">
                         <x-icon.log class="h-4 w-4 shrink-0" /> Audit Log
