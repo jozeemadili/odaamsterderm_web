@@ -70,6 +70,15 @@
                     <a href="{{ route('portal.inventory.index') }}" class="icon-dock-item {{ request()->routeIs('portal.inventory.*') ? 'is-active' : '' }}">
                         <x-icon.inventory class="h-4 w-4 shrink-0" /> Inventory
                     </a>
+                    @php
+                        $pendingOrders = \App\Models\Order::where('merchant_id', auth()->user()->merchant_id)->where('status', \App\Models\Order::PENDING)->count();
+                    @endphp
+                    <a href="{{ route('portal.orders.index') }}" class="icon-dock-item {{ request()->routeIs('portal.orders.*') ? 'is-active' : '' }}">
+                        <x-icon.receipt class="h-4 w-4 shrink-0" /> Orders
+                        @if($pendingOrders)
+                            <span class="ml-auto h-5 min-w-[20px] px-1.5 rounded-full bg-primary text-ink text-[11px] leading-5 text-center font-medium">{{ $pendingOrders }}</span>
+                        @endif
+                    </a>
                     <a href="{{ route('portal.marketplace.index') }}" class="icon-dock-item {{ request()->routeIs('portal.marketplace.*') ? 'is-active' : '' }}">
                         <x-icon.target class="h-4 w-4 shrink-0" /> Marketplace
                     </a>

@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BranchController;
 use App\Http\Controllers\Api\CatalogController;
 use App\Http\Controllers\Api\CustomerController;
+use App\Http\Controllers\Api\CustomerOrderController;
 use App\Http\Controllers\Api\CustomerProfileController;
 use App\Http\Controllers\Api\DamageReportController;
 use App\Http\Controllers\Api\DashboardController;
@@ -20,9 +21,11 @@ use App\Http\Controllers\Api\PaymentMethodController;
 use App\Http\Controllers\Api\PosController;
 use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\SalesController;
+use App\Http\Controllers\Api\SellerOrderController;
 use App\Http\Controllers\Api\StaffController;
 use App\Http\Controllers\Api\StockReceiptController;
 use App\Http\Controllers\Api\SupplierController;
+use App\Http\Controllers\Api\UserNotificationController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
@@ -50,10 +53,22 @@ Route::prefix('v1')->group(function () {
         Route::post('/auth/logout', [AuthController::class, 'logout']);
         Route::get('/auth/me', [AuthController::class, 'me']);
 
+        // Order notifications for any signed-in user (customer or seller staff).
+        Route::get('/me/notifications', [UserNotificationController::class, 'index']);
+        Route::post('/me/notifications/read', [UserNotificationController::class, 'markAllRead']);
+
         // --- Marketplace customers --------------------------------------
         Route::middleware('customer')->prefix('customer')->group(function () {
             Route::get('/profile', [CustomerProfileController::class, 'show']);
             Route::patch('/profile', [CustomerProfileController::class, 'update']);
+
+            Route::get('/cart', [CustomerOrderController::class, 'cart']);
+            Route::post('/cart/items', [CustomerOrderController::class, 'addToCart']);
+            Route::put('/cart/items/{offer}', [CustomerOrderController::class, 'setQuantity']);
+            Route::post('/checkout', [CustomerOrderController::class, 'checkout']);
+            Route::get('/orders', [CustomerOrderController::class, 'index']);
+            Route::get('/orders/{order}', [CustomerOrderController::class, 'show']);
+            Route::post('/orders/{order}/cancel', [CustomerOrderController::class, 'cancel']);
         });
 
         // Everything below requires an active merchant account.
@@ -78,6 +93,11 @@ Route::prefix('v1')->group(function () {
             Route::post('/inventory/{item}/barcode', [InventoryController::class, 'generateBarcode']);
             Route::post('/inventory/{item}/stock-movement', [InventoryController::class, 'stockMovement']);
             Route::patch('/inventory/{item}/marketplace', [InventoryController::class, 'marketplace']);
+
+            // --- Marketplace orders (fulfilment) ------------------------
+            Route::get('/orders', [SellerOrderController::class, 'index']);
+            Route::get('/orders/{order}', [SellerOrderController::class, 'show']);
+            Route::post('/orders/{order}/status', [SellerOrderController::class, 'updateStatus']);
 
             // --- Shared product catalog ---------------------------------
             Route::get('/catalog/animal-types', [CatalogController::class, 'animalTypes']);

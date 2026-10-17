@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable([
-    'merchant_id', 'branch_id', 'customer_id', 'amount', 'subtotal',
+    'merchant_id', 'source', 'order_id', 'branch_id', 'customer_id', 'amount', 'subtotal',
     'discount_type', 'discount_value', 'discount_amount', 'discount_approved_by',
     'payment_method', 'payment_method_id', 'amount_tendered', 'change_due',
     'items_count', 'description', 'sale_date', 'recorded_by',
@@ -18,6 +18,10 @@ class SalesRecord extends Model
     public const DISCOUNT_PERCENT = 'percent';
 
     public const DISCOUNT_FIXED = 'fixed';
+
+    public const SOURCE_POS = 'pos';
+
+    public const SOURCE_ONLINE = 'online';
 
     protected function casts(): array
     {
@@ -35,6 +39,12 @@ class SalesRecord extends Model
     public function merchant(): BelongsTo
     {
         return $this->belongsTo(Merchant::class);
+    }
+
+    /** Set when the sale came from a completed marketplace order. */
+    public function order(): BelongsTo
+    {
+        return $this->belongsTo(Order::class);
     }
 
     public function customer(): BelongsTo

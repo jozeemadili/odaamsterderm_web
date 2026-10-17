@@ -23,6 +23,14 @@
         </div>
     </x-ui.card>
 
+    @error('cart') <div class="rounded-lg bg-ruby/10 text-ruby px-4 py-2.5 text-[14px]">{{ $message }}</div> @enderror
+    @if($cartMessage)
+        <div class="rounded-lg bg-success-subtle text-success px-4 py-2.5 text-[14px] flex justify-between">
+            <span>{{ $cartMessage }}</span>
+            <a href="{{ route('market.cart') }}" class="font-medium underline">View cart &rarr;</a>
+        </div>
+    @endif
+
     <div class="flex flex-wrap items-center justify-between gap-3">
         <h2 class="text-[18px] font-light tracking-tight">Compare {{ $offers->count() }} {{ \Illuminate\Support\Str::plural('seller', $offers->count()) }}</h2>
         <div class="flex items-center gap-1 bg-canvas rounded-pill p-1 border border-hairline text-[13px]">
@@ -36,7 +44,7 @@
     <div class="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-5">
         <x-ui.card padding="p-0">
             <div class="overflow-x-auto">
-                <table class="w-full text-[14px] min-w-[560px]">
+                <table class="w-full text-[14px] min-w-[680px]">
                     <thead class="bg-canvas-soft text-left text-[11px] uppercase tracking-wide text-ink-mute">
                         <tr>
                             <th class="px-4 py-3 font-normal">Seller</th>
@@ -44,6 +52,7 @@
                             <th class="px-4 py-3 font-normal">Price</th>
                             <th class="px-4 py-3 font-normal">Available</th>
                             <th class="px-4 py-3 font-normal">Status</th>
+                            <th class="px-4 py-3 font-normal"></th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-hairline">
@@ -59,9 +68,18 @@
                                 <td class="px-4 py-3">
                                     <x-ui.badge :tone="$offer->is_available ? 'success' : 'danger'">{{ $offer->is_available ? 'Available' : 'Out of stock' }}</x-ui.badge>
                                 </td>
+                                <td class="px-4 py-3 text-right whitespace-nowrap">
+                                    @if($offer->is_available)
+                                        <div class="inline-flex items-center gap-2">
+                                            <input type="number" min="1" step="1" max="{{ (float) $offer->marketplace_quantity }}" wire:model="quantities.{{ $offer->id }}" placeholder="1" aria-label="Quantity"
+                                                class="w-16 rounded-sm border border-hairline-input px-2 py-1 text-[13px] tnum">
+                                            <x-ui.button size="sm" wire:click="addToCart({{ $offer->id }})" target="addToCart({{ $offer->id }})">Add</x-ui.button>
+                                        </div>
+                                    @endif
+                                </td>
                             </tr>
                         @empty
-                            <tr><td colspan="5" class="px-4 py-8 text-center text-ink-mute">No sellers are offering this product right now.</td></tr>
+                            <tr><td colspan="6" class="px-4 py-8 text-center text-ink-mute">No sellers are offering this product right now.</td></tr>
                         @endforelse
                     </tbody>
                 </table>
@@ -79,5 +97,5 @@
         @endif
     </div>
 
-    <p class="text-[12px] text-ink-mute">Ordering and pickup are coming next — for now, visit or call the store to buy.</p>
+    <p class="text-[12px] text-ink-mute">Order online and collect at the store — you pay at pickup. Prices and quantities are rechecked when you place the order.</p>
 </div>

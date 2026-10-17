@@ -114,6 +114,12 @@
             <x-ui.stat label="Out of stock online" :value="$summary['marketplace']['out_of_stock_count']" :tone="$summary['marketplace']['out_of_stock_count'] ? 'ruby' : 'ink'" />
             <x-ui.stat label="Low stock items" :value="$summary['low_stock_count']" :tone="$summary['low_stock_count'] ? 'ruby' : 'ink'" />
         </div>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-5 pt-5 border-t border-hairline">
+            <a href="{{ route('portal.orders.index', ['tab' => 'pending']) }}"><x-ui.stat label="New orders" :value="$summary['marketplace']['orders']['pending']" :tone="$summary['marketplace']['orders']['pending'] ? 'lemon' : 'ink'" /></a>
+            <a href="{{ route('portal.orders.index', ['tab' => 'in_progress']) }}"><x-ui.stat label="Accepted / preparing" :value="$summary['marketplace']['orders']['accepted']" /></a>
+            <a href="{{ route('portal.orders.index', ['tab' => 'ready_for_pickup']) }}"><x-ui.stat label="Ready for pickup" :value="$summary['marketplace']['orders']['ready']" tone="primary" /></a>
+            <a href="{{ route('portal.orders.index', ['tab' => 'completed']) }}"><x-ui.stat label="Completed orders" :value="$summary['marketplace']['orders']['completed']" /></a>
+        </div>
     </x-ui.card>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">

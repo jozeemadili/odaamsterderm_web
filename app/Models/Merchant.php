@@ -112,6 +112,12 @@ class Merchant extends Model implements HasMedia
         return $this->hasMany(Branch::class);
     }
 
+    /** Marketplace orders placed with this seller. */
+    public function orders(): HasMany
+    {
+        return $this->hasMany(Order::class);
+    }
+
     public function kycDocuments(): HasMany
     {
         return $this->hasMany(KycDocument::class);

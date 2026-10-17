@@ -18,7 +18,12 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', Market\Home::class)->name('market.home');
 Route::get('/products/{product:slug}', Market\ProductShow::class)->name('market.product');
 Route::get('/stores/{store}', Market\StoreShow::class)->name('market.store');
-Route::get('/account', Market\Account::class)->middleware(['auth', 'customer'])->name('market.account');
+Route::middleware(['auth', 'customer'])->group(function () {
+    Route::get('/account', Market\Account::class)->name('market.account');
+    Route::get('/cart', Market\Cart::class)->name('market.cart');
+    Route::get('/account/orders', Market\Orders::class)->name('market.orders');
+    Route::get('/account/orders/{order}', Market\OrderShow::class)->name('market.order');
+});
 
 Route::get('/i/{invoice}/pdf', [InvoicePublicController::class, 'download'])
     ->name('invoices.public-pdf')
@@ -74,6 +79,8 @@ Route::middleware(['auth', 'merchant'])->prefix('portal')->name('portal.')->grou
     Route::get('/inventory/barcodes', Portal\Inventory\Barcodes::class)->name('inventory.barcodes');
     Route::get('/inventory/{item}', Portal\Inventory\Show::class)->name('inventory.show');
     Route::get('/marketplace', Portal\Marketplace\Index::class)->name('marketplace.index');
+    Route::get('/orders', Portal\Orders\Index::class)->name('orders.index');
+    Route::get('/orders/{order}', Portal\Orders\Show::class)->name('orders.show');
     Route::get('/catalog', Portal\Catalog\Index::class)->name('catalog.index');
     Route::get('/stock-receipts', Portal\StockReceipts\Index::class)->name('stock-receipts.index');
     Route::get('/stock-receipts/{receipt}', Portal\StockReceipts\Show::class)->name('stock-receipts.show');

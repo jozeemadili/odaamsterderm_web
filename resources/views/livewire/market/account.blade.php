@@ -31,7 +31,12 @@
     </x-ui.card>
 
     <x-ui.card>
-        <h2 class="text-[16px] font-light mb-1">Orders</h2>
-        <p class="text-[13px] text-ink-mute">Ordering with store pickup is coming soon. You'll see your orders and their status here.</p>
+        <div class="flex items-center justify-between">
+            <div>
+                <h2 class="text-[16px] font-light mb-1">Orders</h2>
+                <p class="text-[13px] text-ink-mute">Track your orders and pickup status.</p>
+            </div>
+            <a href="{{ route('market.orders') }}" class="text-[13px] text-primary hover:text-primary-deep">My orders &rarr;</a>
+        </div>
     </x-ui.card>
 </div>

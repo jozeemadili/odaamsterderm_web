@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Market;
 
+use App\Livewire\Concerns\AddsToCart;
 use App\Models\Branch;
 use App\Services\MarketplaceSearch;
 use App\Support\MarketLocation;
@@ -13,6 +14,8 @@ use Livewire\Component;
 #[Layout('layouts.market')]
 class StoreShow extends Component
 {
+    use AddsToCart;
+
     public Branch $store;
 
     public function mount(Branch $store, MarketplaceSearch $search): void

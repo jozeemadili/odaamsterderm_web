@@ -28,6 +28,7 @@
                 <livewire:market.location-bar />
                 @auth
                     @if(auth()->user()->isCustomer())
+                        <livewire:market.cart-link />
                         <a href="{{ route('market.account') }}" class="text-white/80 hover:text-white">My account</a>
                     @else
                         <a href="{{ auth()->user()->homeUrl() }}" class="text-white/80 hover:text-white">{{ auth()->user()->isInternal() ? 'Admin' : 'Seller portal' }}</a>

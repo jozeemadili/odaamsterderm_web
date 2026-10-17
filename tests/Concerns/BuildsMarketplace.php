@@ -55,6 +55,7 @@ trait BuildsMarketplace
                 'name' => $product->displayName(),
                 'unit' => $product->unit,
                 'unit_price' => $price,
+                'unit_cost' => round($price * 0.9),
             ]);
 
             if ($onHand > 0) {

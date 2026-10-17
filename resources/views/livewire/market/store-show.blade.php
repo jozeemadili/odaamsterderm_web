@@ -40,17 +40,31 @@
         </div>
     </div>
 
+    @error('cart') <div class="rounded-lg bg-ruby/10 text-ruby px-4 py-2.5 text-[14px]">{{ $message }}</div> @enderror
+    @if($cartMessage)
+        <div class="rounded-lg bg-success-subtle text-success px-4 py-2.5 text-[14px] flex justify-between">
+            <span>{{ $cartMessage }}</span>
+            <a href="{{ route('market.cart') }}" class="font-medium underline">View cart &rarr;</a>
+        </div>
+    @endif
+
     <x-ui.card padding="p-0">
         <div class="px-4 py-3 border-b border-hairline"><h2 class="text-[16px] font-light">Products from this store</h2></div>
         <div class="divide-y divide-hairline">
             @forelse($offers as $offer)
-                <a href="{{ route('market.product', $offer->product->slug) }}" class="flex items-center justify-between gap-3 px-4 py-3 hover:bg-canvas-soft {{ $offer->is_available ? '' : 'text-ink-mute' }}">
-                    <div>
+                <div class="flex flex-wrap items-center justify-between gap-3 px-4 py-3 {{ $offer->is_available ? '' : 'text-ink-mute' }}">
+                    <a href="{{ route('market.product', $offer->product->slug) }}" class="hover:text-primary-deep">
                         <p class="font-medium text-[14px] {{ $offer->is_available ? 'text-ink' : '' }}">{{ $offer->product->displayName() }}</p>
                         <p class="text-[12px] text-ink-mute">{{ $offer->is_available ? rtrim(rtrim((string) $offer->marketplace_quantity, '0'), '.').' '.$offer->product->unit.' available' : 'Out of stock' }}</p>
+                    </a>
+                    <div class="flex items-center gap-3">
+                        <p class="tnum font-medium">TZS {{ number_format($offer->unit_price) }}</p>
+                        @if($offer->is_available)
+                            <input type="number" min="1" step="1" wire:model="quantities.{{ $offer->id }}" placeholder="1" aria-label="Quantity" class="w-16 rounded-sm border border-hairline-input px-2 py-1 text-[13px] tnum">
+                            <x-ui.button size="sm" wire:click="addToCart({{ $offer->id }})" target="addToCart({{ $offer->id }})">Add</x-ui.button>
+                        @endif
                     </div>
-                    <p class="tnum font-medium">TZS {{ number_format($offer->unit_price) }}</p>
-                </a>
+                </div>
             @empty
                 <p class="px-4 py-8 text-center text-ink-mute text-[14px]">This store has no products online right now.</p>
             @endforelse

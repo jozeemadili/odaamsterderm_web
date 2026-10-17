@@ -136,6 +136,79 @@ class InventoryService
     }
 
     /**
+     * Holds units for a new marketplace order. Takes them from the
+     * marketplace quantity (what customers could order) into reserved;
+     * physical stock stays until pickup. Refuses if the listing is no
+     * longer orderable or has too few units — the checkout re-check.
+     *
+     * @param  array{reference?:?string, notes?:?string, recorded_by?:?int}  $meta
+     */
+    public function reserve(InventoryItem|int $item, float $quantity, array $meta = []): StockMovement
+    {
+        $this->assertPositive($quantity);
+
+        return $this->apply($item, StockMovement::TYPE_RESERVE, $quantity, $meta, function (InventoryItem $locked) use ($quantity) {
+            $orderable = $locked->is_marketplace_visible
+                && $locked->marketplace_status === InventoryItem::MARKET_ACTIVE
+                && $locked->marketplaceBlockers() === [];
+
+            if (! $orderable || $quantity > (float) $locked->marketplace_quantity + 0.0001) {
+                $left = $orderable ? $this->format($locked->marketplace_quantity) : '0';
+
+                throw ValidationException::withMessages([
+                    'quantity' => "Only {$left} {$locked->unit} of {$locked->name} can be ordered from this store right now.",
+                ]);
+            }
+
+            $locked->marketplace_quantity = (float) $locked->marketplace_quantity - $quantity;
+            $locked->reserved_quantity = (float) $locked->reserved_quantity + $quantity;
+        });
+    }
+
+    /**
+     * Returns reserved units to the marketplace when an order is rejected
+     * or cancelled.
+     *
+     * @param  array{reference?:?string, notes?:?string, reason?:?string, recorded_by?:?int}  $meta
+     */
+    public function release(InventoryItem|int $item, float $quantity, array $meta = []): StockMovement
+    {
+        $this->assertPositive($quantity);
+
+        return $this->apply($item, StockMovement::TYPE_RELEASE, $quantity, $meta, function (InventoryItem $locked) use ($quantity) {
+            $released = min($quantity, (float) $locked->reserved_quantity);
+            $locked->reserved_quantity = (float) $locked->reserved_quantity - $released;
+            // Back on offer — syncMarketplace() still caps it at unreserved stock.
+            $locked->marketplace_quantity = (float) $locked->marketplace_quantity + $released;
+
+            if ($locked->marketplace_status === InventoryItem::MARKET_OUT_OF_STOCK) {
+                $locked->marketplace_status = InventoryItem::MARKET_ACTIVE;
+            }
+        });
+    }
+
+    /**
+     * The customer collected the order: reserved units leave physical stock.
+     *
+     * @param  array{reference?:?string, notes?:?string, recorded_by?:?int}  $meta
+     */
+    public function fulfilReserved(InventoryItem|int $item, float $quantity, array $meta = []): StockMovement
+    {
+        $this->assertPositive($quantity);
+
+        return $this->apply($item, StockMovement::TYPE_ONLINE_SALE, $quantity, $meta, function (InventoryItem $locked) use ($quantity) {
+            if ($quantity > (float) $locked->reserved_quantity + 0.0001 || $quantity > (float) $locked->quantity_on_hand + 0.0001) {
+                throw ValidationException::withMessages([
+                    'quantity' => "{$locked->name} no longer has {$this->format($quantity)} {$locked->unit} reserved — check the stock count before completing.",
+                ]);
+            }
+
+            $locked->reserved_quantity = (float) $locked->reserved_quantity - $quantity;
+            $locked->quantity_on_hand = (float) $locked->quantity_on_hand - $quantity;
+        });
+    }
+
+    /**
      * @param  callable(InventoryItem): void  $mutate  changes quantity_on_hand / marketplace fields on the locked row
      * @param  (callable(): float)|null  $loggedQuantity  quantity to record when only known after $mutate (adjustments)
      */

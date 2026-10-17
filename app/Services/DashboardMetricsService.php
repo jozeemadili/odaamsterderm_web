@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\InventoryItem;
 use App\Models\Invoice;
 use App\Models\Merchant;
+use App\Models\Order;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -161,10 +162,10 @@ class DashboardMetricsService
     }
 
     /**
-     * What customers can currently see from this seller. Marketplace orders
-     * are added here once ordering ships (Phase 3).
+     * What customers can currently see from this seller, and its
+     * marketplace orders by stage.
      *
-     * @return array{listed_count:int, units_exposed:float, out_of_stock_count:int, hidden_count:int, approved:bool}
+     * @return array{listed_count:int, units_exposed:float, out_of_stock_count:int, hidden_count:int, approved:bool, orders: array<string,int>}
      */
     public function marketplaceSummary(Merchant $merchant): array
     {
@@ -177,6 +178,12 @@ class DashboardMetricsService
                 ->where('marketplace_status', InventoryItem::MARKET_OUT_OF_STOCK)
                 ->count(),
             'hidden_count' => $merchant->inventoryItems()->where('is_marketplace_visible', false)->count(),
+            'orders' => [
+                'pending' => $merchant->orders()->where('status', Order::PENDING)->count(),
+                'accepted' => $merchant->orders()->whereIn('status', [Order::ACCEPTED, Order::PREPARING])->count(),
+                'ready' => $merchant->orders()->where('status', Order::READY)->count(),
+                'completed' => $merchant->orders()->where('status', Order::COMPLETED)->count(),
+            ],
         ];
     }
 

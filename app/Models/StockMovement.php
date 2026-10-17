@@ -20,6 +20,15 @@ class StockMovement extends Model
     /** Change to the marketplace quantity only — physical stock is untouched. */
     public const TYPE_MARKETPLACE = 'marketplace';
 
+    /** Units held for an open marketplace order (physical stock unchanged). */
+    public const TYPE_RESERVE = 'reserve';
+
+    /** Reservation returned to the marketplace (order rejected/cancelled). */
+    public const TYPE_RELEASE = 'release';
+
+    /** Reserved units handed to the customer — physical stock leaves. */
+    public const TYPE_ONLINE_SALE = 'online_sale';
+
     protected function casts(): array
     {
         return [

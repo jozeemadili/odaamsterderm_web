@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Market;
 
+use App\Livewire\Concerns\AddsToCart;
 use App\Models\Product;
 use App\Services\MarketplaceSearch;
 use App\Support\MarketLocation;
@@ -14,6 +15,8 @@ use Livewire\Component;
 #[Layout('layouts.market')]
 class ProductShow extends Component
 {
+    use AddsToCart;
+
     public Product $product;
 
     #[Url]
