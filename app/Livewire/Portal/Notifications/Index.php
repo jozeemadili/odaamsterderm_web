@@ -114,8 +114,11 @@ class Index extends Component
     public function render()
     {
         $merchant = Auth::user()->merchant;
+        $updates = Auth::user()->notifications()->latest()->limit(15)->get();
+        Auth::user()->unreadNotifications->markAsRead();
 
         return view('livewire.portal.notifications.index', [
+            'updates' => $updates,
             'lowStockItems' => $merchant->lowStockItems()->with(['category', 'branch'])->limit(20)->get(),
             'expiringSoonItems' => $merchant->expiringSoonItems()->with(['category', 'branch'])->orderBy('expiry_date')->limit(20)->get(),
             'damagedItems' => $merchant->damageReports()->with(['inventoryItem', 'branch', 'reportedBy'])->latest('reported_at')->limit(20)->get(),

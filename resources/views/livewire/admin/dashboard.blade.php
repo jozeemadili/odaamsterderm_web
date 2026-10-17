@@ -1,4 +1,21 @@
 <div class="space-y-4">
+    @if($marketplace)
+        <x-ui.card>
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-[15px] text-ink-secondary">Marketplace</h2>
+                <a href="{{ route('admin.marketplace.index') }}" class="text-[13px] text-primary hover:text-primary-deep">Open marketplace &rarr;</a>
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
+                <x-ui.stat label="Live stores" :value="$marketplace['live_stores']" tone="primary" />
+                <x-ui.stat label="Listed offers" :value="$marketplace['listed_offers']" />
+                <a href="{{ route('admin.products.index', ['status' => 'pending']) }}"><x-ui.stat label="Products to review" :value="$marketplace['pending_products']" :tone="$marketplace['pending_products'] ? 'lemon' : 'ink'" /></a>
+                <a href="{{ route('admin.orders.index') }}"><x-ui.stat label="Open orders" :value="$marketplace['open_orders']" sub="{{ $marketplace['pending_orders'] }} new" /></a>
+                <x-ui.stat label="GMV (30 days)" value="TZS {{ number_format($marketplace['gmv_30_days']) }}" />
+                <a href="{{ route('admin.marketplace.exceptions') }}"><x-ui.stat label="Exceptions" :value="$marketplace['exceptions']" :tone="$marketplace['exceptions'] ? 'ruby' : 'ink'" /></a>
+            </div>
+        </x-ui.card>
+    @endif
+
     <div class="grid grid-cols-2 lg:grid-cols-5 gap-4">
         <x-ui.card padding="p-5">
             <x-ui.stat label="Total merchants" :value="$totalMerchants" />

@@ -181,7 +181,8 @@
                         $notifyLowStock = $notifyMerchant->lowStockItems()->limit(5)->get();
                         $notifyExpiring = $notifyMerchant->expiringSoonItems()->orderBy('expiry_date')->limit(5)->get();
                         $notifyDamaged = $notifyMerchant->damageReports()->with('inventoryItem')->latest('reported_at')->limit(5)->get();
-                        $notifyCount = $notifyMerchant->lowStockItems()->count() + $notifyMerchant->expiringSoonItems()->count() + $notifyMerchant->damageReports()->count();
+                        $notifyCount = $notifyMerchant->lowStockItems()->count() + $notifyMerchant->expiringSoonItems()->count() + $notifyMerchant->damageReports()->count()
+                            + auth()->user()->unreadNotifications()->count();
                     @endphp
                     <div class="relative" x-data="{ notifyOpen: false }">
                         <button

@@ -24,6 +24,7 @@ class RolesAndPermissionsSeeder extends Seeder
         'view-audit-log',
         'manage-lookup-data',
         'manage-catalog',
+        'monitor-marketplace',
 
         // Merchant portal
         'manage-own-business',
@@ -34,8 +35,8 @@ class RolesAndPermissionsSeeder extends Seeder
 
     private const ROLE_PERMISSIONS = [
         'super_admin' => self::PERMISSIONS,
-        'risk_compliance_officer' => ['view-merchants', 'review-kyc', 'verify-payments', 'view-audit-log'],
-        'support_agent' => ['view-merchants', 'support-merchants'],
+        'risk_compliance_officer' => ['view-merchants', 'review-kyc', 'verify-payments', 'view-audit-log', 'monitor-marketplace'],
+        'support_agent' => ['view-merchants', 'support-merchants', 'monitor-marketplace'],
         'finance_ops' => ['view-merchants', 'manage-merchants', 'verify-payments'],
 
         'merchant_owner' => ['manage-own-business', 'manage-own-staff', 'approve-stock-receipts', 'manage-discount-limits'],

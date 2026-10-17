@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Str;
+use Spatie\Activitylog\Models\Concerns\LogsActivity;
+use Spatie\Activitylog\Support\LogOptions;
 
 /**
  * A marketplace order for pickup: one customer, one seller, one store.
@@ -23,6 +25,8 @@ use Illuminate\Support\Str;
 ])]
 class Order extends Model
 {
+    use LogsActivity;
+
     public const PENDING = 'pending';
 
     public const ACCEPTED = 'accepted';
@@ -67,6 +71,14 @@ class Order extends Model
             'completed_at' => 'datetime',
             'closed_at' => 'datetime',
         ];
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['reference', 'status', 'status_reason', 'total'])
+            ->logOnlyDirty()
+            ->useLogName('order');
     }
 
     public static function newReference(): string

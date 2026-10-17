@@ -12,7 +12,7 @@
                         <x-ui.badge tone="primary">primary</x-ui.badge>
                     @endif
                     @if(! $store->isActive())
-                        <x-ui.badge tone="danger">suspended by platform</x-ui.badge>
+                        <x-ui.badge tone="danger">suspended by platform{{ $store->suspension_reason ? ': '.$store->suspension_reason : '' }}</x-ui.badge>
                     @elseif(! $store->hasLocation())
                         <x-ui.badge tone="warning">no map location</x-ui.badge>
                     @elseif($store->is_marketplace_enabled)

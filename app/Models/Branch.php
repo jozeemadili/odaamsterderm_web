@@ -12,7 +12,7 @@ use Spatie\Activitylog\Support\LogOptions;
 
 #[Fillable([
     'merchant_id', 'name', 'address', 'phone', 'email', 'is_primary', 'region_id', 'city',
-    'latitude', 'longitude', 'pickup_instructions', 'opening_hours', 'is_marketplace_enabled', 'status',
+    'latitude', 'longitude', 'pickup_instructions', 'opening_hours', 'is_marketplace_enabled', 'status', 'suspension_reason',
 ])]
 class Branch extends Model
 {
@@ -44,7 +44,7 @@ class Branch extends Model
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-            ->logOnly(['name', 'address', 'latitude', 'longitude', 'is_marketplace_enabled', 'status'])
+            ->logOnly(['name', 'address', 'latitude', 'longitude', 'is_marketplace_enabled', 'status', 'suspension_reason'])
             ->logOnlyDirty()
             ->useLogName('store');
     }

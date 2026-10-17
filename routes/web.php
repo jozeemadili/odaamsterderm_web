@@ -61,6 +61,12 @@ Route::middleware(['auth', 'internal'])->prefix('admin')->name('admin.')->group(
     Route::get('/users', Admin\Users\Index::class)->name('users.index');
     Route::get('/business-types', Admin\BusinessTypes\Index::class)->name('business-types.index');
     Route::get('/catalog/products', Admin\Products\Index::class)->name('products.index');
+    Route::get('/marketplace', Admin\Marketplace\Index::class)->name('marketplace.index');
+    Route::get('/marketplace/exceptions', Admin\Marketplace\Exceptions::class)->name('marketplace.exceptions');
+    Route::get('/marketplace/orders', Admin\Orders\Index::class)->name('orders.index');
+    Route::get('/marketplace/orders/{order}', Admin\Orders\Show::class)->name('orders.show');
+    Route::get('/marketplace/stores', Admin\Stores\Index::class)->name('stores.index');
+    Route::get('/reports/marketplace', Admin\Reports\Marketplace::class)->name('reports.marketplace');
     Route::get('/catalog/animal-types', Admin\AnimalTypes\Index::class)->name('animal-types.index');
     Route::get('/catalog/categories', Admin\ProductCategories\Index::class)->name('product-categories.index');
     Route::get('/audit-log', Admin\AuditLog\Index::class)->name('audit-log.index');

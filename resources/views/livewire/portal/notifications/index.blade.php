@@ -1,4 +1,19 @@
 <div class="space-y-4">
+    @if($updates->isNotEmpty())
+        <x-ui.card padding="p-0">
+            <div class="px-5 py-3 border-b border-hairline"><h2 class="text-[15px] text-ink-secondary">Orders &amp; platform updates</h2></div>
+            <div class="divide-y divide-hairline">
+                @foreach($updates as $n)
+                    <a href="{{ isset($n->data['order_id']) ? route('portal.orders.show', $n->data['order_id']) : (isset($n->data['store_id']) ? route('portal.stores.show', $n->data['store_id']) : '#') }}"
+                        class="block px-5 py-2.5 hover:bg-canvas-soft {{ $n->read_at ? '' : 'bg-primary-subtle/20' }}">
+                        <p class="text-[13px] font-medium">{{ $n->data['title'] ?? '' }}</p>
+                        <p class="text-[12px] text-ink-mute">{{ $n->data['message'] ?? '' }} · {{ $n->created_at->diffForHumans() }}</p>
+                    </a>
+                @endforeach
+            </div>
+        </x-ui.card>
+    @endif
+
     <div class="flex justify-end">
         <x-ui.button wire:click="$toggle('showDamageForm')">
             {{ $showDamageForm ? 'Cancel' : '+ Report damaged product' }}

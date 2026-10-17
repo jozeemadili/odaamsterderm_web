@@ -26,6 +26,7 @@ class BranchResource extends JsonResource
             'opening_hours' => $this->opening_hours,
             'is_marketplace_enabled' => (bool) $this->is_marketplace_enabled,
             'status' => $this->status,
+            'suspension_reason' => $this->suspension_reason,
             'is_primary' => $this->is_primary,
             'product_count' => $this->inventory_items_count ?? $this->inventoryItems()->count(),
             'stock_value' => $summary['stockValue'],

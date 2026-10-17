@@ -86,6 +86,25 @@
                     </a>
                     @endcan
 
+                    @can('monitor-marketplace')
+                    <p class="px-3 pt-4 pb-1 text-[10px] uppercase tracking-wider text-white/35">Marketplace</p>
+                    <a href="{{ route('admin.marketplace.index') }}" class="icon-dock-item {{ request()->routeIs('admin.marketplace.index') ? 'is-active' : '' }}">
+                        <x-icon.target class="h-4 w-4 shrink-0" /> Overview
+                    </a>
+                    <a href="{{ route('admin.orders.index') }}" class="icon-dock-item {{ request()->routeIs('admin.orders.*') ? 'is-active' : '' }}">
+                        <x-icon.receipt class="h-4 w-4 shrink-0" /> Orders
+                    </a>
+                    <a href="{{ route('admin.stores.index') }}" class="icon-dock-item {{ request()->routeIs('admin.stores.*') ? 'is-active' : '' }}">
+                        <x-icon.store class="h-4 w-4 shrink-0" /> Stores
+                    </a>
+                    <a href="{{ route('admin.marketplace.exceptions') }}" class="icon-dock-item {{ request()->routeIs('admin.marketplace.exceptions') ? 'is-active' : '' }}">
+                        <x-icon.shield class="h-4 w-4 shrink-0" /> Exceptions
+                    </a>
+                    <a href="{{ route('admin.reports.marketplace') }}" class="icon-dock-item {{ request()->routeIs('admin.reports.*') ? 'is-active' : '' }}">
+                        <x-icon.sales class="h-4 w-4 shrink-0" /> Reports
+                    </a>
+                    @endcan
+
                     @can('manage-catalog')
                     <p class="px-3 pt-4 pb-1 text-[10px] uppercase tracking-wider text-white/35">Catalog</p>
                     <a href="{{ route('admin.products.index') }}" class="icon-dock-item {{ request()->routeIs('admin.products.*') ? 'is-active' : '' }}">

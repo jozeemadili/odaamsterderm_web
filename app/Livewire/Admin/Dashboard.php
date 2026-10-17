@@ -4,6 +4,7 @@ namespace App\Livewire\Admin;
 
 use App\Models\Merchant;
 use App\Models\PaymentRecord;
+use App\Services\MarketplaceMonitor;
 use Illuminate\Support\Carbon;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -12,7 +13,7 @@ use Spatie\Activitylog\Models\Activity;
 #[Layout('layouts.admin', ['title' => 'Dashboard'])]
 class Dashboard extends Component
 {
-    public function render()
+    public function render(MarketplaceMonitor $monitor)
     {
         $days = collect(range(13, 0))->map(fn ($i) => now()->subDays($i)->toDateString());
 
@@ -45,6 +46,7 @@ class Dashboard extends Component
             'regionLabels' => $regionCounts->keys()->all(),
             'regionValues' => $regionCounts->values()->all(),
             'recentActivity' => Activity::with('causer')->latest()->limit(6)->get(),
+            'marketplace' => auth()->user()->can('monitor-marketplace') ? $monitor->overview() : null,
         ]);
     }
 }
