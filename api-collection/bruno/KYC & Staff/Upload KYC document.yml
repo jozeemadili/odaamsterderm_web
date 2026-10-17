@@ -1,0 +1,14 @@
+info:
+  name: Upload KYC document
+  type: http
+  seq: 2
+http:
+  method: POST
+  url: '{{base_url}}/kyc-documents'
+  auth: inherit
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+docs: "document_type: national_id | business_license | tin_certificate | other\n\nThis endpoint expects a multipart/form-data upload. Switch this request's Body tab to Multipart Form in Bruno and add the file field(s) manually \u2014 file fields can't be pre-filled from a template.\n\nText fields to add: document_type=national_id\n\nFile field(s) to add: file"

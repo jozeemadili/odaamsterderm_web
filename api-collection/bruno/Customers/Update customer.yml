@@ -1,0 +1,19 @@
+info:
+  name: Update customer
+  type: http
+  seq: 4
+http:
+  method: PATCH
+  url: '{{base_url}}/customers/{{customer_id}}'
+  body:
+    type: json
+    data: |-
+      {
+        "phone": "+255744000111"
+      }
+  auth: inherit
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

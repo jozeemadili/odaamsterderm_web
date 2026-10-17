@@ -1,0 +1,14 @@
+info:
+  name: Upload shop logo
+  type: http
+  seq: 3
+http:
+  method: POST
+  url: '{{base_url}}/merchant/logo'
+  auth: inherit
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+docs: "This endpoint expects a multipart/form-data upload. Switch this request's Body tab to Multipart Form in Bruno and add the file field(s) manually \u2014 file fields can't be pre-filled from a template.\n\nFile field(s) to add: logo"

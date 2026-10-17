@@ -1,0 +1,30 @@
+info:
+  name: Create product
+  type: http
+  seq: 2
+http:
+  method: POST
+  url: '{{base_url}}/inventory'
+  body:
+    type: json
+    data: |-
+      {
+        "name": "Rice 2kg",
+        "sku": "RIC-2KG",
+        "barcode": null,
+        "category_id": null,
+        "branch_id": null,
+        "unit": "bag",
+        "reorder_level": 5,
+        "unit_cost": 4500,
+        "unit_price": 5500,
+        "quantity_on_hand": 20,
+        "expiry_date": null
+      }
+  auth: inherit
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+docs: Leave barcode null/omitted to have one generated automatically.

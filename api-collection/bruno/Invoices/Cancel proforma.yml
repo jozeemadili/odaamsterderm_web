@@ -1,0 +1,13 @@
+info:
+  name: Cancel proforma
+  type: http
+  seq: 9
+http:
+  method: POST
+  url: '{{base_url}}/invoices/{{invoice_id}}/cancel'
+  auth: inherit
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

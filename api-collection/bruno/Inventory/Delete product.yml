@@ -1,0 +1,13 @@
+info:
+  name: Delete product
+  type: http
+  seq: 7
+http:
+  method: DELETE
+  url: '{{base_url}}/inventory/{{item_id}}'
+  auth: inherit
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

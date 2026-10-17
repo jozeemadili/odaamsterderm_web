@@ -1,0 +1,21 @@
+info:
+  name: Add existing product to receipt
+  type: http
+  seq: 4
+http:
+  method: POST
+  url: '{{base_url}}/stock-receipts/{{receipt_id}}/items'
+  body:
+    type: json
+    data: |-
+      {
+        "inventory_item_id": 1,
+        "quantity": 10,
+        "unit_cost": 4500
+      }
+  auth: inherit
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

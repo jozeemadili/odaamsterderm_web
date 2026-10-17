@@ -1,0 +1,43 @@
+opencollection: 1.0.0
+info:
+  name: DUKAFLOW BACKEND
+config:
+  proxy:
+    inherit: true
+    config:
+      protocol: http
+      hostname: ''
+      port: ''
+      auth:
+        username: ''
+        password: ''
+      bypassProxy: ''
+request:
+  auth:
+    type: bearer
+    token: '{{token}}'
+  variables:
+  - name: base_url
+    value: https://dukaflow-production-lfgbd3.laravel.cloud/api/v1
+  - name: token
+    value: ''
+  - name: item_id
+    value: '1'
+  - name: invoice_id
+    value: '1'
+  - name: receipt_id
+    value: '1'
+  - name: sale_id
+    value: '1'
+  - name: customer_id
+    value: '1'
+  - name: supplier_id
+    value: '1'
+  - name: barcode
+    value: ''
+bundled: false
+extensions:
+  bruno:
+    ignore:
+    - node_modules
+    - .git

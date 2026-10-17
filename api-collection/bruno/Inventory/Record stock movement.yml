@@ -1,0 +1,21 @@
+info:
+  name: Record stock movement
+  type: http
+  seq: 10
+http:
+  method: POST
+  url: '{{base_url}}/inventory/{{item_id}}/stock-movement'
+  body:
+    type: json
+    data: |-
+      {
+        "type": "in",
+        "quantity": 5
+      }
+  auth: inherit
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+docs: 'type: in | out | adjustment'

@@ -1,0 +1,22 @@
+info:
+  name: Create expense
+  type: http
+  seq: 2
+http:
+  method: POST
+  url: '{{base_url}}/expenses'
+  body:
+    type: json
+    data: |-
+      {
+        "category": "Rent",
+        "amount": 200000,
+        "description": null,
+        "expense_date": "2026-09-01"
+      }
+  auth: inherit
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

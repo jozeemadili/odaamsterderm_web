@@ -1,0 +1,13 @@
+info:
+  name: Generate barcode for product
+  type: http
+  seq: 9
+http:
+  method: POST
+  url: '{{base_url}}/inventory/{{item_id}}/barcode'
+  auth: inherit
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

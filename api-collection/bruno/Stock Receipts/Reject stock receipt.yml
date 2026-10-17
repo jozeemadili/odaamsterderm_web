@@ -1,0 +1,13 @@
+info:
+  name: Reject stock receipt
+  type: http
+  seq: 8
+http:
+  method: POST
+  url: '{{base_url}}/stock-receipts/{{receipt_id}}/reject'
+  auth: inherit
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

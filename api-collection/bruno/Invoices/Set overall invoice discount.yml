@@ -1,0 +1,20 @@
+info:
+  name: Set overall invoice discount
+  type: http
+  seq: 7
+http:
+  method: PATCH
+  url: '{{base_url}}/invoices/{{invoice_id}}/discount'
+  body:
+    type: json
+    data: |-
+      {
+        "discount_type": "percent",
+        "discount_value": 10
+      }
+  auth: inherit
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

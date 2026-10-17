@@ -1,0 +1,23 @@
+info:
+  name: List sales
+  type: http
+  seq: 1
+http:
+  method: GET
+  url: '{{base_url}}/sales?date_from=&date_to=&per_page=20'
+  params:
+  - name: date_from
+    value: ''
+    type: query
+  - name: date_to
+    value: ''
+    type: query
+  - name: per_page
+    value: '20'
+    type: query
+  auth: inherit
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

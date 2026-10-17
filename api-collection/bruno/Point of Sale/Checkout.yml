@@ -1,0 +1,34 @@
+info:
+  name: Checkout
+  type: http
+  seq: 2
+http:
+  method: POST
+  url: '{{base_url}}/pos/checkout'
+  body:
+    type: json
+    data: |-
+      {
+        "items": [
+          {
+            "inventory_item_id": 1,
+            "quantity": 2,
+            "discount_type": null,
+            "discount_value": null
+          }
+        ],
+        "customer_id": null,
+        "overall_discount_type": null,
+        "overall_discount_value": null,
+        "payment_method_id": null,
+        "amount_tendered": 10000,
+        "approver_email": null,
+        "approver_password": null
+      }
+  auth: inherit
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+docs: "If the discount exceeds the cashier's limit, returns 422 with needs_approval:true \u2014 retry with approver_email/approver_password from a supervisor/manager."

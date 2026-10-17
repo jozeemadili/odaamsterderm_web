@@ -1,0 +1,23 @@
+info:
+  name: Record invoice payment
+  type: http
+  seq: 10
+http:
+  method: POST
+  url: '{{base_url}}/invoices/{{invoice_id}}/payments'
+  body:
+    type: json
+    data: |-
+      {
+        "amount": 5000,
+        "payment_method_id": null,
+        "payment_date": "2026-09-01",
+        "reference": null
+      }
+  auth: inherit
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+docs: Rejects with 422 if amount exceeds the balance due.

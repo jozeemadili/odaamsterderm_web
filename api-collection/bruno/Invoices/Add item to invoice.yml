@@ -1,0 +1,23 @@
+info:
+  name: Add item to invoice
+  type: http
+  seq: 5
+http:
+  method: POST
+  url: '{{base_url}}/invoices/{{invoice_id}}/items'
+  body:
+    type: json
+    data: |-
+      {
+        "inventory_item_id": 1,
+        "quantity": 2,
+        "unit_price": 5500,
+        "discount_type": null,
+        "discount_value": null
+      }
+  auth: inherit
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -1,0 +1,22 @@
+info:
+  name: Update merchant profile
+  type: http
+  seq: 2
+http:
+  method: PATCH
+  url: '{{base_url}}/merchant'
+  body:
+    type: json
+    data: |-
+      {
+        "business_name": "Mama Amina Duka",
+        "phone": "+255700000001",
+        "region": "Dar es Salaam",
+        "brand_color": "#01162F"
+      }
+  auth: inherit
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

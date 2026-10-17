@@ -1,0 +1,14 @@
+info:
+  name: Approve stock receipt
+  type: http
+  seq: 7
+http:
+  method: POST
+  url: '{{base_url}}/stock-receipts/{{receipt_id}}/approve'
+  auth: inherit
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+docs: Requires the approve-stock-receipts permission. Posts stock quantities.

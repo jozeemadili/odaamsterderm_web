@@ -1,0 +1,14 @@
+info:
+  name: Record payment (with proof of payment)
+  type: http
+  seq: 4
+http:
+  method: POST
+  url: '{{base_url}}/payments'
+  auth: inherit
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+docs: "This endpoint expects a multipart/form-data upload. Switch this request's Body tab to Multipart Form in Bruno and add the file field(s) manually \u2014 file fields can't be pre-filled from a template.\n\nText fields to add: amount=50000, payer_name=Peter Mnyamani, payment_date=2026-09-01, notes=\n\nFile field(s) to add: proof_of_payment"

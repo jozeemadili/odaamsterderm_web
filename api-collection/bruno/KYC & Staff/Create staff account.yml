@@ -1,0 +1,23 @@
+info:
+  name: Create staff account
+  type: http
+  seq: 4
+http:
+  method: POST
+  url: '{{base_url}}/staff'
+  body:
+    type: json
+    data: |-
+      {
+        "name": "John Cashier",
+        "email": "john@example.com",
+        "phone": null,
+        "role": "merchant_sales"
+      }
+  auth: inherit
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+docs: 'role: merchant_manager | merchant_supervisor | merchant_sales | merchant_accountant'

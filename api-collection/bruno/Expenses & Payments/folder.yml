@@ -1,0 +1,6 @@
+info:
+  name: Expenses & Payments
+  type: folder
+  seq: 11
+request:
+  auth: inherit

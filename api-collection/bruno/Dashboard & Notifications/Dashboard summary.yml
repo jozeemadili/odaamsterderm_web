@@ -1,0 +1,18 @@
+info:
+  name: Dashboard summary
+  type: http
+  seq: 1
+http:
+  method: GET
+  url: '{{base_url}}/dashboard?period=month'
+  params:
+  - name: period
+    value: month
+    type: query
+  auth: inherit
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+docs: 'period: week | month | year (defaults to month if omitted or invalid). Controls both the sales_total/expenses_total range and the trend granularity — week and month bucket by day, year buckets by calendar month.'

@@ -1,0 +1,133 @@
+<?php
+
+use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\BranchController;
+use App\Http\Controllers\Api\CustomerController;
+use App\Http\Controllers\Api\DamageReportController;
+use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\Api\ExpenseController;
+use App\Http\Controllers\Api\InventoryController;
+use App\Http\Controllers\Api\InvoiceController;
+use App\Http\Controllers\Api\KycDocumentController;
+use App\Http\Controllers\Api\LookupController;
+use App\Http\Controllers\Api\MerchantController;
+use App\Http\Controllers\Api\NotificationController;
+use App\Http\Controllers\Api\PaymentController;
+use App\Http\Controllers\Api\PaymentMethodController;
+use App\Http\Controllers\Api\PosController;
+use App\Http\Controllers\Api\ReportController;
+use App\Http\Controllers\Api\SalesController;
+use App\Http\Controllers\Api\StaffController;
+use App\Http\Controllers\Api\StockReceiptController;
+use App\Http\Controllers\Api\SupplierController;
+use Illuminate\Support\Facades\Route;
+
+Route::prefix('v1')->group(function () {
+
+    // --- Auth (public) --------------------------------------------------
+    Route::post('/auth/google', [AuthController::class, 'google']);
+    Route::post('/auth/register', [AuthController::class, 'register']);
+    Route::post('/auth/login', [AuthController::class, 'login']);
+
+    // Reference data for the registration screen — no session token yet.
+    Route::get('/business-types', [LookupController::class, 'businessTypes']);
+    Route::get('/regions', [LookupController::class, 'regions']);
+
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::post('/auth/logout', [AuthController::class, 'logout']);
+        Route::get('/auth/me', [AuthController::class, 'me']);
+
+        // Everything below requires an active merchant account.
+        Route::middleware('api.merchant')->group(function () {
+
+            // --- Merchant / branding ------------------------------------
+            Route::get('/merchant', [MerchantController::class, 'show']);
+            Route::patch('/merchant', [MerchantController::class, 'update']);
+            Route::post('/merchant/logo', [MerchantController::class, 'uploadLogo']);
+
+            // --- Inventory -----------------------------------------------
+            Route::get('/inventory', [InventoryController::class, 'index']);
+            Route::post('/inventory', [InventoryController::class, 'store']);
+            Route::get('/inventory/categories', [InventoryController::class, 'categories']);
+            Route::post('/inventory/categories', [InventoryController::class, 'storeCategory']);
+            Route::get('/inventory/lookup-barcode/{code}', [InventoryController::class, 'lookupBarcode']);
+            Route::post('/inventory/barcode-labels', [InventoryController::class, 'barcodeLabelsPdf']);
+            Route::get('/inventory/{item}', [InventoryController::class, 'show']);
+            Route::patch('/inventory/{item}', [InventoryController::class, 'update']);
+            Route::delete('/inventory/{item}', [InventoryController::class, 'destroy']);
+            Route::post('/inventory/{item}/image', [InventoryController::class, 'uploadImage']);
+            Route::post('/inventory/{item}/barcode', [InventoryController::class, 'generateBarcode']);
+            Route::post('/inventory/{item}/stock-movement', [InventoryController::class, 'stockMovement']);
+
+            // --- Branches / stores -----------------------------------------
+            Route::get('/branches', [BranchController::class, 'index']);
+            Route::post('/branches', [BranchController::class, 'store']);
+            Route::get('/branches/{branch}', [BranchController::class, 'show']);
+
+            // --- Stock receipts --------------------------------------------
+            Route::get('/stock-receipts', [StockReceiptController::class, 'index']);
+            Route::post('/stock-receipts', [StockReceiptController::class, 'store']);
+            Route::get('/stock-receipts/{receipt}', [StockReceiptController::class, 'show']);
+            Route::post('/stock-receipts/{receipt}/items', [StockReceiptController::class, 'addItem']);
+            Route::delete('/stock-receipts/{receipt}/items/{item}', [StockReceiptController::class, 'removeItem']);
+            Route::post('/stock-receipts/{receipt}/approve', [StockReceiptController::class, 'approve']);
+            Route::post('/stock-receipts/{receipt}/reject', [StockReceiptController::class, 'reject']);
+
+            // --- Point of sale -----------------------------------------
+            Route::post('/pos/checkout', [PosController::class, 'checkout']);
+            Route::get('/payment-methods', [PaymentMethodController::class, 'index']);
+
+            // --- Sales ---------------------------------------------------
+            Route::get('/sales', [SalesController::class, 'index']);
+            Route::get('/sales/{sale}', [SalesController::class, 'show']);
+
+            // --- Invoices ------------------------------------------------
+            Route::get('/invoices', [InvoiceController::class, 'index']);
+            Route::post('/invoices', [InvoiceController::class, 'store']);
+            Route::get('/invoices/{invoice}', [InvoiceController::class, 'show']);
+            Route::get('/invoices/{invoice}/pdf', [InvoiceController::class, 'pdf']);
+            Route::post('/invoices/{invoice}/items', [InvoiceController::class, 'addItem']);
+            Route::delete('/invoices/{invoice}/items/{item}', [InvoiceController::class, 'removeItem']);
+            Route::patch('/invoices/{invoice}/discount', [InvoiceController::class, 'setDiscount']);
+            Route::post('/invoices/{invoice}/approve', [InvoiceController::class, 'approve']);
+            Route::post('/invoices/{invoice}/cancel', [InvoiceController::class, 'cancel']);
+            Route::post('/invoices/{invoice}/payments', [InvoiceController::class, 'recordPayment']);
+
+            // --- Customers -------------------------------------------------
+            Route::get('/customers', [CustomerController::class, 'index']);
+            Route::post('/customers', [CustomerController::class, 'store']);
+            Route::get('/customers/{customer}', [CustomerController::class, 'show']);
+            Route::patch('/customers/{customer}', [CustomerController::class, 'update']);
+
+            // --- Suppliers -------------------------------------------------
+            Route::get('/suppliers', [SupplierController::class, 'index']);
+            Route::post('/suppliers', [SupplierController::class, 'store']);
+            Route::get('/suppliers/{supplier}', [SupplierController::class, 'show']);
+            Route::patch('/suppliers/{supplier}', [SupplierController::class, 'update']);
+
+            // --- Expenses & payments -----------------------------------
+            Route::get('/expenses', [ExpenseController::class, 'index']);
+            Route::post('/expenses', [ExpenseController::class, 'store']);
+            Route::get('/payments', [PaymentController::class, 'index']);
+            Route::post('/payments', [PaymentController::class, 'store']);
+
+            // --- Dashboard & notifications -------------------------------
+            Route::get('/dashboard', [DashboardController::class, 'index']);
+            Route::get('/notifications', [NotificationController::class, 'index']);
+
+            // --- Damaged stock reporting -----------------------------------
+            Route::get('/damage-reports', [DamageReportController::class, 'index']);
+            Route::post('/damage-reports', [DamageReportController::class, 'store']);
+
+            // --- Reports ---------------------------------------------------
+            Route::get('/reports/sales/today', [ReportController::class, 'todaySales']);
+            Route::get('/reports/product-performance', [ReportController::class, 'productPerformance']);
+
+            // --- KYC & staff -------------------------------------------
+            Route::get('/kyc-documents', [KycDocumentController::class, 'index']);
+            Route::post('/kyc-documents', [KycDocumentController::class, 'store']);
+            Route::get('/staff', [StaffController::class, 'index']);
+            Route::post('/staff', [StaffController::class, 'store']);
+        });
+    });
+});

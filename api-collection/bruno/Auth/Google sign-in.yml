@@ -1,0 +1,26 @@
+info:
+  name: Google sign-in
+  type: http
+  seq: 1
+http:
+  method: POST
+  url: '{{base_url}}/auth/google'
+  body:
+    type: json
+    data: |-
+      {
+        "id_token": "PASTE_A_REAL_GOOGLE_ID_TOKEN_HERE"
+      }
+  auth:
+    type: bearer
+    token: ''
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+runtime:
+  scripts:
+  - type: after-response
+    code: if (res?.body?.token) bru.setVar("token", res.body.token);
+docs: Verifies a Google ID token (from Flutter's native Google Sign-In, requested with serverClientId = the web GOOGLE_CLIENT_ID). Returns a token if the user already exists, or {needs_registration:true, google_id, email, name} if they need to complete registration via Register.

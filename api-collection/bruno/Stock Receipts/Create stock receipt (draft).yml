@@ -1,0 +1,22 @@
+info:
+  name: Create stock receipt (draft)
+  type: http
+  seq: 2
+http:
+  method: POST
+  url: '{{base_url}}/stock-receipts'
+  body:
+    type: json
+    data: |-
+      {
+        "supplier_id": null,
+        "reference_no": null,
+        "receipt_date": "2026-09-01",
+        "notes": null
+      }
+  auth: inherit
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

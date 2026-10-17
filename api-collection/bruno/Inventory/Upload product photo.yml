@@ -1,0 +1,14 @@
+info:
+  name: Upload product photo
+  type: http
+  seq: 8
+http:
+  method: POST
+  url: '{{base_url}}/inventory/{{item_id}}/image'
+  auth: inherit
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+docs: "Same endpoint whether the image came from the camera or the gallery.\n\nThis endpoint expects a multipart/form-data upload. Switch this request's Body tab to Multipart Form in Bruno and add the file field(s) manually \u2014 file fields can't be pre-filled from a template.\n\nFile field(s) to add: image"

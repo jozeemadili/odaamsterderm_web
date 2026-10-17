@@ -1,0 +1,19 @@
+info:
+  name: Update supplier
+  type: http
+  seq: 4
+http:
+  method: PATCH
+  url: '{{base_url}}/suppliers/{{supplier_id}}'
+  body:
+    type: json
+    data: |-
+      {
+        "phone": "+255700222333"
+      }
+  auth: inherit
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

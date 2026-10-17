@@ -1,0 +1,13 @@
+info:
+  name: Remove item from receipt
+  type: http
+  seq: 6
+http:
+  method: DELETE
+  url: '{{base_url}}/stock-receipts/{{receipt_id}}/items/{{item_id}}'
+  auth: inherit
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

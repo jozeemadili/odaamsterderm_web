@@ -1,0 +1,33 @@
+info:
+  name: Register
+  type: http
+  seq: 2
+http:
+  method: POST
+  url: '{{base_url}}/auth/register'
+  body:
+    type: json
+    data: |-
+      {
+        "business_name": "Mama Amina Duka",
+        "owner_name": "Amina Juma",
+        "phone": "+255700000001",
+        "business_type": "Retail",
+        "region": "Dar es Salaam",
+        "email": "amina@example.com",
+        "password": "password123",
+        "google_id": null
+      }
+  auth:
+    type: bearer
+    token: ''
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+runtime:
+  scripts:
+  - type: after-response
+    code: if (res?.body?.token) bru.setVar("token", res.body.token);
+docs: Self-service merchant registration. Omit `password` and pass `google_id` instead when completing a Google sign-up (from the `needs_registration` response of /auth/google).

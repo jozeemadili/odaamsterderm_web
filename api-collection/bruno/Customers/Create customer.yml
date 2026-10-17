@@ -1,0 +1,24 @@
+info:
+  name: Create customer
+  type: http
+  seq: 2
+http:
+  method: POST
+  url: '{{base_url}}/customers'
+  body:
+    type: json
+    data: |-
+      {
+        "name": "Peter Mnyamani",
+        "phone": "+255744000111",
+        "email": null,
+        "address": null,
+        "tin_number": null,
+        "notes": null
+      }
+  auth: inherit
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

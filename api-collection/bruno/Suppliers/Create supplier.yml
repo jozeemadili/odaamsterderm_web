@@ -1,0 +1,23 @@
+info:
+  name: Create supplier
+  type: http
+  seq: 2
+http:
+  method: POST
+  url: '{{base_url}}/suppliers'
+  body:
+    type: json
+    data: |-
+      {
+        "name": "ABC Distributors",
+        "contact_person": null,
+        "phone": null,
+        "address": null,
+        "notes": null
+      }
+  auth: inherit
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

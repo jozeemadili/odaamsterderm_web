@@ -1,0 +1,22 @@
+info:
+  name: Create invoice (proforma draft)
+  type: http
+  seq: 2
+http:
+  method: POST
+  url: '{{base_url}}/invoices'
+  body:
+    type: json
+    data: |-
+      {
+        "customer_id": 1,
+        "issue_date": "2026-09-01",
+        "due_date": null,
+        "notes": null
+      }
+  auth: inherit
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

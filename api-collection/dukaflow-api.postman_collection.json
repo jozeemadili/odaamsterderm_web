@@ -1,0 +1,1709 @@
+{
+  "info": {
+    "_postman_id": "71958cec-ef56-40a5-a1e0-9a1f2ac61671",
+    "name": "DukaFlow Mobile API (v1)",
+    "description": "REST API backing the DukaFlow Flutter mobile app. Token auth via Laravel Sanctum: call Register/Login/Google sign-in once, the token is saved automatically into {{token}} for every other request. Set {{base_url}} to your environment.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://dukaflow-production-lfgbd3.laravel.cloud/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Google sign-in",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/google",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "google"
+              ]
+            },
+            "description": "Verifies a Google ID token (from Flutter's native Google Sign-In, requested with serverClientId = the web GOOGLE_CLIENT_ID). Returns a token if the user already exists, or {needs_registration:true, google_id, email, name} if they need to complete registration via Register.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id_token\": \"PASTE_A_REAL_GOOGLE_ID_TOKEN_HERE\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const body = pm.response.json();",
+                  "    if (body.token) {",
+                  "        pm.collectionVariables.set('token', body.token);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/register",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
+            },
+            "description": "Self-service merchant registration. Omit `password` and pass `google_id` instead when completing a Google sign-up (from the `needs_registration` response of /auth/google).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"business_name\": \"Mama Amina Duka\",\n  \"owner_name\": \"Amina Juma\",\n  \"phone\": \"+255700000001\",\n  \"business_type\": \"Retail\",\n  \"region\": \"Dar es Salaam\",\n  \"email\": \"amina@example.com\",\n  \"password\": \"password123\",\n  \"google_id\": null\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const body = pm.response.json();",
+                  "    if (body.token) {",
+                  "        pm.collectionVariables.set('token', body.token);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"amina@example.com\",\n  \"password\": \"password123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const body = pm.response.json();",
+                  "    if (body.token) {",
+                  "        pm.collectionVariables.set('token', body.token);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/auth/logout",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "logout"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Current user (me)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/auth/me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "me"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Merchant",
+      "item": [
+        {
+          "name": "Get merchant profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/merchant",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "merchant"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update merchant profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/merchant",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "merchant"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"business_name\": \"Mama Amina Duka\",\n  \"phone\": \"+255700000001\",\n  \"region\": \"Dar es Salaam\",\n  \"brand_color\": \"#01162F\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Upload shop logo",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/merchant/logo",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "merchant",
+                "logo"
+              ]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "logo",
+                  "type": "file",
+                  "src": null
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Inventory",
+      "item": [
+        {
+          "name": "List products",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/inventory?search=&category_id=&per_page=20",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "inventory"
+              ],
+              "query": [
+                {
+                  "key": "search",
+                  "value": ""
+                },
+                {
+                  "key": "category_id",
+                  "value": ""
+                },
+                {
+                  "key": "per_page",
+                  "value": "20"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create product",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/inventory",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "inventory"
+              ]
+            },
+            "description": "Leave barcode null/omitted to have one generated automatically.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Rice 2kg\",\n  \"sku\": \"RIC-2KG\",\n  \"barcode\": null,\n  \"category_id\": null,\n  \"branch_id\": null,\n  \"unit\": \"bag\",\n  \"reorder_level\": 5,\n  \"unit_cost\": 4500,\n  \"unit_price\": 5500,\n  \"quantity_on_hand\": 20,\n  \"expiry_date\": null\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List categories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/inventory/categories",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "inventory",
+                "categories"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Scan barcode (lookup product)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/inventory/lookup-barcode/:code",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "inventory",
+                "lookup-barcode",
+                ":code"
+              ]
+            },
+            "description": "Set :code to the scanned barcode. Returns 404 if no product matches, so the app can offer 'add new product'."
+          },
+          "response": []
+        },
+        {
+          "name": "Get product",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/inventory/:item",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "inventory",
+                ":item"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update product",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/inventory/:item",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "inventory",
+                ":item"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Rice 2kg\",\n  \"unit_price\": 5800\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete product",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/inventory/:item",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "inventory",
+                ":item"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Upload product photo",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/inventory/:item/image",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "inventory",
+                ":item",
+                "image"
+              ]
+            },
+            "description": "Same endpoint whether the image came from the camera or the gallery.",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "image",
+                  "type": "file",
+                  "src": null
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Generate barcode for product",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/inventory/:item/barcode",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "inventory",
+                ":item",
+                "barcode"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Record stock movement",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/inventory/:item/stock-movement",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "inventory",
+                ":item",
+                "stock-movement"
+              ]
+            },
+            "description": "type: in | out | adjustment",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"in\",\n  \"quantity\": 5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Barcode labels PDF",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/inventory/barcode-labels",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "inventory",
+                "barcode-labels"
+              ]
+            },
+            "description": "Returns the PDF binary directly (application/pdf) — same 3-up Code128 label sheet as the web portal's Barcode labels page. Only products with a barcode are included; item_ids belonging to another merchant or without a barcode are silently skipped.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"item_ids\": [1],\n  \"show_product_name\": true,\n  \"show_price\": true,\n  \"copies\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Branches / Stores",
+      "item": [
+        {
+          "name": "List branches / stores",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/branches",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "branches"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create branch / store",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/branches",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "branches"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Main Branch\",\n  \"address\": \"\",\n  \"phone\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Stock Receipts",
+      "item": [
+        {
+          "name": "List stock receipts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/stock-receipts",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "stock-receipts"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create stock receipt (draft)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/stock-receipts",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "stock-receipts"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"supplier_id\": null,\n  \"reference_no\": null,\n  \"receipt_date\": \"2026-09-01\",\n  \"notes\": null\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get stock receipt",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/stock-receipts/:receipt",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "stock-receipts",
+                ":receipt"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Add existing product to receipt",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/stock-receipts/:receipt/items",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "stock-receipts",
+                ":receipt",
+                "items"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"inventory_item_id\": 1,\n  \"quantity\": 10,\n  \"unit_cost\": 4500\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Add brand-new product to receipt",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/stock-receipts/:receipt/items",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "stock-receipts",
+                ":receipt",
+                "items"
+              ]
+            },
+            "description": "Use this shape instead of inventory_item_id when the product doesn't exist yet.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"new_product_name\": \"Cooking Oil 1L\",\n  \"new_product_unit\": \"bottle\",\n  \"new_product_unit_price\": 6500,\n  \"quantity\": 10,\n  \"unit_cost\": 5200\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Remove item from receipt",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/stock-receipts/:receipt/items/:item",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "stock-receipts",
+                ":receipt",
+                "items",
+                ":item"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Approve stock receipt",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/stock-receipts/:receipt/approve",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "stock-receipts",
+                ":receipt",
+                "approve"
+              ]
+            },
+            "description": "Requires the approve-stock-receipts permission. Posts stock quantities."
+          },
+          "response": []
+        },
+        {
+          "name": "Reject stock receipt",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/stock-receipts/:receipt/reject",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "stock-receipts",
+                ":receipt",
+                "reject"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Point of Sale",
+      "item": [
+        {
+          "name": "List payment methods",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/payment-methods",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "payment-methods"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Checkout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/pos/checkout",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "pos",
+                "checkout"
+              ]
+            },
+            "description": "If the discount exceeds the cashier's limit, returns 422 with needs_approval:true — retry with approver_email/approver_password from a supervisor/manager.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"inventory_item_id\": 1,\n      \"quantity\": 2,\n      \"discount_type\": null,\n      \"discount_value\": null\n    }\n  ],\n  \"customer_id\": null,\n  \"overall_discount_type\": null,\n  \"overall_discount_value\": null,\n  \"payment_method_id\": null,\n  \"amount_tendered\": 10000,\n  \"approver_email\": null,\n  \"approver_password\": null\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Sales",
+      "item": [
+        {
+          "name": "List sales",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/sales?date_from=&date_to=&per_page=20",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "sales"
+              ],
+              "query": [
+                {
+                  "key": "date_from",
+                  "value": ""
+                },
+                {
+                  "key": "date_to",
+                  "value": ""
+                },
+                {
+                  "key": "per_page",
+                  "value": "20"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get sale",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/sales/:sale",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "sales",
+                ":sale"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Invoices",
+      "item": [
+        {
+          "name": "List invoices",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/invoices?status=&date_from=&date_to=",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "invoices"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": ""
+                },
+                {
+                  "key": "date_from",
+                  "value": ""
+                },
+                {
+                  "key": "date_to",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create invoice (proforma draft)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/invoices",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "invoices"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customer_id\": 1,\n  \"issue_date\": \"2026-09-01\",\n  \"due_date\": null,\n  \"notes\": null\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get invoice",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/invoices/:invoice",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "invoices",
+                ":invoice"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Download invoice/proforma PDF",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/invoices/:invoice/pdf",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "invoices",
+                ":invoice",
+                "pdf"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Add item to invoice",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/invoices/:invoice/items",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "invoices",
+                ":invoice",
+                "items"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"inventory_item_id\": 1,\n  \"quantity\": 2,\n  \"unit_price\": 5500,\n  \"discount_type\": null,\n  \"discount_value\": null\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Remove item from invoice",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/invoices/:invoice/items/:item",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "invoices",
+                ":invoice",
+                "items",
+                ":item"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Set overall invoice discount",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/invoices/:invoice/discount",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "invoices",
+                ":invoice",
+                "discount"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"discount_type\": \"percent\",\n  \"discount_value\": 10\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Approve invoice (proforma -> invoice)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/invoices/:invoice/approve",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "invoices",
+                ":invoice",
+                "approve"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cancel proforma",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/invoices/:invoice/cancel",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "invoices",
+                ":invoice",
+                "cancel"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Record invoice payment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/invoices/:invoice/payments",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "invoices",
+                ":invoice",
+                "payments"
+              ]
+            },
+            "description": "Rejects with 422 if amount exceeds the balance due.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 5000,\n  \"payment_method_id\": null,\n  \"payment_date\": \"2026-09-01\",\n  \"reference\": null\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Customers",
+      "item": [
+        {
+          "name": "List customers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/customers?search=",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "customers"
+              ],
+              "query": [
+                {
+                  "key": "search",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create customer",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/customers",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "customers"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Peter Mnyamani\",\n  \"phone\": \"+255744000111\",\n  \"email\": null,\n  \"address\": null,\n  \"tin_number\": null,\n  \"notes\": null\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get customer (with sales & invoices)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/customers/:customer",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "customers",
+                ":customer"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update customer",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/customers/:customer",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "customers",
+                ":customer"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"+255744000111\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Suppliers",
+      "item": [
+        {
+          "name": "List suppliers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/suppliers",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "suppliers"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create supplier",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/suppliers",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "suppliers"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"ABC Distributors\",\n  \"contact_person\": null,\n  \"phone\": null,\n  \"address\": null,\n  \"notes\": null\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get supplier",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/suppliers/:supplier",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "suppliers",
+                ":supplier"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update supplier",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/suppliers/:supplier",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "suppliers",
+                ":supplier"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"+255700222333\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Expenses & Payments",
+      "item": [
+        {
+          "name": "List expenses",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/expenses?date_from=&date_to=",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "expenses"
+              ],
+              "query": [
+                {
+                  "key": "date_from",
+                  "value": ""
+                },
+                {
+                  "key": "date_to",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create expense",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/expenses",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "expenses"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category\": \"Rent\",\n  \"amount\": 200000,\n  \"description\": null,\n  \"expense_date\": \"2026-09-01\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List payments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/payments",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "payments"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Record payment (with proof of payment)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/payments",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "payments"
+              ]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "amount",
+                  "value": "50000",
+                  "type": "text"
+                },
+                {
+                  "key": "payer_name",
+                  "value": "Peter Mnyamani",
+                  "type": "text"
+                },
+                {
+                  "key": "payment_date",
+                  "value": "2026-09-01",
+                  "type": "text"
+                },
+                {
+                  "key": "notes",
+                  "value": "",
+                  "type": "text"
+                },
+                {
+                  "key": "proof_of_payment",
+                  "type": "file",
+                  "src": null
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Dashboard & Notifications",
+      "item": [
+        {
+          "name": "Dashboard summary",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/dashboard?period=month",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "dashboard"
+              ],
+              "query": [
+                {
+                  "key": "period",
+                  "value": "month"
+                }
+              ]
+            },
+            "description": "period: week | month | year (defaults to month if omitted or invalid). Controls both the sales_total/expenses_total range and the trend granularity — week and month bucket by day, year buckets by calendar month."
+          },
+          "response": []
+        },
+        {
+          "name": "Notifications (low stock / expiring)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/notifications",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "notifications"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "KYC & Staff",
+      "item": [
+        {
+          "name": "List KYC documents",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/kyc-documents",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "kyc-documents"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Upload KYC document",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/kyc-documents",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "kyc-documents"
+              ]
+            },
+            "description": "document_type: national_id | business_license | tin_certificate | other",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "document_type",
+                  "value": "national_id",
+                  "type": "text"
+                },
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": null
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List staff",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/staff",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "staff"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create staff account",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/staff",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "staff"
+              ]
+            },
+            "description": "role: merchant_manager | merchant_supervisor | merchant_sales | merchant_accountant",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Cashier\",\n  \"email\": \"john@example.com\",\n  \"phone\": null,\n  \"role\": \"merchant_sales\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
