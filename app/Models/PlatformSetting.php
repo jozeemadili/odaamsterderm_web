@@ -15,12 +15,15 @@ class PlatformSetting extends Model
 
     public const AI_SEARCH_GUESTS = 'ai.search_guests';
 
+    public const AI_ORDER_ENABLED = 'ai.order_enabled';
+
     public const AI_DAILY_LIMIT = 'ai.daily_limit';
 
     /** Used when a key has never been saved. */
     public const DEFAULTS = [
         self::AI_SEARCH_ENABLED => false,
         self::AI_SEARCH_GUESTS => true,
+        self::AI_ORDER_ENABLED => false,
         self::AI_DAILY_LIMIT => 500,
     ];
 

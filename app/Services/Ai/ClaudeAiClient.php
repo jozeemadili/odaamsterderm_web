@@ -20,7 +20,7 @@ class ClaudeAiClient implements AiClient
         return filled($this->apiKey);
     }
 
-    public function structured(string $system, string $prompt, array $schema, int $maxTokens = 4000): AiResponse
+    public function structured(string $system, string|array $prompt, array $schema, int $maxTokens = 4000): AiResponse
     {
         if (! $this->isConfigured()) {
             throw new AiUnavailableException('ANTHROPIC_API_KEY is not set.');
@@ -33,7 +33,7 @@ class ClaudeAiClient implements AiClient
                 system: [
                     ['type' => 'text', 'text' => $system, 'cacheControl' => ['type' => 'ephemeral']],
                 ],
-                messages: [['role' => 'user', 'content' => $prompt]],
+                messages: is_string($prompt) ? [['role' => 'user', 'content' => $prompt]] : $prompt,
                 outputConfig: [
                     'effort' => $this->effort,
                     'format' => ['type' => 'json_schema', 'schema' => $schema],

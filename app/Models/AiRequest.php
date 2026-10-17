@@ -10,6 +10,8 @@ class AiRequest extends Model
 {
     public const FEATURE_SEARCH = 'search';
 
+    public const FEATURE_ORDER = 'order';
+
     public const STATUS_OK = 'ok';
 
     public const STATUS_REFUSED = 'refused';

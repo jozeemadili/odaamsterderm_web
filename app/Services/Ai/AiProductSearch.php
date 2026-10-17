@@ -9,7 +9,6 @@ use App\Models\User;
 use App\Services\MarketplaceSearch;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 
 /**
@@ -23,9 +22,6 @@ class AiProductSearch
     public const MAX_QUERY_LENGTH = 300;
 
     public const MAX_RESULTS = 12;
-
-    /** Requests per minute per customer (or per IP for guests). */
-    public const PER_MINUTE = 8;
 
     /** Most products described to the model in one request. */
     private const CATALOG_LIMIT = 400;
@@ -43,6 +39,7 @@ class AiProductSearch
     public function __construct(
         private readonly AiClient $ai,
         private readonly MarketplaceSearch $search,
+        private readonly AiUsage $usage,
     ) {}
 
     /** Whether the admin has switched Ask AI on (the button is shown). */
@@ -72,32 +69,17 @@ class AiProductSearch
             return $cached;
         }
 
-        $limiterKey = 'ai-search:'.($user ? 'u'.$user->id : 'ip'.$ip);
-        $dailyLimit = (int) PlatformSetting::get(PlatformSetting::AI_DAILY_LIMIT);
-        $usedToday = AiRequest::where('feature', AiRequest::FEATURE_SEARCH)->where('created_at', '>=', today())->count();
-
-        if (RateLimiter::tooManyAttempts($limiterKey, self::PER_MINUTE) || ($dailyLimit > 0 && $usedToday >= $dailyLimit)) {
+        if (! $this->usage->attempt(AiRequest::FEATURE_SEARCH, $user, $ip)) {
             return $this->result(self::STATUS_LIMITED);
         }
-        RateLimiter::hit($limiterKey, 60);
 
         $catalog = $this->catalog();
         $started = microtime(true);
-        $log = [
-            'user_id' => $user?->id,
-            'ip_address' => $ip,
-            'feature' => AiRequest::FEATURE_SEARCH,
-            'query' => $query,
-        ];
 
         try {
             $response = $this->ai->structured($this->systemPrompt($catalog), $query, $this->schema(), 4000);
         } catch (AiUnavailableException $e) {
-            AiRequest::create($log + [
-                'status' => AiRequest::STATUS_FAILED,
-                'error' => Str::limit($e->getMessage(), 250),
-                'duration_ms' => (int) ((microtime(true) - $started) * 1000),
-            ]);
+            $this->usage->recordFailure(AiRequest::FEATURE_SEARCH, $query, $user, $ip, $started, $e->getMessage());
 
             return $this->result(self::STATUS_UNAVAILABLE);
         }
@@ -123,14 +105,7 @@ class AiProductSearch
             array_key_exists($sort, MarketplaceSearch::SORTS) || $sort === MarketplaceSearch::SORT_RELEVANCE ? $sort : MarketplaceSearch::SORT_RELEVANCE,
         );
 
-        AiRequest::create($log + [
-            'model' => $response->model,
-            'status' => $response->refused ? AiRequest::STATUS_REFUSED : AiRequest::STATUS_OK,
-            'input_tokens' => $response->inputTokens,
-            'output_tokens' => $response->outputTokens,
-            'results_count' => count($result['product_ids']),
-            'duration_ms' => (int) ((microtime(true) - $started) * 1000),
-        ]);
+        $this->usage->record(AiRequest::FEATURE_SEARCH, $query, $user, $ip, $started, $response, count($result['product_ids']));
 
         // Same question, same answer for a while — saves cost on reloads and paging.
         Cache::put($cacheKey, $result, now()->addMinutes(30));

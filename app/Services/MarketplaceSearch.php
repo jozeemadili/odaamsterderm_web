@@ -148,6 +148,23 @@ class MarketplaceSearch
     }
 
     /**
+     * Offers a customer can order right now (active, units left), nearest
+     * first when a location is known, else cheapest.
+     *
+     * @return Collection<int, InventoryItem> each with distance_km
+     */
+    public function availableOffers(?GeoPoint $from = null, int $limit = 300): Collection
+    {
+        return $this->offers($from)
+            ->with(['product.animalType', 'product.category.parent'])
+            ->whereRaw(self::AVAILABLE_SQL)
+            ->when($from, fn (Builder $q) => $q->orderBy('distance_km'), fn (Builder $q) => $q->orderBy('inventory_items.unit_price'))
+            ->orderBy('inventory_items.id')
+            ->limit($limit)
+            ->get();
+    }
+
+    /**
      * Stores customers can buy from, nearest first when a location is known.
      *
      * @return Collection<int, Branch> each with distance_km and offers_count

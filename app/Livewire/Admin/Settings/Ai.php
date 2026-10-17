@@ -22,6 +22,8 @@ class Ai extends Component
 
     public bool $searchEnabled = false;
 
+    public bool $orderEnabled = false;
+
     public bool $guestsAllowed = true;
 
     public int $dailyLimit = 500;
@@ -31,6 +33,7 @@ class Ai extends Component
         abort_unless(Auth::user()->can('manage-platform-settings'), 403);
 
         $this->searchEnabled = (bool) PlatformSetting::get(PlatformSetting::AI_SEARCH_ENABLED);
+        $this->orderEnabled = (bool) PlatformSetting::get(PlatformSetting::AI_ORDER_ENABLED);
         $this->guestsAllowed = (bool) PlatformSetting::get(PlatformSetting::AI_SEARCH_GUESTS);
         $this->dailyLimit = (int) PlatformSetting::get(PlatformSetting::AI_DAILY_LIMIT);
     }
@@ -40,6 +43,12 @@ class Ai extends Component
     {
         $this->store(PlatformSetting::AI_SEARCH_ENABLED, $value);
         session()->flash('status', $value ? 'The Ask AI button is now shown to customers.' : 'The Ask AI button is now hidden from customers.');
+    }
+
+    public function updatedOrderEnabled(bool $value): void
+    {
+        $this->store(PlatformSetting::AI_ORDER_ENABLED, $value);
+        session()->flash('status', $value ? 'The "Use AI to place order" button is now shown to customers.' : 'The "Use AI to place order" button is now hidden from customers.');
     }
 
     public function save(): void
@@ -65,7 +74,7 @@ class Ai extends Component
 
     public function render(AiClient $ai)
     {
-        $usage = fn ($since) => AiRequest::where('created_at', '>=', $since)
+        $usage = fn ($since) => AiRequest::where('created_at', '>=', $since)->whereNotNull('model')
             ->selectRaw('model, COUNT(*) as requests, SUM(input_tokens) as input_tokens, SUM(output_tokens) as output_tokens')
             ->groupBy('model')->get();
 

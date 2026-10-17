@@ -67,6 +67,16 @@
         </aside>
 
         <section class="space-y-5">
+            @if(\App\Services\Ai\AiOrderAssistant::enabled())
+                <div class="rounded-xl bg-brand-dark/5 border border-brand-dark/10 px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                        <p class="text-[15px] font-medium text-ink">Not sure what to buy?</p>
+                        <p class="text-[13px] text-ink-mute">Tell our AI what your animals need and it builds the order from stores near you.</p>
+                    </div>
+                    <livewire:market.ai-assistant />
+                </div>
+            @endif
+
             @if($askAi)
                 <div class="rounded-xl border border-primary/30 bg-primary-subtle/30 p-4 space-y-2" @if($aiPending) wire:init="runAi" @endif>
                     <div class="flex items-center justify-between gap-3">
