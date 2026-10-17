@@ -29,6 +29,9 @@
     </form>
 
     <p class="text-[13px] text-ink-mute mt-6 text-center">
-        New merchant? <a href="{{ route('register') }}" class="text-primary hover:text-primary-deep">Register your business</a>
+        New here? <a href="{{ route('customer.register') }}" class="text-primary hover:text-primary-deep">Create a customer account</a>
+    </p>
+    <p class="text-[13px] text-ink-mute mt-2 text-center">
+        Selling animal products? <a href="{{ route('register') }}" class="text-primary hover:text-primary-deep">Register your business</a>
     </p>
 </div>

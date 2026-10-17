@@ -25,6 +25,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'internal' => \App\Http\Middleware\EnsureUserIsInternal::class,
             'merchant' => \App\Http\Middleware\EnsureUserIsMerchant::class,
             'api.merchant' => \App\Http\Middleware\EnsureApiUserIsMerchant::class,
+            // Same check for session and token auth: customers have no merchant to deactivate.
+            'customer' => \App\Http\Middleware\EnsureUserIsCustomer::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

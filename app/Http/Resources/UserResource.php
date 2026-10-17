@@ -18,6 +18,11 @@ class UserResource extends JsonResource
             'role' => $this->roles->first()?->name,
             'role_label' => $this->roleLabel(),
             'merchant_id' => $this->merchant_id,
+            'location' => $this->hasLocation() ? [
+                'latitude' => $this->latitude,
+                'longitude' => $this->longitude,
+                'label' => $this->location_label,
+            ] : null,
         ];
     }
 }

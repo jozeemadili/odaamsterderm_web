@@ -2,13 +2,16 @@
 
 namespace Tests\Feature;
 
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class ExampleTest extends TestCase
 {
-    public function test_guests_are_redirected_to_login(): void
+    use RefreshDatabase;
+
+    public function test_home_page_is_the_public_marketplace(): void
     {
-        $this->get('/')->assertRedirect(route('login'));
+        $this->get('/')->assertOk()->assertSee('Animal products');
     }
 
     public function test_login_page_renders(): void

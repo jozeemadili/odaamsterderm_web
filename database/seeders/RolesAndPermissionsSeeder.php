@@ -50,6 +50,9 @@ class RolesAndPermissionsSeeder extends Seeder
         'merchant_supervisor' => ['manage-own-business', 'approve-stock-receipts'],
         'merchant_sales' => ['manage-own-business'],
         'merchant_accountant' => ['manage-own-business'],
+
+        // Marketplace buyers — access is by account type, no admin permissions.
+        'customer' => [],
     ];
 
     public function run(): void

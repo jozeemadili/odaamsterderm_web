@@ -4,21 +4,21 @@ use App\Http\Controllers\Auth\GoogleController;
 use App\Http\Controllers\InvoicePublicController;
 use App\Livewire\Admin;
 use App\Livewire\Auth\CompleteRegistration;
+use App\Livewire\Auth\CustomerRegister;
 use App\Livewire\Auth\ForgotPassword;
 use App\Livewire\Auth\Login;
 use App\Livewire\Auth\Register;
 use App\Livewire\Auth\ResetPassword;
+use App\Livewire\Market;
 use App\Livewire\Portal;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    if (auth()->check()) {
-        return redirect(auth()->user()->isInternal() ? route('admin.dashboard') : route('portal.dashboard'));
-    }
-
-    return redirect()->route('login');
-});
+// --- Public marketplace -----------------------------------------------------
+Route::get('/', Market\Home::class)->name('market.home');
+Route::get('/products/{product:slug}', Market\ProductShow::class)->name('market.product');
+Route::get('/stores/{store}', Market\StoreShow::class)->name('market.store');
+Route::get('/account', Market\Account::class)->middleware(['auth', 'customer'])->name('market.account');
 
 Route::get('/i/{invoice}/pdf', [InvoicePublicController::class, 'download'])
     ->name('invoices.public-pdf')
@@ -27,6 +27,7 @@ Route::get('/i/{invoice}/pdf', [InvoicePublicController::class, 'download'])
 Route::middleware('guest')->group(function () {
     Route::get('/login', Login::class)->name('login');
     Route::get('/register', Register::class)->name('register');
+    Route::get('/signup', CustomerRegister::class)->name('customer.register');
     Route::get('/register/complete', CompleteRegistration::class)->name('register.complete');
     Route::get('/forgot-password', ForgotPassword::class)->name('password.request');
     Route::get('/reset-password/{token}', ResetPassword::class)->name('password.reset');
@@ -40,7 +41,7 @@ Route::post('/logout', function () {
     request()->session()->invalidate();
     request()->session()->regenerateToken();
 
-    return redirect()->route('login');
+    return redirect()->route('market.home');
 })->middleware('auth')->name('logout');
 
 Route::middleware(['auth', 'internal'])->prefix('admin')->name('admin.')->group(function () {

@@ -41,7 +41,7 @@ class Login extends Component
 
         request()->session()->regenerate();
 
-        return $this->redirect($user->isInternal() ? route('admin.dashboard') : route('portal.dashboard'), navigate: true);
+        return $this->redirectIntended($user->homeUrl(), navigate: true);
     }
 
     public function render()

@@ -12,14 +12,16 @@
 <body class="min-h-screen bg-canvas">
     <div class="gradient-mesh min-h-screen flex flex-col">
         <header class="px-8 py-6 flex items-center gap-2.5">
+            <a href="{{ route('market.home') }}" class="flex items-center gap-2.5">
             <img src="{{ asset('images/favicon-512.png') }}" alt="Odaamsterderm Hub" class="h-8 w-8 rounded-md">
             <span class="text-[20px] font-light tracking-tight text-ink">Odaamsterderm<span class="font-medium text-primary"> Hub</span></span>
+            </a>
         </header>
 
         <main class="flex-1 flex items-center justify-center px-4 pb-16">
             <div class="w-full max-w-md">
                 <div class="text-center mb-6">
-                    <p class="text-[13px] uppercase tracking-wide text-ink-mute">Tanzania SME financial operating system</p>
+                    <p class="text-[13px] uppercase tracking-wide text-ink-mute">Animal products marketplace &amp; store management</p>
                 </div>
                 <div class="bg-canvas/95 backdrop-blur rounded-xl border border-hairline shadow-[0_8px_24px_rgba(0,55,112,0.08),0_2px_6px_rgba(0,55,112,0.04)] p-8">
                     {{ $slot }}

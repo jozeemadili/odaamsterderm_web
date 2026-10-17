@@ -51,6 +51,15 @@ class AuthController extends Controller
 
         $user = User::where('google_id', $googleId)->orWhere('email', $email)->first();
 
+        // The marketplace side of the app signs customers up in one step.
+        if (! $user && $request->input('account_type') === User::TYPE_CUSTOMER && $email) {
+            return $this->issueSession(User::registerCustomer([
+                'name' => $name ?: $email,
+                'email' => $email,
+                'google_id' => $googleId,
+            ]));
+        }
+
         if (! $user) {
             return response()->json([
                 'needs_registration' => true,
@@ -109,6 +118,19 @@ class AuthController extends Controller
         });
 
         return $this->issueSession($user);
+    }
+
+    /** Marketplace customer sign-up (email + password, or a verified Google identity). */
+    public function registerCustomer(Request $request)
+    {
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'phone' => ['required', 'string', 'max:30'],
+            'email' => ['required', 'email', 'unique:users,email'],
+            'password' => ['required', 'string', 'min:8'],
+        ]);
+
+        return $this->issueSession(User::registerCustomer($data))->setStatusCode(201);
     }
 
     public function login(Request $request)

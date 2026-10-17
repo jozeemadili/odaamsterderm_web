@@ -100,5 +100,7 @@ class DatabaseSeeder extends Seeder
                 $inventory->updateMarketplace($item, true, $online, true, ['recorded_by' => $merchantOwner->id]);
             }
         }
+
+        $this->call(MarketplaceDemoSeeder::class);
     }
 }

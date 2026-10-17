@@ -22,6 +22,14 @@ window.L = L;
 
 const DEFAULT_CENTER = [-6.7924, 39.2083]; // Dar es Salaam
 
+// Store names come from sellers — never put them in popup HTML unescaped.
+function escapeHtml(value) {
+    const div = document.createElement('div');
+    div.textContent = String(value ?? '');
+
+    return div.innerHTML;
+}
+
 function tiles(map) {
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
@@ -105,6 +113,41 @@ document.addEventListener('alpine:init', () => {
                 },
                 { enableHighAccuracy: true, timeout: 10000 },
             );
+        },
+    }));
+});
+
+document.addEventListener('alpine:init', () => {
+    /**
+     * Read-only map with several store pins (and the customer's position).
+     * x-data="storesMap({ stores: [{ lat, lng, name, url, note }], me: { lat, lng } | null })"
+     */
+    window.Alpine.data('storesMap', ({ stores, me = null }) => ({
+        init() {
+            const map = L.map(this.$refs.map, { scrollWheelZoom: false });
+            tiles(map);
+
+            const bounds = [];
+            stores.forEach((s) => {
+                const marker = L.marker([s.lat, s.lng]).addTo(map);
+                marker.bindPopup(`<strong>${escapeHtml(s.name)}</strong>${s.note ? `<br>${escapeHtml(s.note)}` : ''}${s.url ? `<br><a href="${encodeURI(s.url)}">View store</a>` : ''}`);
+                bounds.push([s.lat, s.lng]);
+            });
+
+            if (me) {
+                L.circleMarker([me.lat, me.lng], { radius: 8, color: '#01162f', fillColor: '#c89a44', fillOpacity: 1, weight: 3 })
+                    .addTo(map)
+                    .bindPopup('You are here');
+                bounds.push([me.lat, me.lng]);
+            }
+
+            if (bounds.length > 1) {
+                map.fitBounds(bounds, { paddingTopLeft: [50, 50], paddingBottomRight: [30, 30], maxZoom: 15 });
+            } else {
+                map.setView(bounds[0] ?? DEFAULT_CENTER, bounds.length ? 15 : 11);
+            }
+
+            setTimeout(() => map.invalidateSize(), 200);
         },
     }));
 });

@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BranchController;
 use App\Http\Controllers\Api\CatalogController;
 use App\Http\Controllers\Api\CustomerController;
+use App\Http\Controllers\Api\CustomerProfileController;
 use App\Http\Controllers\Api\DamageReportController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\ExpenseController;
@@ -11,6 +12,7 @@ use App\Http\Controllers\Api\InventoryController;
 use App\Http\Controllers\Api\InvoiceController;
 use App\Http\Controllers\Api\KycDocumentController;
 use App\Http\Controllers\Api\LookupController;
+use App\Http\Controllers\Api\MarketplaceController;
 use App\Http\Controllers\Api\MerchantController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\PaymentController;
@@ -28,15 +30,31 @@ Route::prefix('v1')->group(function () {
     // --- Auth (public) --------------------------------------------------
     Route::post('/auth/google', [AuthController::class, 'google']);
     Route::post('/auth/register', [AuthController::class, 'register']);
+    Route::post('/auth/register-customer', [AuthController::class, 'registerCustomer']);
     Route::post('/auth/login', [AuthController::class, 'login']);
 
     // Reference data for the registration screen — no session token yet.
     Route::get('/business-types', [LookupController::class, 'businessTypes']);
     Route::get('/regions', [LookupController::class, 'regions']);
 
+    // --- Public marketplace (no sign-in) --------------------------------
+    Route::prefix('market')->group(function () {
+        Route::get('/filters', [MarketplaceController::class, 'filters']);
+        Route::get('/products', [MarketplaceController::class, 'products']);
+        Route::get('/products/{product}', [MarketplaceController::class, 'product']);
+        Route::get('/stores', [MarketplaceController::class, 'stores']);
+        Route::get('/stores/{store}', [MarketplaceController::class, 'store']);
+    });
+
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/auth/logout', [AuthController::class, 'logout']);
         Route::get('/auth/me', [AuthController::class, 'me']);
+
+        // --- Marketplace customers --------------------------------------
+        Route::middleware('customer')->prefix('customer')->group(function () {
+            Route::get('/profile', [CustomerProfileController::class, 'show']);
+            Route::patch('/profile', [CustomerProfileController::class, 'update']);
+        });
 
         // Everything below requires an active merchant account.
         Route::middleware('api.merchant')->group(function () {

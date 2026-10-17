@@ -13,6 +13,11 @@ class GoogleController extends Controller
 {
     public function redirect(): RedirectResponse
     {
+        // "?as=customer" comes from the marketplace sign-up page: a new Google
+        // account then becomes a customer straight away instead of being
+        // asked for business details.
+        session(['google_intent' => request('as') === 'customer' ? 'customer' : 'merchant']);
+
         return Socialite::driver('google')->redirect();
     }
 
@@ -44,7 +49,20 @@ class GoogleController extends Controller
             Auth::login($user);
             request()->session()->regenerate();
 
-            return redirect($user->isInternal() ? route('admin.dashboard') : route('portal.dashboard'));
+            return redirect()->intended($user->homeUrl());
+        }
+
+        if (session()->pull('google_intent') === 'customer') {
+            $user = User::registerCustomer([
+                'name' => $googleUser->getName() ?: $googleUser->getNickname() ?: $googleUser->getEmail(),
+                'email' => $googleUser->getEmail(),
+                'google_id' => $googleUser->getId(),
+            ]);
+
+            Auth::login($user);
+            request()->session()->regenerate();
+
+            return redirect()->intended($user->homeUrl());
         }
 
         session(['google_pending' => [
