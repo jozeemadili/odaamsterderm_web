@@ -20,7 +20,7 @@ class CustomerOrderController extends Controller
 
         return response()->json([
             'stores' => collect($groups)->map(fn ($g) => [
-                'store' => (new PublicStoreResource($g['store']->load('merchant')))->toArray($request),
+                'store' => (new PublicStoreResource($g['store']->load('merchant')))->resolve($request),
                 'total' => $g['total'],
                 'lines' => collect($g['lines'])->map(fn ($l) => [
                     'offer_id' => $l['offer']->id,

@@ -109,7 +109,9 @@ class OrderFlowTest extends TestCase
             ->assertOk()
             ->assertJsonPath('count', 1)
             ->assertJsonPath('total', 90000)
-            ->assertJsonPath('stores.0.lines.0.quantity', 2);
+            ->assertJsonPath('stores.0.lines.0.quantity', 2)
+            ->assertJsonPath('stores.0.store.name', 'Seller A Store')
+            ->assertJsonMissingPath('stores.0.store.offers_count'); // conditional fields are left out, not {}
 
         $this->putJson("/api/v1/customer/cart/items/{$offer->id}", ['quantity' => 40])
             ->assertUnprocessable()->assertJsonValidationErrors('quantity');

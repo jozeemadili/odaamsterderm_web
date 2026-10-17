@@ -20,7 +20,8 @@ class SellerOrderController extends Controller
 
         $orders = Order::where('merchant_id', $request->user()->merchant_id)
             ->when($status === 'open', fn ($q) => $q->open())
-            ->when($status !== 'open' && $status !== 'all', fn ($q) => $q->where('status', $status))
+            ->when($status === 'closed', fn ($q) => $q->whereIn('status', [Order::REJECTED, Order::CANCELLED]))
+            ->when(! in_array($status, ['open', 'closed', 'all'], true), fn ($q) => $q->where('status', $status))
             ->when($request->filled('branch_id'), fn ($q) => $q->where('branch_id', $request->integer('branch_id')))
             ->with(['branch', 'merchant'])
             ->latest()
