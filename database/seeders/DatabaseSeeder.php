@@ -102,5 +102,6 @@ class DatabaseSeeder extends Seeder
         }
 
         $this->call(MarketplaceDemoSeeder::class);
+        $this->call(ProducerDemoSeeder::class);
     }
 }

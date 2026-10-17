@@ -68,7 +68,7 @@
                     <tr class="hover:bg-canvas-soft/60">
                         <td class="px-5 py-3">
                             <p class="text-ink font-medium">{{ $product->displayName() }}</p>
-                            @if($product->brand)<p class="text-[11px] text-ink-mute">{{ $product->brand }}</p>@endif
+                            <x-market.producer :product="$product" />
                         </td>
                         <td class="px-5 py-3 text-ink-secondary">{{ $product->animalType?->name }}</td>
                         <td class="px-5 py-3 text-ink-secondary">{{ $product->category?->fullName() }}</td>

@@ -121,7 +121,7 @@ class Index extends Component
         $categoryIds = $this->categoryFilter ? ProductCategory::find($this->categoryFilter)?->selfAndChildIds() : null;
 
         $products = Product::query()
-            ->with(['animalType.parent', 'category.parent', 'proposedBy', 'media'])
+            ->with(['animalType.parent', 'category.parent', 'proposedBy', 'media', 'producer'])
             ->withCount(['inventoryItems as sellers_count' => fn ($q) => $q->select(DB::raw('count(distinct merchant_id)'))])
             ->when($this->status !== 'all', fn ($q) => $q->where('status', $this->status))
             ->when($this->search, fn ($q) => $q->where(fn ($s) => $s

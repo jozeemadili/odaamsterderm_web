@@ -19,6 +19,7 @@ class MarketProductResource extends JsonResource
             'name' => $this->name,
             'display_name' => $this->displayName(),
             'brand' => $this->brand,
+            'producer' => $this->makerSummary(),
             'pack_size' => $this->pack_size,
             'unit' => $this->unit,
             'description' => $this->description,

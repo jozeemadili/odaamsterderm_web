@@ -20,7 +20,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * compare the same product across sellers.
  */
 #[Fillable([
-    'name', 'slug', 'animal_type_id', 'product_category_id', 'brand', 'description', 'unit', 'pack_size',
+    'name', 'slug', 'animal_type_id', 'product_category_id', 'producer_id', 'brand', 'description', 'unit', 'pack_size',
     'status', 'proposed_by_merchant_id', 'reviewed_by', 'reviewed_at', 'review_notes',
 ])]
 class Product extends Model implements HasMedia
@@ -44,9 +44,16 @@ class Product extends Model implements HasMedia
 
     protected static function booted(): void
     {
+        static::saving(function (Product $product) {
+            // The producer's name is the brand, so search and brand filters keep working.
+            if ($product->producer_id && $product->isDirty('producer_id')) {
+                $product->brand = Producer::whereKey($product->producer_id)->value('name') ?? $product->brand;
+            }
+        });
+
         static::creating(function (Product $product) {
             if (! $product->slug) {
-                $product->slug = static::uniqueSlug($product->displayName());
+                $product->slug = static::uniqueSlug(trim($product->displayName().' '.$product->brand));
             }
         });
     }
@@ -67,7 +74,7 @@ class Product extends Model implements HasMedia
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-            ->logOnly(['name', 'brand', 'unit', 'pack_size', 'status', 'animal_type_id', 'product_category_id'])
+            ->logOnly(['name', 'brand', 'producer_id', 'unit', 'pack_size', 'status', 'animal_type_id', 'product_category_id'])
             ->logOnlyDirty()
             ->useLogName('catalog');
     }
@@ -113,6 +120,32 @@ class Product extends Model implements HasMedia
         }
 
         return $this->name;
+    }
+
+    /** Who makes it: the producer's name, or the free-text brand when no producer is linked. */
+    public function makerName(): ?string
+    {
+        return $this->producer?->name ?? ($this->brand ?: null);
+    }
+
+    /** For APIs: {id, name, logo_url, country}; id null when only a free-text brand is known. */
+    public function makerSummary(): ?array
+    {
+        if ($this->producer) {
+            return [
+                'id' => $this->producer->id,
+                'name' => $this->producer->name,
+                'logo_url' => $this->producer->logoUrl(),
+                'country' => $this->producer->country,
+            ];
+        }
+
+        return $this->brand ? ['id' => null, 'name' => $this->brand, 'logo_url' => null, 'country' => null] : null;
+    }
+
+    public function producer(): BelongsTo
+    {
+        return $this->belongsTo(Producer::class);
     }
 
     public function animalType(): BelongsTo

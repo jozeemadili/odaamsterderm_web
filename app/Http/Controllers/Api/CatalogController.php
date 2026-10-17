@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ProductResource;
 use App\Models\AnimalType;
+use App\Models\Producer;
 use App\Models\Product;
 use App\Models\ProductCategory;
 use Illuminate\Http\Request;
@@ -54,7 +55,7 @@ class CatalogController extends Controller
         $categoryIds = $request->filled('category_id') ? ProductCategory::find($request->integer('category_id'))?->selfAndChildIds() : null;
 
         $products = Product::usableBy($merchantId)
-            ->with(['animalType', 'category.parent', 'media'])
+            ->with(['animalType', 'category.parent', 'media', 'producer.media'])
             ->when($request->filled('search'), fn ($q) => $q->where(fn ($s) => $s
                 ->where('name', 'like', '%'.$request->string('search').'%')
                 ->orWhere('brand', 'like', '%'.$request->string('search').'%')))
@@ -67,6 +68,16 @@ class CatalogController extends Controller
     }
 
     /** The seller's own pending and rejected proposals. */
+    /** Active producers, for the "propose a product" form. */
+    public function producers()
+    {
+        return response()->json([
+            'data' => Producer::active()->with('media')->orderBy('name')->get()
+                ->map(fn (Producer $p) => ['id' => $p->id, 'name' => $p->name, 'logo_url' => $p->logoUrl(), 'country' => $p->country])
+                ->values(),
+        ]);
+    }
+
     public function proposals()
     {
         return ProductResource::collection(
@@ -84,6 +95,7 @@ class CatalogController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'pack_size' => ['nullable', 'string', 'max:50'],
             'unit' => ['required', Rule::in(Product::UNITS)],
+            'producer_id' => ['nullable', Rule::exists('producers', 'id')->where('is_active', true)],
             'brand' => ['nullable', 'string', 'max:255'],
             'animal_type_id' => ['required', Rule::exists('animal_types', 'id')->where('is_active', true)],
             'product_category_id' => ['required', Rule::exists('product_categories', 'id')->where('is_active', true)],
@@ -97,8 +109,12 @@ class CatalogController extends Controller
             throw ValidationException::withMessages(['product_category_id' => 'This category is not used for the chosen animal type.']);
         }
 
+        if (! empty($data['producer_id'])) {
+            $data['brand'] = Producer::whereKey($data['producer_id'])->value('name');
+        }
+
         $product = Product::create($data + [
-            'slug' => Product::uniqueSlug($data['name'].' '.($data['pack_size'] ?? '')),
+            'slug' => Product::uniqueSlug($data['name'].' '.($data['pack_size'] ?? '').' '.($data['brand'] ?? '')),
             'status' => Product::STATUS_PENDING,
             'proposed_by_merchant_id' => Auth::user()->merchant_id,
         ]);

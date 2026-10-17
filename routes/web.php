@@ -69,6 +69,7 @@ Route::middleware(['auth', 'internal'])->prefix('admin')->name('admin.')->group(
     Route::get('/reports/marketplace', Admin\Reports\Marketplace::class)->name('reports.marketplace');
     Route::get('/catalog/animal-types', Admin\AnimalTypes\Index::class)->name('animal-types.index');
     Route::get('/catalog/categories', Admin\ProductCategories\Index::class)->name('product-categories.index');
+    Route::get('/catalog/producers', Admin\Producers\Index::class)->name('producers.index');
     Route::get('/audit-log', Admin\AuditLog\Index::class)->name('audit-log.index');
     Route::get('/settings/ai', Admin\Settings\Ai::class)->name('settings.ai');
 });

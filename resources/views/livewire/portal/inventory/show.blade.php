@@ -58,7 +58,7 @@
                         <x-ui.button type="submit" size="sm" target="saveCatalogLink">Save catalog link</x-ui.button>
                     @endif
                     @if($item->product)
-                        <p class="text-[12px] text-ink-mute">{{ $item->product->animalType?->fullName() }} · {{ $item->product->category?->fullName() }} @if($item->product->brand) · {{ $item->product->brand }} @endif</p>
+                        <p class="text-[12px] text-ink-mute">{{ $item->product->animalType?->fullName() }} · {{ $item->product->category?->fullName() }} @if($item->product->makerName()) · by {{ $item->product->makerName() }} @endif</p>
                     @endif
                 </form>
 

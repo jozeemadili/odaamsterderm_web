@@ -20,6 +20,7 @@ class OfferResource extends JsonResource
             'id' => $this->id,
             'product_id' => $this->product_id,
             'name' => $this->product?->displayName() ?? $this->name,
+            'producer' => $this->product?->makerSummary(),
             'price' => $this->unit_price !== null ? (float) $this->unit_price : null,
             'unit' => $this->product?->unit ?? $this->unit,
             'available_quantity' => (bool) $this->is_available ? (float) $this->marketplace_quantity : 0.0,

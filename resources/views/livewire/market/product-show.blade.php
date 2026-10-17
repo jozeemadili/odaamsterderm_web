@@ -13,9 +13,13 @@
             <div class="flex-1">
                 <p class="text-[12px] uppercase tracking-wide text-ink-mute">{{ $product->animalType?->fullName() }} · {{ $product->category?->fullName() }}</p>
                 <h1 class="text-[24px] font-light tracking-tight mt-1">{{ $product->displayName() }}</h1>
+                <x-market.producer :product="$product" size="lg" class="mt-2" />
                 <p class="text-[13px] text-ink-mute mt-1">
-                    @if($product->brand){{ $product->brand }} · @endif Sold per {{ $product->unit }}
+                    Sold per {{ $product->unit }}@if($product->producer?->country) · Made in {{ $product->producer->country }}@endif
                 </p>
+                @if($product->producer?->description)
+                    <p class="text-[12px] text-ink-mute mt-1 max-w-2xl">About {{ $product->producer->name }}: {{ $product->producer->description }}</p>
+                @endif
                 @if($product->description)
                     <p class="text-[14px] text-ink-secondary mt-3 max-w-2xl">{{ $product->description }}</p>
                 @endif

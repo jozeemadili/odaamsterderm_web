@@ -21,6 +21,7 @@
                     <div class="px-4 py-3 flex flex-wrap items-center justify-between gap-3" wire:key="line-{{ $line['offer']->id }}">
                         <div>
                             <p class="text-[14px] font-medium">{{ $line['offer']->product?->displayName() ?? $line['offer']->name }}</p>
+                            <x-market.producer :product="$line['offer']->product" />
                             <p class="text-[12px] text-ink-mute">TZS {{ number_format($line['offer']->unit_price) }} per {{ $line['offer']->product?->unit ?? $line['offer']->unit }}</p>
                             @if($line['problem'])<p class="text-[12px] text-ruby">{{ $line['problem'] }}</p>@endif
                         </div>

@@ -38,7 +38,7 @@ trait PicksCatalogProduct
             ->get()
             ->map(fn (Product $p) => [
                 'id' => $p->id,
-                'label' => $p->displayName().($p->brand ? " — {$p->brand}" : ''),
+                'label' => $p->displayName().($p->brand ? " by {$p->brand}" : ''),
                 'unit' => $p->unit,
                 'status' => $p->status,
                 'animal' => $p->animalType?->name,

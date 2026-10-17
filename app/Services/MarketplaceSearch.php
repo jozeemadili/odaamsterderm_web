@@ -95,7 +95,7 @@ class MarketplaceSearch
         // ORDER BY expressions (needed for "nulls last").
         $results = Product::query()
             ->fromSub($query->toBase(), 'products')
-            ->with(['animalType', 'category.parent', 'media']);
+            ->with(['animalType', 'category.parent', 'media', 'producer.media']);
 
         $ids = array_values(array_map('intval', $filters['product_ids'] ?? []));
 
@@ -156,7 +156,7 @@ class MarketplaceSearch
     public function availableOffers(?GeoPoint $from = null, int $limit = 300): Collection
     {
         return $this->offers($from)
-            ->with(['product.animalType', 'product.category.parent'])
+            ->with(['product.animalType', 'product.category.parent', 'product.producer'])
             ->whereRaw(self::AVAILABLE_SQL)
             ->when($from, fn (Builder $q) => $q->orderBy('distance_km'), fn (Builder $q) => $q->orderBy('inventory_items.unit_price'))
             ->orderBy('inventory_items.id')
@@ -239,7 +239,7 @@ class MarketplaceSearch
             ->join('products', 'products.id', '=', 'inventory_items.product_id')
             ->tap(fn (Builder $q) => $this->onlyPublicOffers($q))
             ->where('products.status', Product::STATUS_APPROVED)
-            ->with(['branch', 'merchant', 'product']);
+            ->with(['branch', 'merchant', 'product.producer.media']);
 
         if ($from) {
             [$distance, $bindings] = $from->distanceSql('branches.latitude', 'branches.longitude');

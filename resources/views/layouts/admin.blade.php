@@ -116,6 +116,9 @@
                     <a href="{{ route('admin.product-categories.index') }}" class="icon-dock-item {{ request()->routeIs('admin.product-categories.*') ? 'is-active' : '' }}">
                         <x-icon.settings class="h-4 w-4 shrink-0" /> Categories
                     </a>
+                    <a href="{{ route('admin.producers.index') }}" class="icon-dock-item {{ request()->routeIs('admin.producers.*') ? 'is-active' : '' }}">
+                        <x-icon.store class="h-4 w-4 shrink-0" /> Producers
+                    </a>
                     @endcan
 
                     @can('manage-platform-settings')

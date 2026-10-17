@@ -76,7 +76,7 @@ class MarketplaceController extends Controller
             'sort' => ['nullable', Rule::in([MarketplaceSearch::SORT_NEAREST, MarketplaceSearch::SORT_PRICE, MarketplaceSearch::SORT_AVAILABILITY])],
         ] + $this->locationRules());
 
-        $product->load(['animalType', 'category.parent', 'media']);
+        $product->load(['animalType', 'category.parent', 'media', 'producer.media']);
         $offers = $this->search->offersFor($product, $this->point($request), $data['sort'] ?? MarketplaceSearch::SORT_NEAREST);
 
         return response()->json([
@@ -86,6 +86,8 @@ class MarketplaceController extends Controller
                 'name' => $product->name,
                 'display_name' => $product->displayName(),
                 'brand' => $product->brand,
+                'producer' => $product->makerSummary(),
+                'producer_description' => $product->producer?->description,
                 'pack_size' => $product->pack_size,
                 'unit' => $product->unit,
                 'description' => $product->description,

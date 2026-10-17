@@ -78,7 +78,7 @@
                                 <div>
                                     <p class="text-ink font-medium">{{ $product->displayName() }}</p>
                                     <p class="text-[11px] text-ink-mute">
-                                        {{ $product->brand ?: 'No brand' }}
+                                        {{ $product->makerName() ? 'by '.$product->makerName() : 'No producer' }}@if($product->brand && ! $product->producer_id) (not linked)@endif
                                         @if($product->proposedBy) · proposed by {{ $product->proposedBy->business_name }} @endif
                                     </p>
                                     @if($product->review_notes && $product->status === 'rejected')

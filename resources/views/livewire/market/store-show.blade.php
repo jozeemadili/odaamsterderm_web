@@ -55,6 +55,7 @@
                 <div class="flex flex-wrap items-center justify-between gap-3 px-4 py-3 {{ $offer->is_available ? '' : 'text-ink-mute' }}">
                     <a href="{{ route('market.product', $offer->product->slug) }}" class="hover:text-primary-deep">
                         <p class="font-medium text-[14px] {{ $offer->is_available ? 'text-ink' : '' }}">{{ $offer->product->displayName() }}</p>
+                        <x-market.producer :product="$offer->product" />
                         <p class="text-[12px] text-ink-mute">{{ $offer->is_available ? rtrim(rtrim((string) $offer->marketplace_quantity, '0'), '.').' '.$offer->product->unit.' available' : 'Out of stock' }}</p>
                     </a>
                     <div class="flex items-center gap-3">

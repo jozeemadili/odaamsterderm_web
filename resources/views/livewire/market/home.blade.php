@@ -40,8 +40,8 @@
                         @endforeach
                     </x-ui.select>
                     @if(count($brands))
-                        <x-ui.select wire:model.live="brand" label="Brand" id="mk_brand">
-                            <option value="">All brands</option>
+                        <x-ui.select wire:model.live="brand" label="Producer / brand" id="mk_brand">
+                            <option value="">All producers</option>
                             @foreach($brands as $b)<option value="{{ $b }}">{{ $b }}</option>@endforeach
                         </x-ui.select>
                     @endif
@@ -125,7 +125,7 @@
                             <div class="p-4">
                                 <p class="text-[11px] uppercase tracking-wide text-ink-mute">{{ $product->animalType?->name }} · {{ $product->category?->fullName() }}</p>
                                 <h2 class="text-[15px] font-medium text-ink mt-1">{{ $product->displayName() }}</h2>
-                                @if($product->brand)<p class="text-[12px] text-ink-mute">{{ $product->brand }}</p>@endif
+                                <x-market.producer :product="$product" class="mt-1" />
                                 <div class="mt-3 flex items-end justify-between gap-2">
                                     <div>
                                         @if($product->min_price !== null)

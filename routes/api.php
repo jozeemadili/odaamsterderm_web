@@ -107,6 +107,7 @@ Route::prefix('v1')->group(function () {
             Route::get('/catalog/animal-types', [CatalogController::class, 'animalTypes']);
             Route::get('/catalog/categories', [CatalogController::class, 'categories']);
             Route::get('/catalog/products', [CatalogController::class, 'products']);
+            Route::get('/catalog/producers', [CatalogController::class, 'producers']);
             Route::post('/catalog/products', [CatalogController::class, 'propose']);
             Route::get('/catalog/proposals', [CatalogController::class, 'proposals']);
 

@@ -68,7 +68,7 @@ class Index extends Component
         $animalIds = $this->animalFilter ? AnimalType::find($this->animalFilter)?->selfAndChildIds() : null;
 
         $products = Product::approved()
-            ->with(['animalType', 'category.parent', 'media'])
+            ->with(['animalType', 'category.parent', 'media', 'producer.media'])
             ->withCount(['inventoryItems as stocked_count' => fn ($q) => $q->where('merchant_id', $merchantId)])
             ->when($this->search, fn ($q) => $q->where(fn ($s) => $s
                 ->where('name', 'like', "%{$this->search}%")
