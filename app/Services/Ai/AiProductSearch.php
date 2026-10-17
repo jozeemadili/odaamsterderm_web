@@ -113,6 +113,18 @@ class AiProductSearch
         return $result;
     }
 
+    /**
+     * Meaningful words of a question, for a keyword fallback when there is
+     * no AI answer (switched off, unavailable or busy).
+     *
+     * @return list<string>
+     */
+    public static function fallbackWords(string $question): array
+    {
+        return collect(preg_split('/[^\pL\pN]+/u', mb_strtolower($question)))
+            ->filter(fn (string $w) => mb_strlen($w) >= 4)->unique()->take(8)->values()->all();
+    }
+
     /** Products customers can buy now, keyed by id, with live "from" price and units. */
     protected function catalog(): Collection
     {

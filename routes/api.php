@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\AiController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BranchController;
 use App\Http\Controllers\Api\CatalogController;
@@ -47,6 +48,8 @@ Route::prefix('v1')->group(function () {
         Route::get('/products/{product}', [MarketplaceController::class, 'product']);
         Route::get('/stores', [MarketplaceController::class, 'stores']);
         Route::get('/stores/{store}', [MarketplaceController::class, 'store']);
+        Route::get('/ai/config', [AiController::class, 'config']);
+        Route::post('/ai/search', [AiController::class, 'search']);
     });
 
     Route::middleware('auth:sanctum')->group(function () {
@@ -69,6 +72,7 @@ Route::prefix('v1')->group(function () {
             Route::get('/orders', [CustomerOrderController::class, 'index']);
             Route::get('/orders/{order}', [CustomerOrderController::class, 'show']);
             Route::post('/orders/{order}/cancel', [CustomerOrderController::class, 'cancel']);
+            Route::post('/ai/order', [AiController::class, 'order']);
         });
 
         // Everything below requires an active merchant account.

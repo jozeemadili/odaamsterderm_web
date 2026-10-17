@@ -156,8 +156,7 @@ class Home extends Component
 
         // No AI answer (switched off, unavailable, busy): match any meaningful word of the question.
         if ($this->ask !== '' && (! $askAi || $aiFallback)) {
-            $filters['any_words'] = collect(preg_split('/[^\pL\pN]+/u', mb_strtolower($this->ask)))
-                ->filter(fn (string $w) => mb_strlen($w) >= 4)->unique()->take(8)->values()->all();
+            $filters['any_words'] = AiProductSearch::fallbackWords($this->ask);
         }
 
         $hasFilters = $this->ask !== '' || $this->q !== '' || array_filter([$this->animal, $this->category, $this->brand, $this->seller, $this->minPrice, $this->maxPrice]) || $this->inStock;
