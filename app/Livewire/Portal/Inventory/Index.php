@@ -2,14 +2,18 @@
 
 namespace App\Livewire\Portal\Inventory;
 
+use App\Livewire\Concerns\PicksCatalogProduct;
 use App\Models\Branch;
 use App\Models\InventoryCategory;
 use App\Models\InventoryItem;
+use App\Models\Product;
 use App\Models\StockMovement;
+use App\Services\InventoryService;
 use App\Services\InventoryExcelImporter;
 use App\Services\InventoryExcelTemplate;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -20,6 +24,7 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 #[Layout('layouts.portal', ['title' => 'Inventory'])]
 class Index extends Component
 {
+    use PicksCatalogProduct;
     use WithFileUploads;
     use WithPagination;
 
@@ -63,6 +68,8 @@ class Index extends Component
     public string $movementType = 'in';
 
     public string $movementQuantity = '';
+
+    public string $movementReason = '';
 
     public string $categoryFilter = '';
 
@@ -149,9 +156,21 @@ class Index extends Component
         $this->resetPage();
     }
 
+    protected function catalogProductSelected(Product $product): void
+    {
+        if (trim($this->name) === '') {
+            $this->name = $product->displayName();
+            $this->nameMatches = [];
+        }
+
+        if (trim($this->unit) === '') {
+            $this->unit = $product->unit;
+        }
+    }
+
     public function addItem()
     {
-        $this->validate([
+        $this->validate($this->catalogProductRules() + [
             'name' => ['required', 'string', 'max:255'],
             'category_id' => ['required', 'exists:inventory_categories,id'],
             'branch_id' => ['required', 'exists:branches,id'],
@@ -167,6 +186,7 @@ class Index extends Component
             'merchant_id' => Auth::user()->merchant_id,
             'category_id' => $this->category_id,
             'branch_id' => $this->branch_id,
+            'product_id' => $this->product_id,
             'name' => $this->name,
             'sku' => $this->sku ?: null,
             'barcode' => $this->barcode ?: null,
@@ -183,7 +203,7 @@ class Index extends Component
                 ->toMediaCollection('image');
         }
 
-        $this->reset(['name', 'sku', 'barcode', 'category_id', 'branch_id', 'addingNewBranch', 'newBranchName', 'addingNewCategory', 'newCategoryName', 'expiry_date', 'unit', 'reorder_level', 'unit_cost', 'unit_price', 'image', 'showItemForm', 'nameMatches']);
+        $this->reset(['product_id', 'productLabel', 'catalogSearch', 'catalogMatches', 'name', 'sku', 'barcode', 'category_id', 'branch_id', 'addingNewBranch', 'newBranchName', 'addingNewCategory', 'newCategoryName', 'expiry_date', 'unit', 'reorder_level', 'unit_cost', 'unit_price', 'image', 'showItemForm', 'nameMatches']);
         $this->reorder_level = '0';
         session()->flash('status', 'Inventory item added.');
     }
@@ -193,32 +213,34 @@ class Index extends Component
         $this->movingItemId = $itemId;
         $this->movementType = 'in';
         $this->movementQuantity = '';
+        $this->movementReason = '';
     }
 
-    public function saveMovement()
+    public function saveMovement(InventoryService $inventory)
     {
         $this->validate([
-            'movementQuantity' => ['required', 'numeric', 'min:0.01'],
+            'movementQuantity' => ['required', 'numeric', $this->movementType === 'adjustment' ? 'min:0' : 'min:0.01'],
             'movementType' => ['required', 'in:in,out,adjustment'],
+            'movementReason' => [$this->movementType === 'adjustment' ? 'required' : 'nullable', 'string', 'max:255'],
         ]);
 
         $item = InventoryItem::where('merchant_id', Auth::user()->merchant_id)->findOrFail($this->movingItemId);
+        $quantity = (float) $this->movementQuantity;
+        $meta = ['reference' => 'manual', 'reason' => $this->movementReason ?: null];
 
-        DB::transaction(function () use ($item) {
-            StockMovement::create([
-                'merchant_id' => Auth::user()->merchant_id,
-                'inventory_item_id' => $item->id,
-                'type' => $this->movementType,
-                'quantity' => $this->movementQuantity,
-                'movement_date' => now()->toDateString(),
-                'recorded_by' => Auth::id(),
-            ]);
+        try {
+            match ($this->movementType) {
+                'in' => $inventory->stockIn($item, $quantity, $meta),
+                'out' => $inventory->stockOut($item, $quantity, StockMovement::TYPE_OUT, $meta),
+                'adjustment' => $inventory->adjustTo($item, $quantity, $this->movementReason, $meta),
+            };
+        } catch (ValidationException $e) {
+            $this->addError('movementQuantity', collect($e->errors())->flatten()->first());
 
-            $delta = $this->movementType === 'out' ? -$this->movementQuantity : $this->movementQuantity;
-            $item->increment('quantity_on_hand', $delta);
-        });
+            return;
+        }
 
-        $this->reset(['movingItemId', 'movementQuantity']);
+        $this->reset(['movingItemId', 'movementQuantity', 'movementReason']);
         session()->flash('status', 'Stock movement recorded.');
     }
 
@@ -259,17 +281,7 @@ class Index extends Component
                 $result['created'] ? $created++ : $restocked++;
 
                 if ($row['quantity'] > 0) {
-                    $result['item']->increment('quantity_on_hand', $row['quantity']);
-
-                    StockMovement::create([
-                        'merchant_id' => $merchant->id,
-                        'inventory_item_id' => $result['item']->id,
-                        'type' => StockMovement::TYPE_IN,
-                        'quantity' => $row['quantity'],
-                        'reference' => 'excel_import',
-                        'movement_date' => now()->toDateString(),
-                        'recorded_by' => Auth::id(),
-                    ]);
+                    app(InventoryService::class)->stockIn($result['item'], (float) $row['quantity'], ['reference' => 'excel_import']);
                 }
             }
         });

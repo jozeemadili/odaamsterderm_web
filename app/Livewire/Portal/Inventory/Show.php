@@ -2,9 +2,12 @@
 
 namespace App\Livewire\Portal\Inventory;
 
+use App\Livewire\Concerns\PicksCatalogProduct;
 use App\Models\InventoryItem;
 use App\Models\StockReceiptItem;
+use App\Services\InventoryService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Picqer\Barcode\BarcodeGeneratorSVG;
@@ -12,12 +15,65 @@ use Picqer\Barcode\BarcodeGeneratorSVG;
 #[Layout('layouts.portal', ['title' => 'Product Detail'])]
 class Show extends Component
 {
+    use PicksCatalogProduct;
+
     public InventoryItem $item;
+
+    public bool $mpVisible = false;
+
+    public string $mpQuantity = '0';
+
+    public bool $mpActive = true;
 
     public function mount(InventoryItem $item)
     {
         abort_unless($item->merchant_id === Auth::user()->merchant_id, 403);
-        $this->item = $item->load('branch', 'category');
+        $this->item = $item->load('branch', 'category', 'product', 'merchant');
+        $this->fillMarketplaceFields();
+    }
+
+    protected function fillMarketplaceFields(): void
+    {
+        $this->product_id = $this->item->product_id;
+        $this->productLabel = $this->item->product
+            ? $this->item->product->displayName().($this->item->product->isPending() ? ' (pending approval)' : '')
+            : '';
+        $this->mpVisible = $this->item->is_marketplace_visible;
+        $this->mpQuantity = rtrim(rtrim((string) $this->item->marketplace_quantity, '0'), '.') ?: '0';
+        $this->mpActive = $this->item->marketplace_status !== InventoryItem::MARKET_INACTIVE;
+    }
+
+    public function saveCatalogLink(InventoryService $inventory): void
+    {
+        $this->validate($this->catalogProductRules());
+
+        $this->item->update(['product_id' => $this->product_id]);
+
+        // An item without an approved catalog product can't stay listed.
+        if ($this->item->is_marketplace_visible && $this->item->fresh()->marketplaceBlockers()) {
+            $inventory->updateMarketplace($this->item, false, (float) $this->item->marketplace_quantity, $this->mpActive);
+        }
+
+        $this->item->refresh()->load('product');
+        $this->fillMarketplaceFields();
+        session()->flash('status', $this->product_id ? 'Linked to the catalog product.' : 'Catalog link removed.');
+    }
+
+    public function saveMarketplace(InventoryService $inventory): void
+    {
+        $this->validate(['mpQuantity' => ['required', 'numeric', 'min:0']], [], ['mpQuantity' => 'marketplace quantity']);
+
+        try {
+            $inventory->updateMarketplace($this->item, $this->mpVisible, (float) $this->mpQuantity, $this->mpActive);
+        } catch (ValidationException $e) {
+            $this->addError('mpQuantity', collect($e->errors())->flatten()->first());
+
+            return;
+        }
+
+        $this->item->refresh();
+        $this->fillMarketplaceFields();
+        session()->flash('status', 'Marketplace settings saved.');
     }
 
     public function barcodeSvg(): ?string

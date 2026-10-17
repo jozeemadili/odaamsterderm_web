@@ -8,6 +8,7 @@ use App\Models\InvoiceItem;
 use App\Models\InvoicePayment;
 use App\Models\PaymentMethod;
 use App\Models\StockMovement;
+use App\Services\InventoryService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -283,17 +284,9 @@ class Show extends Component
         DB::transaction(function () {
             foreach ($this->invoice->items as $line) {
                 if ($line->inventory_item_id) {
-                    InventoryItem::where('id', $line->inventory_item_id)->decrement('quantity_on_hand', $line->quantity);
-
-                    StockMovement::create([
-                        'merchant_id' => $this->invoice->merchant_id,
-                        'inventory_item_id' => $line->inventory_item_id,
-                        'type' => StockMovement::TYPE_OUT,
-                        'quantity' => $line->quantity,
+                    app(InventoryService::class)->stockOut($line->inventory_item_id, (float) $line->quantity, StockMovement::TYPE_OUT, [
                         'reference' => 'invoice',
                         'notes' => "Invoice {$this->invoice->number}",
-                        'movement_date' => now()->toDateString(),
-                        'recorded_by' => Auth::id(),
                     ]);
                 }
             }

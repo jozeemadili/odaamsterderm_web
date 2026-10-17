@@ -1,4 +1,8 @@
 <div class="space-y-4">
+    @if(session('status'))
+        <div class="rounded-lg bg-primary-subtle/30 border border-primary/20 text-primary-deep px-4 py-2.5 text-[14px]">{{ session('status') }}</div>
+    @endif
+
     <x-ui.card>
         <div class="flex items-start gap-4">
             @if($item->image())
@@ -35,6 +39,57 @@
                 </div>
             </div>
             <a href="{{ route('portal.inventory.index') }}" class="text-[13px] text-primary hover:text-primary-deep">&larr; Back</a>
+        </div>
+
+        <div class="mt-6 pt-5 border-t border-hairline">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-[15px] text-ink-secondary">Marketplace</h3>
+                @if($item->is_marketplace_visible)
+                    <x-ui.badge :tone="$item->marketplace_status === 'active' ? 'success' : ($item->marketplace_status === 'out_of_stock' ? 'danger' : 'neutral')">{{ str_replace('_', ' ', $item->marketplace_status) }}</x-ui.badge>
+                @else
+                    <x-ui.badge tone="neutral">hidden</x-ui.badge>
+                @endif
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <form wire:submit="saveCatalogLink" class="space-y-3">
+                    @include('livewire.shared.catalog-picker')
+                    @if($product_id !== $item->product_id)
+                        <x-ui.button type="submit" size="sm" target="saveCatalogLink">Save catalog link</x-ui.button>
+                    @endif
+                    @if($item->product)
+                        <p class="text-[12px] text-ink-mute">{{ $item->product->animalType?->fullName() }} · {{ $item->product->category?->fullName() }} @if($item->product->brand) · {{ $item->product->brand }} @endif</p>
+                    @endif
+                </form>
+
+                <form wire:submit="saveMarketplace" class="space-y-3">
+                    <div class="grid grid-cols-3 gap-3 text-[13px]">
+                        <div><p class="text-ink-mute mb-1">Actual stock</p><p class="text-ink font-medium tnum">{{ rtrim(rtrim($item->quantity_on_hand, '0'), '.') }}</p></div>
+                        <div><p class="text-ink-mute mb-1">Reserved (orders)</p><p class="text-ink font-medium tnum">{{ rtrim(rtrim($item->reserved_quantity, '0'), '.') }}</p></div>
+                        <div><p class="text-ink-mute mb-1">Can expose</p><p class="text-ink font-medium tnum">{{ rtrim(rtrim(number_format($item->availableQuantity(), 2, '.', ''), '0'), '.') }}</p></div>
+                    </div>
+                    <div class="flex flex-wrap items-end gap-4">
+                        <div class="w-40">
+                            <x-ui.input type="number" step="0.01" min="0" wire:model="mpQuantity" label="Marketplace quantity" id="mp_quantity" />
+                        </div>
+                        <label class="inline-flex items-center gap-2 text-[13px] text-ink-secondary pb-2">
+                            <input type="checkbox" wire:model="mpVisible" class="rounded border-hairline-input text-primary focus:ring-primary"> Visible on marketplace
+                        </label>
+                        <label class="inline-flex items-center gap-2 text-[13px] text-ink-secondary pb-2">
+                            <input type="checkbox" wire:model="mpActive" class="rounded border-hairline-input text-primary focus:ring-primary"> Active
+                        </label>
+                        <x-ui.button type="submit" size="sm" target="saveMarketplace">Save</x-ui.button>
+                    </div>
+                    @error('mpQuantity') <p class="text-ruby text-[12px]">{{ $message }}</p> @enderror
+                    @if($blockers = $item->marketplaceBlockers())
+                        <ul class="text-[12px] text-lemon list-disc pl-4 space-y-0.5">
+                            @foreach($blockers as $blocker)<li>{{ $blocker }}</li>@endforeach
+                        </ul>
+                    @else
+                        <p class="text-[12px] text-ink-mute">Customers see the marketplace quantity; you always see actual stock. Offline sales reduce the marketplace quantity automatically when stock runs short.</p>
+                    @endif
+                </form>
+            </div>
         </div>
 
         @if($item->barcode && $this->barcodeSvg())
@@ -142,6 +197,8 @@
                     <th class="px-5 py-3 font-normal">Date</th>
                     <th class="px-5 py-3 font-normal">Type</th>
                     <th class="px-5 py-3 font-normal">Qty</th>
+                    <th class="px-5 py-3 font-normal">Stock after</th>
+                    <th class="px-5 py-3 font-normal">Online after</th>
                     <th class="px-5 py-3 font-normal">Reference</th>
                     <th class="px-5 py-3 font-normal">By</th>
                 </tr>
@@ -154,11 +211,16 @@
                             <x-ui.badge :tone="$m->type === 'in' ? 'success' : ($m->type === 'out' ? 'danger' : 'neutral')">{{ $m->type }}</x-ui.badge>
                         </td>
                         <td class="px-5 py-2.5 tnum text-ink-secondary">{{ rtrim(rtrim($m->quantity, '0'), '.') }}</td>
-                        <td class="px-5 py-2.5 text-ink-mute">{{ $m->notes ?: ucfirst(str_replace('_', ' ', (string) $m->reference)) }}</td>
+                        <td class="px-5 py-2.5 tnum text-ink-secondary">{{ $m->balance_after !== null ? rtrim(rtrim($m->balance_after, '0'), '.') : '—' }}</td>
+                        <td class="px-5 py-2.5 tnum text-ink-secondary">{{ $m->marketplace_quantity_after !== null ? rtrim(rtrim($m->marketplace_quantity_after, '0'), '.') : '—' }}</td>
+                        <td class="px-5 py-2.5 text-ink-mute">
+                            {{ $m->notes ?: ucfirst(str_replace('_', ' ', (string) $m->reference)) }}
+                            @if($m->reason)<span class="block text-[11px]">Reason: {{ $m->reason }}</span>@endif
+                        </td>
                         <td class="px-5 py-2.5 text-ink-mute">{{ $m->recordedBy?->name }}</td>
                     </tr>
                 @empty
-                    <tr><td colspan="5" class="px-5 py-6 text-center text-ink-mute">No stock movements yet.</td></tr>
+                    <tr><td colspan="7" class="px-5 py-6 text-center text-ink-mute">No stock movements yet.</td></tr>
                 @endforelse
             </tbody>
         </table>

@@ -32,6 +32,20 @@ class InventoryItemResource extends JsonResource
                 'id' => $this->branch->id,
                 'name' => $this->branch->name,
             ] : null),
+            'product_id' => $this->product_id,
+            'product' => $this->whenLoaded('product', fn () => $this->product ? new ProductResource($this->product) : null),
+            'marketplace' => [
+                'is_visible' => (bool) $this->is_marketplace_visible,
+                'quantity' => (float) $this->marketplace_quantity,
+                'reserved_quantity' => (float) $this->reserved_quantity,
+                'available_quantity' => $this->availableQuantity(),
+                'status' => $this->marketplace_status,
+                // Only computed when the relations are loaded, to avoid N+1 on lists.
+                'blockers' => $this->when(
+                    $this->relationLoaded('merchant') && $this->relationLoaded('product') && $this->relationLoaded('branch'),
+                    fn () => $this->marketplaceBlockers(),
+                ),
+            ],
         ];
     }
 }

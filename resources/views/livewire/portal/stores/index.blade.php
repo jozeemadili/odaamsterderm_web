@@ -32,6 +32,13 @@
                         @endif
                     </div>
                     <p class="text-[13px] text-ink-mute">{{ $store->address ?: 'No address on file' }}</p>
+                    @if(! $store->hasLocation())
+                        <x-ui.badge tone="warning" class="mt-2">set map location</x-ui.badge>
+                    @elseif(! $store->is_marketplace_enabled)
+                        <x-ui.badge tone="neutral" class="mt-2">marketplace off</x-ui.badge>
+                    @else
+                        <x-ui.badge tone="success" class="mt-2">on marketplace</x-ui.badge>
+                    @endif
                     <p class="text-[13px] text-ink-mute">{{ $store->phone }}</p>
                     <p class="text-[12px] text-primary mt-3">{{ $store->inventory_items_count }} products &rarr;</p>
                 </x-ui.card>

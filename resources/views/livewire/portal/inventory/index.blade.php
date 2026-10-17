@@ -46,6 +46,8 @@
     @if($showItemForm)
         <x-ui.card>
             <form wire:submit="addItem" class="space-y-4">
+                @include('livewire.shared.catalog-picker')
+
                 <div>
                     <x-ui.input wire:model.live.debounce.300ms="name" label="Item name" id="item_name" autocomplete="off" />
                     @error('name') <p class="text-ruby text-[12px] mt-1">{{ $message }}</p> @enderror
@@ -78,7 +80,7 @@
                         @error('barcode') <p class="text-ruby text-[12px] mt-1">{{ $message }}</p> @enderror
                     </div>
                     <div>
-                        <x-ui.select wire:model.live="category_id" label="Category *" id="item_category">
+                        <x-ui.select wire:model.live="category_id" label="Shop category *" id="item_category">
                             <option value="">Select a category…</option>
                             @foreach($categories as $cat)
                                 <option value="{{ $cat->id }}">{{ $cat->name }}</option>
@@ -166,6 +168,7 @@
                     <th class="px-5 py-3 font-normal">Selling price</th>
                     <th class="px-5 py-3 font-normal">On hand</th>
                     <th class="px-5 py-3 font-normal">Reorder level</th>
+                    <th class="px-5 py-3 font-normal">Marketplace</th>
                     <th class="px-5 py-3"></th>
                 </tr>
             </thead>
@@ -198,6 +201,15 @@
                             @endif
                         </td>
                         <td class="px-5 py-3 tnum text-ink-secondary">{{ rtrim(rtrim($item->reorder_level, '0'), '.') }}</td>
+                        <td class="px-5 py-3">
+                            @if($item->is_marketplace_visible)
+                                <x-ui.badge :tone="$item->marketplace_status === 'active' ? 'success' : ($item->marketplace_status === 'out_of_stock' ? 'danger' : 'neutral')">
+                                    {{ rtrim(rtrim($item->marketplace_quantity, '0'), '.') }} online · {{ str_replace('_', ' ', $item->marketplace_status) }}
+                                </x-ui.badge>
+                            @else
+                                <span class="text-ink-mute text-[12px]">Hidden</span>
+                            @endif
+                        </td>
                         <td class="px-5 py-3 text-right">
                             <x-ui.button size="sm" variant="secondary" wire:click="startMovement({{ $item->id }})" target="startMovement({{ $item->id }})">Adjust</x-ui.button>
                         </td>
@@ -205,23 +217,27 @@
 
                     @if($movingItemId === $item->id)
                         <tr class="bg-canvas-soft/60">
-                            <td colspan="8" class="px-5 py-4">
+                            <td colspan="9" class="px-5 py-4">
                                 <form wire:submit="saveMovement" class="flex flex-wrap gap-4 items-end">
-                                    <x-ui.select wire:model="movementType" label="Type" id="movement_type">
+                                    <x-ui.select wire:model.live="movementType" label="Type" id="movement_type">
                                         <option value="in">Stock in</option>
                                         <option value="out">Stock out</option>
-                                        <option value="adjustment">Adjustment</option>
+                                        <option value="adjustment">Stock count adjustment</option>
                                     </x-ui.select>
-                                    <x-ui.input type="number" step="0.01" wire:model="movementQuantity" label="Quantity" id="movement_qty" />
+                                    <x-ui.input type="number" step="0.01" wire:model="movementQuantity" :label="$movementType === 'adjustment' ? 'Counted quantity' : 'Quantity'" id="movement_qty" />
+                                    <div class="min-w-[220px] flex-1">
+                                        <x-ui.input wire:model="movementReason" :label="$movementType === 'adjustment' ? 'Reason (required)' : 'Note (optional)'" id="movement_reason" placeholder="e.g. stock count, expired, found in store" />
+                                    </div>
                                     <x-ui.button type="submit" variant="primary" size="sm" target="saveMovement">Save</x-ui.button>
                                     <x-ui.button type="button" variant="ghost" size="sm" wire:click="$set('movingItemId', null)">Cancel</x-ui.button>
                                 </form>
                                 @error('movementQuantity') <p class="text-ruby text-[12px] mt-2">{{ $message }}</p> @enderror
+                                @error('movementReason') <p class="text-ruby text-[12px] mt-2">{{ $message }}</p> @enderror
                             </td>
                         </tr>
                     @endif
                 @empty
-                    <tr><td colspan="8" class="px-5 py-8 text-center text-ink-mute">No inventory items yet.</td></tr>
+                    <tr><td colspan="9" class="px-5 py-8 text-center text-ink-mute">No inventory items yet.</td></tr>
                 @endforelse
             </tbody>
         </table>

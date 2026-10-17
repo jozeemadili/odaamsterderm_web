@@ -15,7 +15,7 @@
         <x-ui.card>
             <form wire:submit="create" class="flex items-end gap-4">
                 <div class="flex-1">
-                    <x-ui.input wire:model="name" label="Name" id="business_type_name" placeholder="e.g. Duka, Pharmacy, Restaurant" />
+                    <x-ui.input wire:model="name" label="Name" id="business_type_name" placeholder="e.g. Agrovet, Feed store, Vet pharmacy" />
                 </div>
                 <x-ui.button type="submit" target="create">Add</x-ui.button>
             </form>

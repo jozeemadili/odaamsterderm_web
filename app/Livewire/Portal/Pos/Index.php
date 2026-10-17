@@ -9,6 +9,7 @@ use App\Models\PaymentMethod;
 use App\Models\SaleItem;
 use App\Models\SalesRecord;
 use App\Models\StockMovement;
+use App\Services\InventoryService;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -472,18 +473,10 @@ class Index extends Component
                     'subtotal' => $lineGross - $lineDiscountAmount,
                 ]);
 
-                StockMovement::create([
-                    'merchant_id' => $merchantId,
-                    'inventory_item_id' => $itemId,
-                    'type' => StockMovement::TYPE_OUT,
-                    'quantity' => $line['quantity'],
+                app(InventoryService::class)->stockOut($itemId, (float) $line['quantity'], StockMovement::TYPE_OUT, [
                     'reference' => 'sale',
                     'notes' => "POS sale #{$sale->id}",
-                    'movement_date' => now()->toDateString(),
-                    'recorded_by' => Auth::id(),
                 ]);
-
-                InventoryItem::where('id', $itemId)->decrement('quantity_on_hand', $line['quantity']);
             }
         });
 

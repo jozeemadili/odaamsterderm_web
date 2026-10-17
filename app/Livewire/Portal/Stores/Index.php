@@ -34,7 +34,7 @@ class Index extends Component
             Branch::where('merchant_id', $merchantId)->update(['is_primary' => false]);
         }
 
-        Branch::create([
+        $store = Branch::create([
             'merchant_id' => $merchantId,
             'name' => $this->name,
             'address' => $this->address ?: null,
@@ -42,8 +42,9 @@ class Index extends Component
             'is_primary' => $this->is_primary,
         ]);
 
-        $this->reset(['name', 'address', 'phone', 'is_primary', 'showForm']);
-        session()->flash('status', 'Store added.');
+        session()->flash('status', 'Store added. Now pin its location on the map so customers can find it.');
+
+        return $this->redirectRoute('portal.stores.show', ['store' => $store, 'setup' => 1], navigate: false);
     }
 
     public function render()

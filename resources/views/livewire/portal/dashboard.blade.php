@@ -69,7 +69,7 @@
         <x-ui.card class="lg:col-span-2">
             <h2 class="text-[15px] text-ink-secondary mb-4">Today</h2>
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <x-ui.stat label="Sales" value="TZS {{ number_format($summary['today_sales_total'], 0) }}" tone="primary" />
+                <x-ui.stat label="Sales" value="TZS {{ number_format($summary['today_sales_total'], 0) }}" :sub="$summary['today_sales_count'].' '.\Illuminate\Support\Str::plural('sale', $summary['today_sales_count'])" tone="primary" />
                 <x-ui.stat label="Profit" value="TZS {{ number_format($summary['today_profit_total'], 0) }}" :tone="$summary['today_profit_total'] >= 0 ? 'primary' : 'ruby'" />
                 <x-ui.stat label="Expenses" value="TZS {{ number_format($summary['today_expenses_total'], 0) }}" tone="ruby" />
                 <x-ui.stat label="Unpaid today" value="TZS {{ number_format($summary['unpaid_today'], 0) }}" tone="lemon" />
@@ -93,12 +93,28 @@
             <x-ui.stat label="Stock value (selling)" value="TZS {{ number_format($summary['stock_summary']['selling_value'], 0) }}" />
         </x-ui.card>
         <x-ui.card padding="p-5">
-            <x-ui.stat label="Total stores" :value="$summary['total_stores']" tone="primary" />
+            <x-ui.stat label="Stock quantity" :value="rtrim(rtrim(number_format($summary['stock_summary']['total_quantity'], 2), '0'), '.')" :sub="$summary['stock_summary']['product_count'].' products'" tone="primary" />
         </x-ui.card>
         <x-ui.card padding="p-5">
             <x-ui.stat label="Payments awaiting verification" :value="$summary['unverified_payments_count']" tone="lemon" />
         </x-ui.card>
     </div>
+
+    <x-ui.card>
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-[15px] text-ink-secondary">Marketplace</h2>
+            <a href="{{ route('portal.marketplace.index') }}" class="text-[13px] text-primary hover:text-primary-deep">Manage listings &rarr;</a>
+        </div>
+        @unless($summary['marketplace']['approved'])
+            <p class="text-[13px] text-lemon mb-3">Your business is awaiting marketplace approval — listings go live once approved.</p>
+        @endunless
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <x-ui.stat label="Listed products" :value="$summary['marketplace']['listed_count']" tone="primary" />
+            <x-ui.stat label="Units exposed online" :value="rtrim(rtrim(number_format($summary['marketplace']['units_exposed'], 2), '0'), '.')" />
+            <x-ui.stat label="Out of stock online" :value="$summary['marketplace']['out_of_stock_count']" :tone="$summary['marketplace']['out_of_stock_count'] ? 'ruby' : 'ink'" />
+            <x-ui.stat label="Low stock items" :value="$summary['low_stock_count']" :tone="$summary['low_stock_count'] ? 'ruby' : 'ink'" />
+        </div>
+    </x-ui.card>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <x-ui.card>

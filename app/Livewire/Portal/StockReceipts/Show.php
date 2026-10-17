@@ -5,6 +5,7 @@ namespace App\Livewire\Portal\StockReceipts;
 use App\Models\Branch;
 use App\Models\InventoryItem;
 use App\Models\StockMovement;
+use App\Services\InventoryService;
 use App\Models\StockReceipt;
 use App\Models\StockReceiptItem;
 use App\Models\SupplierTransaction;
@@ -260,17 +261,9 @@ class Show extends Component
 
         DB::transaction(function () {
             foreach ($this->receipt->items as $line) {
-                InventoryItem::where('id', $line->inventory_item_id)->increment('quantity_on_hand', $line->quantity);
-
-                StockMovement::create([
-                    'merchant_id' => $this->receipt->merchant_id,
-                    'inventory_item_id' => $line->inventory_item_id,
-                    'type' => StockMovement::TYPE_IN,
-                    'quantity' => $line->quantity,
+                app(InventoryService::class)->stockIn($line->inventory_item_id, (float) $line->quantity, [
                     'reference' => 'purchase_receipt',
                     'notes' => "Stock receipt #{$this->receipt->id}",
-                    'movement_date' => now()->toDateString(),
-                    'recorded_by' => Auth::id(),
                 ]);
             }
 

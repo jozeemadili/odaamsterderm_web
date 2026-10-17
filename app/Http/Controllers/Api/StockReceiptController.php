@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\StockReceiptResource;
 use App\Models\InventoryItem;
 use App\Models\StockMovement;
+use App\Services\InventoryService;
 use App\Models\StockReceipt;
 use App\Models\StockReceiptItem;
 use App\Models\SupplierTransaction;
@@ -116,16 +117,9 @@ class StockReceiptController extends Controller
 
         DB::transaction(function () use ($receipt, $request) {
             foreach ($receipt->items as $line) {
-                InventoryItem::where('id', $line->inventory_item_id)->increment('quantity_on_hand', $line->quantity);
-
-                StockMovement::create([
-                    'merchant_id' => $receipt->merchant_id,
-                    'inventory_item_id' => $line->inventory_item_id,
-                    'type' => StockMovement::TYPE_IN,
-                    'quantity' => $line->quantity,
+                app(InventoryService::class)->stockIn($line->inventory_item_id, (float) $line->quantity, [
                     'reference' => 'purchase_receipt',
                     'notes' => "Stock receipt #{$receipt->id}",
-                    'movement_date' => now()->toDateString(),
                     'recorded_by' => $request->user()->id,
                 ]);
             }

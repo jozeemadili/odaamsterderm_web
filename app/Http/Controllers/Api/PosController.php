@@ -10,6 +10,7 @@ use App\Models\PaymentMethod;
 use App\Models\SaleItem;
 use App\Models\SalesRecord;
 use App\Models\StockMovement;
+use App\Services\InventoryService;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -59,8 +60,8 @@ class PosController extends Controller
                 throw ValidationException::withMessages(['items' => "Product #{$row['inventory_item_id']} was not found."]);
             }
 
-            if ((float) $row['quantity'] > (float) $item->quantity_on_hand) {
-                throw ValidationException::withMessages(['items' => "Not enough stock for {$item->name} ({$item->quantity_on_hand} {$item->unit} left)."]);
+            if ((float) $row['quantity'] > $item->availableQuantity()) {
+                throw ValidationException::withMessages(['items' => "Not enough stock for {$item->name} ({$item->availableQuantity()} {$item->unit} left)."]);
             }
 
             $unitPrice = (float) $item->unit_price;
@@ -183,18 +184,11 @@ class PosController extends Controller
                     'subtotal' => $line['subtotal'],
                 ]);
 
-                StockMovement::create([
-                    'merchant_id' => $merchantId,
-                    'inventory_item_id' => $line['item']->id,
-                    'type' => StockMovement::TYPE_OUT,
-                    'quantity' => $line['quantity'],
+                app(InventoryService::class)->stockOut($line['item']->id, (float) $line['quantity'], StockMovement::TYPE_OUT, [
                     'reference' => 'sale',
                     'notes' => "Mobile app sale #{$sale->id}",
-                    'movement_date' => now()->toDateString(),
                     'recorded_by' => $user->id,
                 ]);
-
-                InventoryItem::where('id', $line['item']->id)->decrement('quantity_on_hand', $line['quantity']);
             }
 
             return $sale;

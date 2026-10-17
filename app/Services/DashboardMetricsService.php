@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\InventoryItem;
 use App\Models\Invoice;
 use App\Models\Merchant;
 use Illuminate\Support\Carbon;
@@ -56,6 +57,8 @@ class DashboardMetricsService
             'today_sales_total' => $todaySales,
             'today_expenses_total' => $todayExpenses,
             'today_profit_total' => $todaySales - $todayCogs - $todayExpenses,
+            'today_sales_count' => $merchant->salesRecords()->where('sale_date', $today)->count()
+                + $merchant->invoices()->where('status', Invoice::STATUS_PAID)->whereDate('paid_at', $today)->count(),
             'low_stock_count' => $merchant->lowStockItems()->count(),
             'expiring_soon_count' => $merchant->expiringSoonItems()->count(),
             'unverified_payments_count' => $merchant->paymentRecords()->where('status', 'recorded')->count(),
@@ -68,6 +71,7 @@ class DashboardMetricsService
             'unpaid_today' => $this->unpaidInvoiceTotal($merchant, today: true),
             'unpaid_total' => $this->unpaidInvoiceTotal($merchant, today: false),
             'stock_summary' => $this->stockSummary($merchant),
+            'marketplace' => $this->marketplaceSummary($merchant),
             'total_stores' => $merchant->branches()->count(),
         ];
     }
@@ -140,6 +144,8 @@ class DashboardMetricsService
         $row = $merchant->inventoryItems()
             ->selectRaw('SUM(quantity_on_hand * COALESCE(unit_cost, 0)) as buying_value')
             ->selectRaw('SUM(quantity_on_hand * COALESCE(unit_price, 0)) as selling_value')
+            ->selectRaw('SUM(quantity_on_hand) as total_quantity')
+            ->selectRaw('COUNT(*) as product_count')
             ->first();
 
         $buyingValue = (float) ($row->buying_value ?? 0);
@@ -149,6 +155,28 @@ class DashboardMetricsService
             'buying_value' => $buyingValue,
             'selling_value' => $sellingValue,
             'expected_profit' => $sellingValue - $buyingValue,
+            'total_quantity' => (float) ($row->total_quantity ?? 0),
+            'product_count' => (int) ($row->product_count ?? 0),
+        ];
+    }
+
+    /**
+     * What customers can currently see from this seller. Marketplace orders
+     * are added here once ordering ships (Phase 3).
+     *
+     * @return array{listed_count:int, units_exposed:float, out_of_stock_count:int, hidden_count:int, approved:bool}
+     */
+    public function marketplaceSummary(Merchant $merchant): array
+    {
+        return [
+            'approved' => $merchant->canSellOnMarketplace(),
+            'listed_count' => $merchant->inventoryItems()->onMarketplace()->count(),
+            'units_exposed' => (float) $merchant->inventoryItems()->onMarketplace()->sum('marketplace_quantity'),
+            'out_of_stock_count' => $merchant->inventoryItems()
+                ->where('is_marketplace_visible', true)
+                ->where('marketplace_status', InventoryItem::MARKET_OUT_OF_STOCK)
+                ->count(),
+            'hidden_count' => $merchant->inventoryItems()->where('is_marketplace_visible', false)->count(),
         ];
     }
 

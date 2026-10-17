@@ -5,6 +5,7 @@ namespace App\Livewire\Portal\Notifications;
 use App\Models\DamageReport;
 use App\Models\InventoryItem;
 use App\Models\StockMovement;
+use App\Services\InventoryService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
@@ -77,8 +78,8 @@ class Index extends Component
         $merchantId = Auth::user()->merchant_id;
         $item = InventoryItem::where('merchant_id', $merchantId)->findOrFail($data['inventory_item_id']);
 
-        if ((float) $data['quantity'] > (float) $item->quantity_on_hand) {
-            $this->addError('quantity', "Not enough stock for {$item->name} ({$item->quantity_on_hand} {$item->unit} left).");
+        if ((float) $data['quantity'] > $item->availableQuantity()) {
+            $this->addError('quantity', "Not enough stock for {$item->name} ({$item->availableQuantity()} {$item->unit} available).");
 
             return;
         }
@@ -100,18 +101,10 @@ class Index extends Component
                     ->toMediaCollection('photo');
             }
 
-            StockMovement::create([
-                'merchant_id' => $merchantId,
-                'inventory_item_id' => $item->id,
-                'type' => StockMovement::TYPE_DAMAGE,
-                'quantity' => $data['quantity'],
+            app(InventoryService::class)->stockOut($item, (float) $data['quantity'], StockMovement::TYPE_DAMAGE, [
                 'reference' => 'damage_report',
                 'notes' => "Damage report #{$report->id}",
-                'movement_date' => now()->toDateString(),
-                'recorded_by' => Auth::id(),
             ]);
-
-            $item->decrement('quantity_on_hand', $data['quantity']);
         });
 
         $this->reset(['itemSearch', 'itemMatches', 'inventory_item_id', 'selectedItemLabel', 'quantity', 'description', 'photo', 'showDamageForm']);

@@ -54,6 +54,9 @@ Route::middleware(['auth', 'internal'])->prefix('admin')->name('admin.')->group(
     Route::get('/payments', Admin\Payments\Index::class)->name('payments.index');
     Route::get('/users', Admin\Users\Index::class)->name('users.index');
     Route::get('/business-types', Admin\BusinessTypes\Index::class)->name('business-types.index');
+    Route::get('/catalog/products', Admin\Products\Index::class)->name('products.index');
+    Route::get('/catalog/animal-types', Admin\AnimalTypes\Index::class)->name('animal-types.index');
+    Route::get('/catalog/categories', Admin\ProductCategories\Index::class)->name('product-categories.index');
     Route::get('/audit-log', Admin\AuditLog\Index::class)->name('audit-log.index');
 });
 
@@ -69,6 +72,8 @@ Route::middleware(['auth', 'merchant'])->prefix('portal')->name('portal.')->grou
     Route::get('/inventory', Portal\Inventory\Index::class)->name('inventory.index');
     Route::get('/inventory/barcodes', Portal\Inventory\Barcodes::class)->name('inventory.barcodes');
     Route::get('/inventory/{item}', Portal\Inventory\Show::class)->name('inventory.show');
+    Route::get('/marketplace', Portal\Marketplace\Index::class)->name('marketplace.index');
+    Route::get('/catalog', Portal\Catalog\Index::class)->name('catalog.index');
     Route::get('/stock-receipts', Portal\StockReceipts\Index::class)->name('stock-receipts.index');
     Route::get('/stock-receipts/{receipt}', Portal\StockReceipts\Show::class)->name('stock-receipts.show');
     Route::get('/suppliers', Portal\Suppliers\Index::class)->name('suppliers.index');

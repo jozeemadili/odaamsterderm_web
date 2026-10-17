@@ -6,10 +6,14 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\InventoryItemResource;
 use App\Models\InventoryCategory;
 use App\Models\InventoryItem;
+use App\Models\Product;
 use App\Models\StockMovement;
+use App\Services\InventoryService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Exists;
 use Picqer\Barcode\BarcodeGeneratorPNG;
 
 class InventoryController extends Controller
@@ -24,7 +28,13 @@ class InventoryController extends Controller
                     ->orWhere('sku', 'like', '%'.$request->string('search').'%')
                     ->orWhere('barcode', 'like', '%'.$request->string('search').'%');
             }))
-            ->with(['category', 'branch'])
+            ->when($request->filled('marketplace'), fn ($q) => match ($request->string('marketplace')->toString()) {
+                'listed' => $q->onMarketplace(),
+                'hidden' => $q->where('is_marketplace_visible', false),
+                'out_of_stock' => $q->where('is_marketplace_visible', true)->where('marketplace_status', InventoryItem::MARKET_OUT_OF_STOCK),
+                default => $q,
+            })
+            ->with(['category', 'branch', 'product.animalType', 'product.category.parent', 'merchant'])
             ->orderBy('name')
             ->paginate($request->integer('per_page', 20));
 
@@ -35,7 +45,7 @@ class InventoryController extends Controller
     {
         $this->authorizeItem($request, $item);
 
-        return new InventoryItemResource($item->load(['category', 'branch']));
+        return new InventoryItemResource($item->load(['category', 'branch', 'product.animalType', 'product.category.parent', 'merchant']));
     }
 
     public function store(Request $request)
@@ -44,8 +54,9 @@ class InventoryController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'sku' => ['nullable', 'string', 'max:255'],
             'barcode' => ['nullable', 'string', 'max:64', 'unique:inventory_items,barcode'],
-            'category_id' => ['required', 'exists:inventory_categories,id'],
-            'branch_id' => ['required', 'exists:branches,id'],
+            'category_id' => ['required', $this->ownRule('inventory_categories')],
+            'branch_id' => ['required', $this->ownRule('branches')],
+            'product_id' => ['nullable', $this->usableProductRule()],
             'unit' => ['nullable', 'string', 'max:255'],
             'reorder_level' => ['nullable', 'numeric', 'min:0'],
             'unit_cost' => ['nullable', 'numeric', 'min:0'],
@@ -54,15 +65,24 @@ class InventoryController extends Controller
             'expiry_date' => ['nullable', 'date'],
         ]);
 
+        $openingStock = (float) ($data['quantity_on_hand'] ?? 0);
+        unset($data['quantity_on_hand']);
+
         $item = InventoryItem::create([
             ...$data,
             'merchant_id' => Auth::user()->merchant_id,
             'barcode' => $data['barcode'] ?? InventoryItem::generateUniqueBarcode(),
             'reorder_level' => $data['reorder_level'] ?? 0,
-            'quantity_on_hand' => $data['quantity_on_hand'] ?? 0,
         ]);
 
-        return new InventoryItemResource($item);
+        // Opening stock goes through the movement log like any other stock-in.
+        if ($openingStock > 0) {
+            app(InventoryService::class)->stockIn($item, $openingStock, ['reference' => 'opening_stock']);
+        }
+
+        return (new InventoryItemResource($item->fresh()->load(['category', 'branch', 'product.animalType', 'product.category.parent', 'merchant'])))
+            ->response()
+            ->setStatusCode(201);
     }
 
     public function update(Request $request, InventoryItem $item)
@@ -73,8 +93,9 @@ class InventoryController extends Controller
             'name' => ['sometimes', 'string', 'max:255'],
             'sku' => ['nullable', 'string', 'max:255'],
             'barcode' => ['nullable', 'string', 'max:64', 'unique:inventory_items,barcode,'.$item->id],
-            'category_id' => ['nullable', 'exists:inventory_categories,id'],
-            'branch_id' => ['nullable', 'exists:branches,id'],
+            'category_id' => ['nullable', $this->ownRule('inventory_categories')],
+            'branch_id' => ['nullable', $this->ownRule('branches')],
+            'product_id' => ['nullable', $this->usableProductRule()],
             'unit' => ['nullable', 'string', 'max:255'],
             'reorder_level' => ['nullable', 'numeric', 'min:0'],
             'unit_cost' => ['nullable', 'numeric', 'min:0'],
@@ -84,7 +105,53 @@ class InventoryController extends Controller
 
         $item->update($data);
 
-        return new InventoryItemResource($item->fresh());
+        // Unlinking the catalog product or moving to a store that can't sell
+        // online takes the item off the marketplace.
+        $item->refresh();
+        if ($item->is_marketplace_visible && $item->marketplaceBlockers()) {
+            app(InventoryService::class)->updateMarketplace($item, false, (float) $item->marketplace_quantity, $item->marketplace_status !== InventoryItem::MARKET_INACTIVE);
+        }
+
+        return new InventoryItemResource($item->fresh()->load(['category', 'branch', 'product.animalType', 'product.category.parent', 'merchant']));
+    }
+
+    /**
+     * Seller marketplace controls for one item: visibility, quantity exposed
+     * online and active/inactive. Quantity is capped at unreserved stock.
+     */
+    public function marketplace(Request $request, InventoryItem $item, InventoryService $inventory)
+    {
+        $this->authorizeItem($request, $item);
+
+        $data = $request->validate([
+            'is_marketplace_visible' => ['required', 'boolean'],
+            'marketplace_quantity' => ['required', 'numeric', 'min:0'],
+            'active' => ['sometimes', 'boolean'],
+        ]);
+
+        $inventory->updateMarketplace(
+            $item,
+            (bool) $data['is_marketplace_visible'],
+            (float) $data['marketplace_quantity'],
+            (bool) ($data['active'] ?? true),
+        );
+
+        return new InventoryItemResource($item->fresh()->load(['category', 'branch', 'product.animalType', 'product.category.parent', 'merchant']));
+    }
+
+    /** Exists rule limited to rows owned by the current merchant. */
+    protected function ownRule(string $table): Exists
+    {
+        return Rule::exists($table, 'id')->where('merchant_id', Auth::user()->merchant_id);
+    }
+
+    protected function usableProductRule(): \Closure
+    {
+        return function ($attribute, $value, $fail) {
+            if (! Product::usableBy(Auth::user()->merchant_id)->whereKey($value)->exists()) {
+                $fail('Choose a product from the catalog.');
+            }
+        };
     }
 
     public function destroy(Request $request, InventoryItem $item)
@@ -144,21 +211,19 @@ class InventoryController extends Controller
 
         $data = $request->validate([
             'type' => ['required', 'in:in,out,adjustment'],
-            'quantity' => ['required', 'numeric', 'min:0.01'],
+            // For "adjustment" this is the counted stock level, not a delta.
+            'quantity' => ['required', 'numeric', $request->input('type') === 'adjustment' ? 'min:0' : 'min:0.01'],
+            'reason' => [$request->input('type') === 'adjustment' ? 'required' : 'nullable', 'string', 'max:255'],
         ]);
 
-        StockMovement::create([
-            'merchant_id' => $item->merchant_id,
-            'inventory_item_id' => $item->id,
-            'type' => $data['type'],
-            'quantity' => $data['quantity'],
-            'reference' => 'mobile_app',
-            'movement_date' => now()->toDateString(),
-            'recorded_by' => Auth::id(),
-        ]);
+        $inventory = app(InventoryService::class);
+        $meta = ['reference' => 'mobile_app', 'reason' => $data['reason'] ?? null];
 
-        $delta = $data['type'] === 'out' ? -$data['quantity'] : $data['quantity'];
-        $item->increment('quantity_on_hand', $delta);
+        match ($data['type']) {
+            'in' => $inventory->stockIn($item, (float) $data['quantity'], $meta),
+            'out' => $inventory->stockOut($item, (float) $data['quantity'], StockMovement::TYPE_OUT, $meta),
+            'adjustment' => $inventory->adjustTo($item, (float) $data['quantity'], $data['reason'], $meta),
+        };
 
         return new InventoryItemResource($item->fresh());
     }

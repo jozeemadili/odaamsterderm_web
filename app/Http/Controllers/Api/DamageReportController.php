@@ -7,6 +7,7 @@ use App\Http\Resources\DamageReportResource;
 use App\Models\DamageReport;
 use App\Models\InventoryItem;
 use App\Models\StockMovement;
+use App\Services\InventoryService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -41,9 +42,9 @@ class DamageReportController extends Controller
 
         $item = InventoryItem::where('merchant_id', $merchantId)->findOrFail($data['inventory_item_id']);
 
-        if ((float) $data['quantity'] > (float) $item->quantity_on_hand) {
+        if ((float) $data['quantity'] > $item->availableQuantity()) {
             return response()->json([
-                'message' => "Not enough stock for {$item->name} ({$item->quantity_on_hand} {$item->unit} left).",
+                'message' => "Not enough stock for {$item->name} ({$item->availableQuantity()} {$item->unit} available).",
             ], 422);
         }
 
@@ -64,18 +65,10 @@ class DamageReportController extends Controller
                     ->toMediaCollection('photo');
             }
 
-            StockMovement::create([
-                'merchant_id' => $merchantId,
-                'inventory_item_id' => $item->id,
-                'type' => StockMovement::TYPE_DAMAGE,
-                'quantity' => $data['quantity'],
+            app(InventoryService::class)->stockOut($item, (float) $data['quantity'], StockMovement::TYPE_DAMAGE, [
                 'reference' => 'damage_report',
                 'notes' => "Damage report #{$report->id}",
-                'movement_date' => now()->toDateString(),
-                'recorded_by' => Auth::id(),
             ]);
-
-            $item->decrement('quantity_on_hand', $data['quantity']);
 
             return $report;
         });

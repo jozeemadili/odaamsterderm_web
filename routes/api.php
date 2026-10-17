@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BranchController;
+use App\Http\Controllers\Api\CatalogController;
 use App\Http\Controllers\Api\CustomerController;
 use App\Http\Controllers\Api\DamageReportController;
 use App\Http\Controllers\Api\DashboardController;
@@ -58,11 +59,20 @@ Route::prefix('v1')->group(function () {
             Route::post('/inventory/{item}/image', [InventoryController::class, 'uploadImage']);
             Route::post('/inventory/{item}/barcode', [InventoryController::class, 'generateBarcode']);
             Route::post('/inventory/{item}/stock-movement', [InventoryController::class, 'stockMovement']);
+            Route::patch('/inventory/{item}/marketplace', [InventoryController::class, 'marketplace']);
+
+            // --- Shared product catalog ---------------------------------
+            Route::get('/catalog/animal-types', [CatalogController::class, 'animalTypes']);
+            Route::get('/catalog/categories', [CatalogController::class, 'categories']);
+            Route::get('/catalog/products', [CatalogController::class, 'products']);
+            Route::post('/catalog/products', [CatalogController::class, 'propose']);
+            Route::get('/catalog/proposals', [CatalogController::class, 'proposals']);
 
             // --- Branches / stores -----------------------------------------
             Route::get('/branches', [BranchController::class, 'index']);
             Route::post('/branches', [BranchController::class, 'store']);
             Route::get('/branches/{branch}', [BranchController::class, 'show']);
+            Route::patch('/branches/{branch}', [BranchController::class, 'update']);
 
             // --- Stock receipts --------------------------------------------
             Route::get('/stock-receipts', [StockReceiptController::class, 'index']);

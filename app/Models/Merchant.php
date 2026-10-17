@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -88,6 +89,17 @@ class Merchant extends Model implements HasMedia
     public function isActive(): bool
     {
         return $this->status === self::STATUS_ACTIVE;
+    }
+
+    /** Only approved, active sellers may publish products to the marketplace. */
+    public function canSellOnMarketplace(): bool
+    {
+        return $this->kyc_status === self::KYC_APPROVED && $this->isActive();
+    }
+
+    public function scopeMarketplaceApproved(Builder $query): Builder
+    {
+        return $query->where('merchants.kyc_status', self::KYC_APPROVED)->where('merchants.status', self::STATUS_ACTIVE);
     }
 
     public function users(): HasMany

@@ -1,0 +1,43 @@
+{{-- Expects $animalGroups (top-level AnimalType with children) and $formCategories (top-level ProductCategory with children) --}}
+<div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <div class="md:col-span-2">
+        <x-ui.input wire:model="form.name" label="Product name" id="product_name" placeholder="e.g. Chicken Starter" :error="$errors->first('form.name')" />
+    </div>
+    <x-ui.input wire:model="form.pack_size" label="Pack size" id="product_pack" placeholder="e.g. 25KG, 100ml, 1000 doses" :error="$errors->first('form.pack_size')" />
+    <x-ui.select wire:model="form.unit" label="Selling unit" id="product_unit" :error="$errors->first('form.unit')">
+        @foreach(\App\Models\Product::UNITS as $unit)
+            <option value="{{ $unit }}">{{ $unit }}</option>
+        @endforeach
+    </x-ui.select>
+
+    <x-ui.select wire:model.live="form.animal_type_id" label="Animal type" id="product_animal" :error="$errors->first('form.animal_type_id')">
+        <option value="">— Choose —</option>
+        @foreach($animalGroups as $group)
+            <option value="{{ $group->id }}">{{ $group->name }}</option>
+            @foreach($group->children as $child)
+                <option value="{{ $child->id }}">&nbsp;&nbsp;↳ {{ $child->name }}</option>
+            @endforeach
+        @endforeach
+    </x-ui.select>
+    <x-ui.select wire:model="form.product_category_id" label="Category" id="product_category" :error="$errors->first('form.product_category_id')">
+        <option value="">— Choose —</option>
+        @foreach($formCategories as $category)
+            <option value="{{ $category->id }}">{{ $category->name }}</option>
+            @foreach($category->children as $child)
+                <option value="{{ $child->id }}">&nbsp;&nbsp;↳ {{ $child->name }}</option>
+            @endforeach
+        @endforeach
+    </x-ui.select>
+    <div class="md:col-span-2">
+        <x-ui.input wire:model="form.brand" label="Brand / manufacturer (optional)" id="product_brand" :error="$errors->first('form.brand')" />
+    </div>
+
+    <div class="md:col-span-3">
+        <x-ui.textarea wire:model="form.description" label="Description (shown to customers)" id="product_description" rows="3" :error="$errors->first('form.description')"></x-ui.textarea>
+    </div>
+    <div>
+        <label class="block text-[13px] text-ink-mute mb-1.5" for="product_image">Image (optional)</label>
+        <input type="file" wire:model="form.image" id="product_image" accept="image/*" class="block w-full text-[13px] text-ink-secondary file:mr-3 file:rounded-pill file:border-0 file:bg-canvas-soft file:px-3 file:py-1.5 file:text-[12px]">
+        @error('form.image') <p class="text-ruby text-[12px] mt-1">{{ $message }}</p> @enderror
+    </div>
+</div>

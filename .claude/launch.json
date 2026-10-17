@@ -2,16 +2,10 @@
     "version": "0.0.1",
     "configurations": [
         {
-            "name": "odaamsterderm",
+            "name": "odaamsterderm-web",
             "runtimeExecutable": "php",
-            "runtimeArgs": ["artisan", "dev", "--inline"],
-            "port": 8001
-        },
-        {
-            "name": "ce-portal",
-            "runtimeExecutable": "php",
-            "runtimeArgs": ["/Users/josephatwilliammadili/Desktop/new3/PROJECTS/New LARAVEL PROJECTS/ce_applications/ce_management_portal/artisan", "serve", "--host=127.0.0.1", "--port=8000"],
-            "port": 8000
+            "runtimeArgs": ["artisan", "serve", "--host=127.0.0.1", "--port=8010"],
+            "port": 8010
         }
     ]
 }

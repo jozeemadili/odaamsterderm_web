@@ -13,7 +13,7 @@
     <div class="lg:hidden sticky top-0 z-30 flex items-center justify-between bg-brand-dark px-4 py-3">
         <div class="flex items-center gap-2">
             <img src="{{ asset('images/favicon-512.png') }}" alt="Odaamsterderm Hub" class="h-7 w-7 rounded-md shrink-0">
-            <span class="text-[16px] font-light tracking-tight text-white">Duka<span class="font-medium text-primary-soft">Flow</span></span>
+            <span class="text-[16px] font-light tracking-tight text-white">Odaamsterderm<span class="font-medium text-primary-soft"> Hub</span></span>
         </div>
         <button type="button" @click="sidebarOpen = true" class="p-1.5 text-white/80 hover:text-white" aria-label="Open menu">
             <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -40,7 +40,7 @@
                     <div class="flex items-center gap-2 min-w-0">
                         <img src="{{ asset('images/favicon-512.png') }}" alt="Odaamsterderm Hub" class="h-7 w-7 rounded-md shrink-0">
                         <div class="min-w-0">
-                            <span class="text-[17px] font-light tracking-tight text-white">Duka<span class="font-medium text-primary-soft">Flow</span></span>
+                            <span class="text-[17px] font-light tracking-tight text-white">Odaamsterderm<span class="font-medium text-primary-soft"> Hub</span></span>
                             <p class="text-[11px] text-white/40 mt-0.5 uppercase tracking-wide truncate">{{ auth()->user()->merchant?->business_name }}</p>
                         </div>
                     </div>
@@ -69,6 +69,12 @@
                     </a>
                     <a href="{{ route('portal.inventory.index') }}" class="icon-dock-item {{ request()->routeIs('portal.inventory.*') ? 'is-active' : '' }}">
                         <x-icon.inventory class="h-4 w-4 shrink-0" /> Inventory
+                    </a>
+                    <a href="{{ route('portal.marketplace.index') }}" class="icon-dock-item {{ request()->routeIs('portal.marketplace.*') ? 'is-active' : '' }}">
+                        <x-icon.target class="h-4 w-4 shrink-0" /> Marketplace
+                    </a>
+                    <a href="{{ route('portal.catalog.index') }}" class="icon-dock-item {{ request()->routeIs('portal.catalog.*') ? 'is-active' : '' }}">
+                        <x-icon.barcode class="h-4 w-4 shrink-0" /> Product Catalog
                     </a>
                     <a href="{{ route('portal.expenses.index') }}" class="icon-dock-item {{ request()->routeIs('portal.expenses.*') ? 'is-active' : '' }}">
                         <x-icon.expenses class="h-4 w-4 shrink-0" /> Expenses
