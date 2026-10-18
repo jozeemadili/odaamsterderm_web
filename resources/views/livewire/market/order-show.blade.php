@@ -36,6 +36,30 @@
         </ol>
     </x-ui.card>
 
+    @if(in_array($order->status, ['accepted', 'preparing', 'ready_for_pickup'], true) && $order->branch->hasLocation())
+        <x-ui.card>
+            <div x-data="liveDistance({ lat: {{ (float) $order->branch->latitude }}, lng: {{ (float) $order->branch->longitude }} })" class="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                    <p class="text-[11px] uppercase tracking-wide text-ink-mute">Distance to the store</p>
+                    <p x-show="state === 'finding'" class="text-[14px] text-ink-secondary">Finding your location…</p>
+                    <template x-if="state === 'ready' && meters < 80">
+                        <p class="text-[15px] font-medium">You're at the store — show reference <strong>{{ $order->reference }}</strong> at the counter.</p>
+                    </template>
+                    <template x-if="state === 'ready' && meters >= 80">
+                        <div>
+                            <p class="text-[20px] font-medium tnum"><span x-text="label"></span> from you right now</p>
+                            <p class="text-[12px] text-ink-mute">About <span x-text="minutes"></span> min by car or boda boda</p>
+                        </div>
+                    </template>
+                    <p x-show="state === 'denied'" x-cloak class="text-[14px] text-ink-secondary">Allow location access in your browser to see how far the store is.</p>
+                    <p x-show="state === 'failed'" x-cloak class="text-[14px] text-ink-secondary">Couldn't get your location right now.</p>
+                </div>
+                <a href="https://www.google.com/maps/dir/?api=1&destination={{ $order->branch->latitude }},{{ $order->branch->longitude }}" target="_blank" rel="noopener"
+                    class="inline-flex items-center rounded-pill bg-brand-dark text-white px-4 py-2 text-[14px] font-medium hover:bg-brand-dark/90">Directions</a>
+            </div>
+        </x-ui.card>
+    @endif
+
     <x-ui.card padding="p-0">
         <div class="px-4 py-3 border-b border-hairline">
             <p class="text-[15px] font-medium">Pickup at {{ $order->branch->name }}</p>

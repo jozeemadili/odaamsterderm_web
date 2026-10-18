@@ -122,6 +122,36 @@ document.addEventListener('alpine:init', () => {
      * Read-only map with several store pins (and the customer's position).
      * x-data="storesMap({ stores: [{ lat, lng, name, url, note }], me: { lat, lng } | null })"
      */
+    // Live distance from the customer's current position to the pickup store.
+    window.Alpine.data('liveDistance', ({ lat, lng }) => ({
+        state: 'finding',
+        meters: null,
+        watchId: null,
+        init() {
+            if (!navigator.geolocation) { this.state = 'failed'; return; }
+            this.watchId = navigator.geolocation.watchPosition(
+                (pos) => {
+                    const toRad = (d) => d * Math.PI / 180;
+                    const dLat = toRad(lat - pos.coords.latitude);
+                    const dLng = toRad(lng - pos.coords.longitude);
+                    const a = Math.sin(dLat / 2) ** 2
+                        + Math.cos(toRad(pos.coords.latitude)) * Math.cos(toRad(lat)) * Math.sin(dLng / 2) ** 2;
+                    this.meters = 6371000 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+                    this.state = 'ready';
+                },
+                (err) => { this.state = err.code === 1 ? 'denied' : 'failed'; },
+                { enableHighAccuracy: true, maximumAge: 15000, timeout: 20000 },
+            );
+        },
+        destroy() { if (this.watchId !== null) navigator.geolocation.clearWatch(this.watchId); },
+        get label() {
+            if (this.meters === null) return '';
+            return this.meters < 1000 ? `${Math.round(this.meters / 10) * 10} m` : `${(this.meters / 1000).toFixed(this.meters < 10000 ? 1 : 0)} km`;
+        },
+        // About 25 km/h by car or boda boda in town.
+        get minutes() { return Math.max(1, Math.ceil(this.meters / 1000 / 25 * 60)); },
+    }));
+
     window.Alpine.data('storesMap', ({ stores, me = null }) => ({
         init() {
             const map = L.map(this.$refs.map, { scrollWheelZoom: false });
