@@ -57,8 +57,10 @@ class MarketplaceSearch
     {
         $available = self::AVAILABLE_SQL;
 
+        // Aggregate per product id only, then join the product rows: MariaDB
+        // (unlike MySQL) rejects "products.*" when grouping by products.id.
         $query = Product::query()
-            ->select('products.*')
+            ->select('products.id as product_id')
             ->join('inventory_items', 'inventory_items.product_id', '=', 'products.id')
             ->tap(fn (Builder $q) => $this->onlyPublicOffers($q))
             ->where('products.status', Product::STATUS_APPROVED)
@@ -91,25 +93,26 @@ class MarketplaceSearch
             $query->havingRaw("MIN(CASE WHEN {$available} THEN inventory_items.unit_price END) <= (? + 0)", [(float) $filters['max_price']]);
         }
 
-        // Sort in an outer query: MySQL 5.7 can't use aggregate aliases inside
+        // Sort in the outer query: MySQL 5.7 can't use aggregate aliases inside
         // ORDER BY expressions (needed for "nulls last").
         $results = Product::query()
-            ->fromSub($query->toBase(), 'products')
+            ->select('products.*', 'agg.min_price', 'agg.max_price', 'agg.sellers_count', 'agg.available_quantity', 'agg.nearest_km')
+            ->joinSub($query->toBase(), 'agg', 'agg.product_id', '=', 'products.id')
             ->with(['animalType', 'category.parent', 'media', 'producer.media']);
 
         $ids = array_values(array_map('intval', $filters['product_ids'] ?? []));
 
         match ($sort === self::SORT_NEAREST && ! $from ? self::SORT_PRICE : $sort) {
             self::SORT_RELEVANCE => $ids
-                ? $results->orderByRaw('CASE id '.collect($ids)->map(fn (int $id, int $i) => "WHEN {$id} THEN {$i}")->implode(' ').' ELSE '.count($ids).' END')
-                : $results->orderBy('name'),
+                ? $results->orderByRaw('CASE products.id '.collect($ids)->map(fn (int $id, int $i) => "WHEN {$id} THEN {$i}")->implode(' ').' ELSE '.count($ids).' END')
+                : $results->orderBy('products.name'),
             self::SORT_NEAREST => $results->orderByRaw('nearest_km IS NULL, nearest_km'),
             self::SORT_PRICE => $results->orderByRaw('min_price IS NULL, min_price'),
             self::SORT_AVAILABILITY => $results->orderByDesc('available_quantity'),
-            default => $results->orderBy('name'),
+            default => $results->orderBy('products.name'),
         };
 
-        return $results->orderBy('name')->paginate($perPage)->withQueryString();
+        return $results->orderBy('products.name')->orderBy('products.id')->paginate($perPage)->withQueryString();
     }
 
     /**
