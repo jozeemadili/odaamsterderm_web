@@ -10,7 +10,7 @@ COMPOSER=${COMPOSER:-$HOME/bin/composer}
 cd "$(dirname "$0")/.."
 
 git pull --ff-only
-"$PHP" "$COMPOSER" install --no-dev --optimize-autoloader --no-interaction
+"$PHP" -d allow_url_fopen=On "$COMPOSER" install --no-dev --optimize-autoloader --no-interaction
 PATH="$NODE_BIN:$PATH" npm ci --no-audit --no-fund
 PATH="$NODE_BIN:$PATH" npm run build
 "$PHP" artisan migrate --force
