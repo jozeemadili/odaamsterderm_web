@@ -138,7 +138,7 @@
                                     <div class="text-right text-[12px] text-ink-mute">
                                         <p>{{ $product->sellers_count }} {{ \Illuminate\Support\Str::plural('seller', $product->sellers_count) }}</p>
                                         @if($product->nearest_km !== null)
-                                            <p class="text-primary-deep font-medium">Nearest {{ \App\Support\GeoPoint::formatKm($product->nearest_km) }}</p>
+                                            <x-market.distance :km="$product->nearest_km" prefix="Nearest" class="mt-1" />
                                         @endif
                                     </div>
                                 </div>

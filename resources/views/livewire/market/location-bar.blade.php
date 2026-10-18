@@ -1,4 +1,18 @@
 <div class="relative">
+    @unless($current)
+        {{-- No location yet: ask the browser once per visit, so distances show straight away. --}}
+        <div x-data x-init="
+            if (!navigator.geolocation || sessionStorage.getItem('ohAutoLocation')) return;
+            sessionStorage.setItem('ohAutoLocation', '1');
+            const go = () => navigator.geolocation.getCurrentPosition(
+                (p) => $wire.detected(p.coords.latitude, p.coords.longitude),
+                () => {},
+                { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 });
+            navigator.permissions
+                ? navigator.permissions.query({ name: 'geolocation' }).then((r) => { if (r.state !== 'denied') go(); }).catch(go)
+                : go();
+        "></div>
+    @endunless
     <button type="button" wire:click="openPicker"
         class="inline-flex items-center gap-1.5 rounded-pill border border-white/20 px-3 py-1.5 text-white/90 hover:border-primary-soft max-w-[220px]">
         <svg class="h-4 w-4 shrink-0 text-primary-soft" viewBox="0 0 24 24" fill="none"><path d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21Z" stroke="currentColor" stroke-width="1.75"/><circle cx="12" cy="9.5" r="2.5" stroke="currentColor" stroke-width="1.75"/></svg>

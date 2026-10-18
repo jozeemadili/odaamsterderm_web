@@ -36,6 +36,20 @@ class LocationBar extends Component
         $this->save($latitude, $longitude, 'Current location');
     }
 
+    /**
+     * Location detected automatically on arrival (no location chosen yet):
+     * kept for this visit only, not saved to the customer's profile.
+     */
+    public function detected(float $latitude, float $longitude): void
+    {
+        if (MarketLocation::current() || ! ($point = GeoPoint::tryFrom($latitude, $longitude))) {
+            return;
+        }
+
+        MarketLocation::set($point, remember: false);
+        $this->dispatch('market-location-updated');
+    }
+
     public function savePicked(): void
     {
         $this->save($this->latitude, $this->longitude, trim($this->label) ?: 'Selected location');

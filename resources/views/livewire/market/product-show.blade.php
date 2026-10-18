@@ -73,7 +73,13 @@
                                         </div>
                                     </div>
                                 </td>
-                                <td class="px-4 py-3 tnum">{{ \App\Support\GeoPoint::formatKm($offer->distance_km) ?? '—' }}</td>
+                                <td class="px-4 py-3 whitespace-nowrap">
+                                    @if($offer->distance_km !== null)
+                                        <x-market.distance :km="$offer->distance_km" />
+                                    @else
+                                        <button type="button" x-data x-on:click="document.querySelector('header [wire\\:click=openPicker]')?.click()" class="text-[12px] text-primary hover:text-primary-deep">Set location</button>
+                                    @endif
+                                </td>
                                 <td class="px-4 py-3 tnum font-medium">TZS {{ number_format($offer->unit_price) }}</td>
                                 <td class="px-4 py-3 tnum">{{ $offer->is_available ? rtrim(rtrim((string) $offer->marketplace_quantity, '0'), '.').' '.\Illuminate\Support\Str::plural($product->unit, (int) $offer->marketplace_quantity) : '0' }}</td>
                                 <td class="px-4 py-3">

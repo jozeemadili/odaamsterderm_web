@@ -28,13 +28,14 @@ final class MarketLocation
     }
 
     /** Remembers the point for this visit and, for customers, as their default. */
-    public static function set(GeoPoint $point): void
+    /** @param  bool  $remember  also save it as the signed-in customer's location */
+    public static function set(GeoPoint $point, bool $remember = true): void
     {
         session([self::SESSION_KEY => $point->toArray()]);
 
         $user = Auth::user();
 
-        if ($user?->isCustomer()) {
+        if ($remember && $user?->isCustomer()) {
             $user->update([
                 'latitude' => $point->latitude,
                 'longitude' => $point->longitude,
