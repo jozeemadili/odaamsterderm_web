@@ -12,7 +12,10 @@
                 <h1 class="text-[26px] font-light tracking-tight tnum">{{ $order->reference }}</h1>
                 <p class="text-[13px] text-ink-mute">Placed {{ $order->created_at->format('d M Y, H:i') }}</p>
             </div>
-            @include('livewire.shared.order-status-badge', ['status' => $order->status, 'label' => $order->statusLabel()])
+            <div class="flex items-center gap-3">
+                @include('livewire.shared.order-status-badge', ['status' => $order->status, 'label' => $order->statusLabel()])
+                <a href="{{ $order->receiptUrl() }}" target="_blank" rel="noopener" class="text-[13px] text-primary hover:text-primary-deep">Receipt</a>
+            </div>
         </div>
 
         @if($order->status === 'ready_for_pickup')

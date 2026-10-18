@@ -26,6 +26,7 @@ class MerchantController extends Controller
             'region_id' => ['nullable', 'integer', 'exists:regions,id'],
             'city' => ['nullable', 'string', 'max:255'],
             'brand_color' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'brand_accent_color' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
         ]);
 
         $merchant->update($data);

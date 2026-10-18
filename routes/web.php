@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Auth\GoogleController;
 use App\Http\Controllers\InvoicePublicController;
+use App\Http\Controllers\ReceiptController;
 use App\Livewire\Admin;
 use App\Livewire\Auth\CompleteRegistration;
 use App\Livewire\Auth\CustomerRegister;
@@ -24,6 +25,10 @@ Route::middleware(['auth', 'customer'])->group(function () {
     Route::get('/account/orders', Market\Orders::class)->name('market.orders');
     Route::get('/account/orders/{order}', Market\OrderShow::class)->name('market.order');
 });
+
+// Branded receipts — signed links customers can open or share without signing in.
+Route::get('/receipts/orders/{order}', [ReceiptController::class, 'order'])->name('receipts.order')->middleware('signed');
+Route::get('/receipts/sales/{sale}', [ReceiptController::class, 'sale'])->name('receipts.sale')->middleware('signed');
 
 Route::get('/i/{invoice}/pdf', [InvoicePublicController::class, 'download'])
     ->name('invoices.public-pdf')

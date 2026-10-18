@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Models\Merchant;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -24,6 +25,9 @@ class MerchantResource extends JsonResource
             'kyc_status' => $this->kyc_status,
             'status' => $this->status,
             'brand_color' => $this->brandColor(),
+            'brand_accent_color' => $this->accentColor(),
+            'brand_text_color' => Merchant::textColorOn($this->brandColor()),
+            'brand_accent_text_color' => Merchant::textColorOn($this->accentColor()),
             'logo_url' => $this->logo()?->getUrl(),
         ];
     }

@@ -9,8 +9,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
-use Spatie\Activitylog\Support\LogOptions;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
+use Spatie\Activitylog\Support\LogOptions;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
@@ -18,7 +18,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 #[Fillable([
     'business_name', 'owner_name', 'phone', 'email', 'business_type', 'business_type_id',
     'tin_number', 'physical_address', 'region', 'region_id', 'city',
-    'kyc_status', 'subscription_tier', 'status', 'brand_color',
+    'kyc_status', 'subscription_tier', 'status', 'brand_color', 'brand_accent_color',
     'created_by_agent_id', 'reviewed_by', 'reviewed_at', 'review_notes',
 ])]
 class Merchant extends Model implements HasMedia
@@ -37,9 +37,38 @@ class Merchant extends Model implements HasMedia
         return $this->getFirstMedia('logo');
     }
 
+    public const DEFAULT_ACCENT_COLOR = '#C9972E';
+
     public function brandColor(): string
     {
         return $this->brand_color ?: self::DEFAULT_BRAND_COLOR;
+    }
+
+    /** Second brand colour: highlights, buttons, totals. */
+    public function accentColor(): string
+    {
+        return $this->brand_accent_color ?: self::DEFAULT_ACCENT_COLOR;
+    }
+
+    /** White or dark text — whichever reads better on the given colour. */
+    public static function textColorOn(string $hex): string
+    {
+        $hex = ltrim($hex, '#');
+        [$r, $g, $b] = array_map(fn ($c) => hexdec($c) / 255, str_split($hex, 2));
+        $lin = fn ($c) => $c <= 0.03928 ? $c / 12.92 : (($c + 0.055) / 1.055) ** 2.4;
+        $luminance = 0.2126 * $lin($r) + 0.7152 * $lin($g) + 0.0722 * $lin($b);
+
+        return $luminance > 0.45 ? '#01162F' : '#FFFFFF';
+    }
+
+    /** CSS custom properties for this seller's colours (portal, receipts, store page). */
+    public function brandCssVars(): string
+    {
+        return sprintf(
+            '--brand:%s;--brand-ink:%s;--brand-accent:%s;--brand-accent-ink:%s;',
+            $this->brandColor(), self::textColorOn($this->brandColor()),
+            $this->accentColor(), self::textColorOn($this->accentColor()),
+        );
     }
 
     public function logoDataUri(): ?string
@@ -200,10 +229,6 @@ class Merchant extends Model implements HasMedia
     {
         return $this->hasMany(Invoice::class);
     }
-
-
-
-
 
     public function createdByAgent(): BelongsTo
     {

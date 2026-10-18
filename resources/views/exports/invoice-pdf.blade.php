@@ -13,7 +13,7 @@
         .doc-title { font-size: 24px; font-weight: bold; margin: 0 0 4px 0; text-align: right; }
         .doc-number { font-size: 12px; color: #6b7280; margin: 0; text-align: right; }
         .doc-badge-cell { text-align: right; padding-top: 6px; }
-        .rule { border: none; border-top: 3px solid #{{ ltrim($brandColor, '#') }}; margin: 14px 0 18px 0; }
+        .rule { border: none; border-top: 3px solid #{{ ltrim($accentColor ?? $brandColor, '#') }}; margin: 14px 0 18px 0; }
         .badge { display: inline-block; padding: 3px 10px; border-radius: 10px; font-size: 10px; font-weight: bold; }
         .badge-draft { background: #f5e9d4; color: #9b6829; }
         .badge-invoiced { background: #e1ecfb; color: #1a56b0; }
@@ -36,7 +36,7 @@
         .right { text-align: right; }
         .totals-table { width: 100%; margin-top: 12px; }
         .totals-table td { padding: 4px 10px; border: none; font-size: 11px; }
-        .totals-table .grand td { font-weight: bold; font-size: 14px; background: #f6f9fc; border-top: 2px solid #{{ ltrim($brandColor, '#') }}; padding-top: 8px; padding-bottom: 8px; }
+        .totals-table .grand td { font-weight: bold; font-size: 14px; background: #f6f9fc; border-top: 2px solid #{{ ltrim($accentColor ?? $brandColor, '#') }}; padding-top: 8px; padding-bottom: 8px; }
         .section-title { font-size: 11px; font-weight: bold; color: #1a1a1a; margin: 24px 0 6px 0; }
         .notes { margin-top: 24px; padding-top: 12px; border-top: 1px solid #eef1f5; font-size: 10px; color: #6b7280; }
         .footer { margin-top: 40px; padding-top: 14px; border-top: 1px solid #eef1f5; }

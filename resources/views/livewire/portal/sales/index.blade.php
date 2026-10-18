@@ -36,6 +36,7 @@
                     <th class="px-5 py-3 font-normal">Customer</th>
                     <th class="px-5 py-3 font-normal">Amount</th>
                     <th class="px-5 py-3 font-normal">Items</th>
+                    <th class="px-5 py-3 font-normal"></th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-hairline">
@@ -51,10 +52,11 @@
                                 <x-ui.badge tone="primary" class="ml-1">{{ $expandedSaleId === $sale->id ? 'hide' : 'view' }}</x-ui.badge>
                             @endif
                         </td>
+                        <td class="px-5 py-3 text-right"><a href="{{ $sale->receiptUrl() }}" target="_blank" rel="noopener" x-on:click.stop class="text-[12px] text-primary hover:text-primary-deep">Receipt</a></td>
                     </tr>
                     @if($expandedSaleId === $sale->id)
                         <tr class="bg-canvas-soft/60">
-                            <td colspan="5" class="px-5 py-3">
+                            <td colspan="6" class="px-5 py-3">
                                 <table class="w-full text-[12px]">
                                     <thead class="text-ink-mute text-left">
                                         <tr>
@@ -88,7 +90,7 @@
                         </tr>
                     @endif
                 @empty
-                    <tr><td colspan="5" class="px-5 py-8 text-center text-ink-mute">No sales in this period.</td></tr>
+                    <tr><td colspan="6" class="px-5 py-8 text-center text-ink-mute">No sales in this period.</td></tr>
                 @endforelse
             </tbody>
         </table>

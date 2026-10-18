@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Market;
 
+use App\Models\Order;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -19,6 +20,7 @@ class OrderResource extends JsonResource
             'status' => $this->status,
             'status_label' => $this->statusLabel(),
             'status_reason' => $this->status_reason,
+            'receipt_url' => $this->receiptUrl(),
             'total' => (float) $this->total,
             'items_count' => $this->items_count,
             'customer_note' => $this->customer_note,
@@ -28,7 +30,7 @@ class OrderResource extends JsonResource
             'completed_at' => $this->completed_at?->toIso8601String(),
             'can_cancel' => $this->canBeCancelledByCustomer(),
             'next_statuses' => $isSeller
-                ? collect($this->nextSellerStatuses())->map(fn ($s) => ['status' => $s, 'label' => \App\Models\Order::LABELS[$s]])->values()
+                ? collect($this->nextSellerStatuses())->map(fn ($s) => ['status' => $s, 'label' => Order::LABELS[$s]])->values()
                 : [],
             'seller' => $this->whenLoaded('merchant', fn () => ['id' => $this->merchant->id, 'name' => $this->merchant->business_name]),
             'store' => new PublicStoreResource($this->whenLoaded('branch')),
@@ -45,7 +47,7 @@ class OrderResource extends JsonResource
             ])->values()),
             'events' => $this->whenLoaded('events', fn () => $this->events->map(fn ($e) => [
                 'status' => $e->status,
-                'label' => \App\Models\Order::LABELS[$e->status] ?? $e->status,
+                'label' => Order::LABELS[$e->status] ?? $e->status,
                 'note' => $e->note,
                 'at' => $e->created_at?->toIso8601String(),
             ])->values()),

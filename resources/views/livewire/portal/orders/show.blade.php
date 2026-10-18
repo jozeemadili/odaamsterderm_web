@@ -12,6 +12,7 @@
             </div>
             <div class="flex items-center gap-3">
                 @include('livewire.shared.order-status-badge', ['status' => $order->status, 'label' => $order->statusLabel()])
+                <a href="{{ $order->receiptUrl() }}" target="_blank" rel="noopener" class="text-[13px] text-primary hover:text-primary-deep">Receipt</a>
                 <a href="{{ route('portal.orders.index') }}" class="text-[13px] text-primary hover:text-primary-deep">&larr; Orders</a>
             </div>
         </div>

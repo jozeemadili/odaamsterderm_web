@@ -8,12 +8,33 @@
     <link rel="apple-touch-icon" href="{{ asset('images/favicon-180.png') }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
+    @php
+        $brandMerchant = auth()->user()?->merchant;
+    @endphp
+    @if($brandMerchant)
+        {{-- The seller's own brand colours on their portal (see Branding). --}}
+        <style>
+            :root { {{ $brandMerchant->brandCssVars() }} }
+            .seller-brand .bg-brand-dark { background-color: var(--brand) !important; }
+            .seller-brand .bg-brand-dark .text-white { color: var(--brand-ink) !important; }
+            .seller-brand .bg-brand-dark [class*="text-white/"] { color: color-mix(in srgb, var(--brand-ink) 65%, transparent) !important; }
+            .seller-brand .bg-brand-dark .border-white\/10 { border-color: color-mix(in srgb, var(--brand-ink) 15%, transparent) !important; }
+            .seller-brand .icon-dock-item { color: color-mix(in srgb, var(--brand-ink) 72%, transparent); }
+            .seller-brand .icon-dock-item:hover { background-color: color-mix(in srgb, var(--brand-ink) 10%, transparent); color: var(--brand-ink); }
+            .seller-brand .icon-dock-item.is-active { background-color: var(--brand-accent); color: var(--brand-accent-ink); }
+        </style>
+    @endif
 </head>
-<body class="bg-canvas-soft text-ink font-sans antialiased" x-data="{ sidebarOpen: false }">
+<body class="bg-canvas-soft text-ink font-sans antialiased {{ $brandMerchant ? 'seller-brand' : '' }}" x-data="{ sidebarOpen: false }">
     <div class="lg:hidden sticky top-0 z-30 flex items-center justify-between bg-brand-dark px-4 py-3">
         <div class="flex items-center gap-2">
+            @if($brandMerchant?->logo())
+                <img src="{{ $brandMerchant->logo()->getUrl() }}" alt="{{ $brandMerchant->business_name }}" class="h-7 w-7 rounded-md shrink-0 bg-white object-contain p-0.5">
+                <span class="text-[16px] font-medium tracking-tight text-white truncate max-w-[200px]">{{ $brandMerchant->business_name }}</span>
+            @else
             <img src="{{ asset('images/favicon-512.png') }}" alt="Odaamsterderm Hub" class="h-7 w-7 rounded-md shrink-0">
             <span class="text-[16px] font-light tracking-tight text-white">Odaamsterderm<span class="font-medium text-primary-soft"> Hub</span></span>
+            @endif
         </div>
         <button type="button" @click="sidebarOpen = true" class="p-1.5 text-white/80 hover:text-white" aria-label="Open menu">
             <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -38,11 +59,19 @@
             <div class="bg-brand-dark rounded-xl p-4 flex flex-col h-full lg:h-[calc(100vh-2rem)] lg:sticky lg:top-4">
                 <div class="px-2 py-2 mb-4 flex items-center justify-between gap-2">
                     <div class="flex items-center gap-2 min-w-0">
+                        @if($brandMerchant?->logo())
+                            <img src="{{ $brandMerchant->logo()->getUrl() }}" alt="{{ $brandMerchant->business_name }}" class="h-10 w-10 rounded-lg shrink-0 bg-white object-contain p-0.5">
+                            <div class="min-w-0">
+                                <span class="block text-[15px] font-semibold tracking-tight text-white truncate">{{ $brandMerchant->business_name }}</span>
+                                <p class="text-[10px] text-white/40 mt-0.5 uppercase tracking-wide">on Odaamsterderm Hub</p>
+                            </div>
+                        @else
                         <img src="{{ asset('images/favicon-512.png') }}" alt="Odaamsterderm Hub" class="h-7 w-7 rounded-md shrink-0">
                         <div class="min-w-0">
                             <span class="text-[17px] font-light tracking-tight text-white">Odaamsterderm<span class="font-medium text-primary-soft"> Hub</span></span>
                             <p class="text-[11px] text-white/40 mt-0.5 uppercase tracking-wide truncate">{{ auth()->user()->merchant?->business_name }}</p>
                         </div>
+                        @endif
                     </div>
                     <button type="button" @click="sidebarOpen = false" class="lg:hidden shrink-0 p-1 text-white/60 hover:text-white" aria-label="Close menu">
                         <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

@@ -2,9 +2,22 @@
     <a href="{{ route('market.home') }}" class="text-[13px] text-primary hover:text-primary-deep">&larr; Marketplace</a>
 
     <div class="grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-5">
-        <x-ui.card>
-            <p class="text-[12px] uppercase tracking-wide text-ink-mute">{{ $store->merchant->business_name }}</p>
-            <h1 class="text-[24px] font-light tracking-tight mt-1">{{ $store->name }}</h1>
+        <x-ui.card padding="p-0" class="overflow-hidden">
+            @php
+                $seller = $store->merchant;
+            @endphp
+            <div class="px-5 py-4 flex items-center gap-4" style="background: {{ $seller->brandColor() }}; color: {{ \App\Models\Merchant::textColorOn($seller->brandColor()) }}">
+                @if($seller->logo())
+                    <img src="{{ $seller->logo()->getUrl() }}" alt="{{ $seller->business_name }} logo" class="h-14 w-14 rounded-lg bg-white object-contain p-1 shrink-0">
+                @endif
+                <div class="min-w-0">
+                    <p class="text-[18px] font-semibold truncate">{{ $seller->business_name }}</p>
+                    <p class="text-[13px] opacity-80">{{ $store->name }}</p>
+                </div>
+            </div>
+            <div class="h-1.5" style="background: {{ $seller->accentColor() }}"></div>
+            <div class="p-5">
+            <h1 class="sr-only">{{ $store->name }}</h1>
             <p class="text-[14px] text-ink-secondary mt-1">{{ collect([$store->address, $store->city])->filter()->join(', ') }}</p>
             <div class="flex flex-wrap items-center gap-2 mt-3">
                 @if($distance !== null)
@@ -31,6 +44,7 @@
                     <p class="text-[11px] uppercase tracking-wide text-ink-mute mb-1">Pickup point</p>
                     <p class="text-ink-secondary">{{ $store->pickup_instructions ?: 'Ask at the counter.' }}</p>
                 </div>
+            </div>
             </div>
         </x-ui.card>
 

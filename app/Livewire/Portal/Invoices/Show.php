@@ -365,6 +365,7 @@ class Show extends Component
             'merchant' => $merchant,
             'logoDataUri' => $merchant->logoDataUri(),
             'brandColor' => $merchant->brandColor(),
+            'accentColor' => $merchant->accentColor(),
             'includeImages' => $this->includeImages,
             'itemImages' => $this->includeImages ? $this->itemImagesDataUris() : [],
             'qrDataUri' => $this->invoice->qrDataUri(),

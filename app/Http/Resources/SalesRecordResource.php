@@ -19,6 +19,7 @@ class SalesRecordResource extends JsonResource
             'amount_tendered' => $this->amount_tendered !== null ? (float) $this->amount_tendered : null,
             'change_due' => $this->change_due !== null ? (float) $this->change_due : null,
             'items_count' => $this->items_count,
+            'receipt_url' => $this->receiptUrl(),
             'customer' => $this->whenLoaded('customer', fn () => $this->customer ? [
                 'id' => $this->customer->id,
                 'name' => $this->customer->name,

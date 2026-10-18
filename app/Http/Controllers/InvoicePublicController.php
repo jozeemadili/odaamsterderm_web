@@ -16,6 +16,7 @@ class InvoicePublicController extends Controller
             'merchant' => $merchant,
             'logoDataUri' => $merchant->logoDataUri(),
             'brandColor' => $merchant->brandColor(),
+            'accentColor' => $merchant->accentColor(),
             'includeImages' => false,
             'itemImages' => [],
             'qrDataUri' => $invoice->qrDataUri(),

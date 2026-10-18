@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\URL;
 
 #[Fillable([
     'merchant_id', 'source', 'order_id', 'branch_id', 'customer_id', 'amount', 'subtotal',
@@ -34,6 +35,12 @@ class SalesRecord extends Model
             'amount_tendered' => 'decimal:2',
             'change_due' => 'decimal:2',
         ];
+    }
+
+    /** Signed link to the seller-branded receipt (no sign-in needed). */
+    public function receiptUrl(): string
+    {
+        return URL::signedRoute('receipts.sale', $this);
     }
 
     public function merchant(): BelongsTo

@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\InvoiceResource;
-use App\Models\Invoice;
 use App\Models\InventoryItem;
+use App\Models\Invoice;
 use App\Models\InvoiceItem;
 use App\Models\InvoicePayment;
 use App\Models\StockMovement;
@@ -222,6 +222,7 @@ class InvoiceController extends Controller
             'merchant' => $merchant,
             'logoDataUri' => $merchant->logoDataUri(),
             'brandColor' => $merchant->brandColor(),
+            'accentColor' => $merchant->accentColor(),
             'includeImages' => false,
             'itemImages' => [],
             'qrDataUri' => $invoice->qrDataUri(),

@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\Support\LogOptions;
@@ -109,6 +110,12 @@ class Order extends Model
     public function nextSellerStatuses(): array
     {
         return self::SELLER_TRANSITIONS[$this->status] ?? [];
+    }
+
+    /** Signed link to the seller-branded receipt (no sign-in needed). */
+    public function receiptUrl(): string
+    {
+        return URL::signedRoute('receipts.order', $this);
     }
 
     public function statusLabel(): string
