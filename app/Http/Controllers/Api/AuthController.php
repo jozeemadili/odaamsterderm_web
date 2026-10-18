@@ -8,6 +8,7 @@ use App\Http\Resources\UserResource;
 use App\Models\Merchant;
 use App\Models\PaymentMethod;
 use App\Models\User;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -41,7 +42,8 @@ class AuthController extends Controller
 
         $claims = $response->json();
 
-        if (($claims['aud'] ?? null) !== config('services.google.client_id')) {
+        $audiences = array_filter([config('services.google.client_id'), ...config('services.google.app_client_ids', [])]);
+        if (! in_array($claims['aud'] ?? null, $audiences, true)) {
             throw ValidationException::withMessages(['id_token' => 'That Google sign-in could not be verified.']);
         }
 
@@ -168,7 +170,7 @@ class AuthController extends Controller
         ]);
     }
 
-    protected function issueSession(User $user): \Illuminate\Http\JsonResponse
+    protected function issueSession(User $user): JsonResponse
     {
         $token = $user->createToken('odaamsterderm-mobile')->plainTextToken;
 
