@@ -28,7 +28,8 @@ class OfferResource extends JsonResource
             'status_label' => (bool) $this->is_available ? 'Available' : 'Out of stock',
             'distance_km' => $distance !== null ? round($distance, 2) : null,
             'distance_label' => GeoPoint::formatKm($distance),
-            'image_url' => $this->product?->image()?->getUrl() ?? $this->image()?->getUrl(),
+            // The seller's own photo first, so customers see what this store has.
+            'image_url' => $this->photoUrl(),
             'seller' => [
                 'id' => $this->merchant->id,
                 'name' => $this->merchant->business_name,

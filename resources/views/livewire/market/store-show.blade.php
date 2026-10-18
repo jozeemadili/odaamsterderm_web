@@ -53,10 +53,17 @@
         <div class="divide-y divide-hairline">
             @forelse($offers as $offer)
                 <div class="flex flex-wrap items-center justify-between gap-3 px-4 py-3 {{ $offer->is_available ? '' : 'text-ink-mute' }}">
-                    <a href="{{ route('market.product', $offer->product->slug) }}" class="hover:text-primary-deep">
+                    <a href="{{ route('market.product', $offer->product->slug) }}" class="hover:text-primary-deep flex items-center gap-3">
+                        @if($photo = $offer->photoUrl())
+                            <img src="{{ $photo }}" alt="" class="h-12 w-12 shrink-0 rounded object-cover border border-hairline" loading="lazy">
+                        @else
+                            <span class="h-12 w-12 shrink-0 rounded bg-canvas-soft border border-hairline flex items-center justify-center"><x-icon.inventory class="h-5 w-5 text-ink-mute/50" /></span>
+                        @endif
+                        <div>
                         <p class="font-medium text-[14px] {{ $offer->is_available ? 'text-ink' : '' }}">{{ $offer->product->displayName() }}</p>
                         <x-market.producer :product="$offer->product" />
                         <p class="text-[12px] text-ink-mute">{{ $offer->is_available ? rtrim(rtrim((string) $offer->marketplace_quantity, '0'), '.').' '.$offer->product->unit.' available' : 'Out of stock' }}</p>
+                        </div>
                     </a>
                     <div class="flex items-center gap-3">
                         <p class="tnum font-medium">TZS {{ number_format($offer->unit_price) }}</p>

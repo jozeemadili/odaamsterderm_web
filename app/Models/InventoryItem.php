@@ -165,6 +165,12 @@ class InventoryItem extends Model implements HasMedia
         return $this->getFirstMedia('image');
     }
 
+    /** The seller's own photo of this stock, else the catalog product's image. */
+    public function photoUrl(): ?string
+    {
+        return $this->image()?->getUrl() ?? $this->product?->image()?->getUrl();
+    }
+
     public static function generateUniqueBarcode(): string
     {
         do {

@@ -4,8 +4,8 @@
     <x-ui.card>
         <div class="flex flex-col sm:flex-row gap-5">
             <div class="h-32 w-32 shrink-0 rounded-lg bg-canvas-soft border border-hairline flex items-center justify-center overflow-hidden">
-                @if($product->image())
-                    <img src="{{ $product->image()->getUrl() }}" alt="" class="h-full w-full object-cover">
+                @if($imageUrl)
+                    <img src="{{ $imageUrl }}" alt="{{ $product->displayName() }}" class="h-full w-full object-cover">
                 @else
                     <x-icon.inventory class="h-10 w-10 text-ink-mute/50" />
                 @endif
@@ -63,8 +63,15 @@
                         @forelse($offers as $offer)
                             <tr class="{{ $offer->is_available ? '' : 'text-ink-mute' }}">
                                 <td class="px-4 py-3">
-                                    <a href="{{ route('market.store', $offer->branch_id) }}" class="font-medium text-ink hover:text-primary-deep">{{ $offer->merchant->business_name }}</a>
-                                    <p class="text-[12px] text-ink-mute">{{ $offer->branch->name }}</p>
+                                    <div class="flex items-center gap-3">
+                                        @if($photo = $offer->photoUrl())
+                                            <a href="{{ $photo }}" target="_blank" rel="noopener" title="Photo from {{ $offer->merchant->business_name }}"><img src="{{ $photo }}" alt="" class="h-10 w-10 shrink-0 rounded object-cover border border-hairline"></a>
+                                        @endif
+                                        <div>
+                                            <a href="{{ route('market.store', $offer->branch_id) }}" class="font-medium text-ink hover:text-primary-deep">{{ $offer->merchant->business_name }}</a>
+                                            <p class="text-[12px] text-ink-mute">{{ $offer->branch->name }}</p>
+                                        </div>
+                                    </div>
                                 </td>
                                 <td class="px-4 py-3 tnum">{{ \App\Support\GeoPoint::formatKm($offer->distance_km) ?? '—' }}</td>
                                 <td class="px-4 py-3 tnum font-medium">TZS {{ number_format($offer->unit_price) }}</td>

@@ -62,6 +62,14 @@ class Index extends Component
         $this->showForm = true;
     }
 
+    public function removeImage(int $id): void
+    {
+        abort_unless(auth()->user()->can('manage-catalog'), 403);
+        Product::findOrFail($id)->clearMediaCollection('image');
+        $this->form->product?->refresh();
+        session()->flash('status', 'Catalog image removed. Customers now see a seller\'s photo of this product, if any.');
+    }
+
     public function startEditing(int $id): void
     {
         $this->form->setProduct(Product::findOrFail($id));

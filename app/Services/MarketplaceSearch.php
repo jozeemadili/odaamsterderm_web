@@ -112,7 +112,34 @@ class MarketplaceSearch
             default => $results->orderBy('products.name'),
         };
 
-        return $results->orderBy('products.name')->orderBy('products.id')->paginate($perPage)->withQueryString();
+        $page = $results->orderBy('products.name')->orderBy('products.id')->paginate($perPage)->withQueryString();
+        $this->attachSellerPhotos($page->getCollection());
+
+        return $page;
+    }
+
+    /**
+     * For products without a catalog image, borrow a photo a seller took of
+     * the product (from a public offer), so customers can still recognise it.
+     *
+     * @param  iterable<Product>  $products
+     */
+    public function attachSellerPhotos(iterable $products): void
+    {
+        $missing = collect($products)->filter(fn (Product $p) => ! $p->image())->keyBy('id');
+        if ($missing->isEmpty()) {
+            return;
+        }
+
+        InventoryItem::query()
+            ->onMarketplace()
+            ->whereIn('inventory_items.product_id', $missing->keys())
+            ->whereHas('media', fn (Builder $q) => $q->where('collection_name', 'image'))
+            ->with('media')
+            ->orderByDesc('inventory_items.updated_at')
+            ->get()
+            ->unique('product_id')
+            ->each(fn (InventoryItem $item) => $missing[$item->product_id]->setAttribute('seller_image_url', $item->image()?->getUrl()));
     }
 
     /**
@@ -242,7 +269,7 @@ class MarketplaceSearch
             ->join('products', 'products.id', '=', 'inventory_items.product_id')
             ->tap(fn (Builder $q) => $this->onlyPublicOffers($q))
             ->where('products.status', Product::STATUS_APPROVED)
-            ->with(['branch', 'merchant', 'product.producer.media']);
+            ->with(['branch', 'merchant', 'media', 'product.media', 'product.producer.media']);
 
         if ($from) {
             [$distance, $bindings] = $from->distanceSql('branches.latitude', 'branches.longitude');

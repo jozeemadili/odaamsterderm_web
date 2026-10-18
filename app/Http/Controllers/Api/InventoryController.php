@@ -205,6 +205,14 @@ class InventoryController extends Controller
         return new InventoryItemResource($item->fresh());
     }
 
+    public function removeImage(Request $request, InventoryItem $item)
+    {
+        $this->authorizeItem($request, $item);
+        $item->clearMediaCollection('image');
+
+        return new InventoryItemResource($item->fresh());
+    }
+
     public function stockMovement(Request $request, InventoryItem $item)
     {
         $this->authorizeItem($request, $item);

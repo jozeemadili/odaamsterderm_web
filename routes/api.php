@@ -94,6 +94,7 @@ Route::prefix('v1')->group(function () {
             Route::patch('/inventory/{item}', [InventoryController::class, 'update']);
             Route::delete('/inventory/{item}', [InventoryController::class, 'destroy']);
             Route::post('/inventory/{item}/image', [InventoryController::class, 'uploadImage']);
+            Route::delete('/inventory/{item}/image', [InventoryController::class, 'removeImage']);
             Route::post('/inventory/{item}/barcode', [InventoryController::class, 'generateBarcode']);
             Route::post('/inventory/{item}/stock-movement', [InventoryController::class, 'stockMovement']);
             Route::patch('/inventory/{item}/marketplace', [InventoryController::class, 'marketplace']);

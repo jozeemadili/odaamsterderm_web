@@ -45,6 +45,7 @@ class ProductShow extends Component
 
         return view('livewire.market.product-show', [
             'from' => $from,
+            'imageUrl' => $this->product->image()?->getUrl() ?? $offers->first(fn ($o) => $o->image())?->image()->getUrl(),
             'offers' => $offers,
             'mapStores' => $offers->unique('branch_id')->map(fn ($o) => [
                 'lat' => $o->branch->latitude,

@@ -10,12 +10,17 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 use Picqer\Barcode\BarcodeGeneratorSVG;
 
 #[Layout('layouts.portal', ['title' => 'Product Detail'])]
 class Show extends Component
 {
     use PicksCatalogProduct;
+    use WithFileUploads;
+
+    /** New photo of this stock item (shown to customers on the marketplace). */
+    public $photo;
 
     public InventoryItem $item;
 
@@ -30,6 +35,26 @@ class Show extends Component
         abort_unless($item->merchant_id === Auth::user()->merchant_id, 403);
         $this->item = $item->load('branch', 'category', 'product', 'merchant');
         $this->fillMarketplaceFields();
+    }
+
+    public function updatedPhoto(): void
+    {
+        $this->validate(['photo' => ['image', 'max:4096']], [], ['photo' => 'photo']);
+
+        $this->item->addMedia($this->photo->getRealPath())
+            ->usingFileName($this->photo->getClientOriginalName())
+            ->toMediaCollection('image');
+
+        $this->reset('photo');
+        $this->item->refresh();
+        session()->flash('status', 'Photo saved. Customers see it next to your offer on the marketplace.');
+    }
+
+    public function removePhoto(): void
+    {
+        $this->item->clearMediaCollection('image');
+        $this->item->refresh();
+        session()->flash('status', 'Photo removed.');
     }
 
     protected function fillMarketplaceFields(): void
@@ -83,7 +108,7 @@ class Show extends Component
         }
 
         try {
-            $generator = new BarcodeGeneratorSVG();
+            $generator = new BarcodeGeneratorSVG;
 
             return $generator->getBarcode($this->item->barcode, $generator::TYPE_CODE_128);
         } catch (\Throwable) {

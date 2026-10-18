@@ -91,7 +91,7 @@ class MarketplaceController extends Controller
                 'pack_size' => $product->pack_size,
                 'unit' => $product->unit,
                 'description' => $product->description,
-                'image_url' => $product->image()?->getUrl(),
+                'image_url' => $product->image()?->getUrl() ?? $offers->first(fn ($o) => $o->image())?->image()->getUrl(),
                 'animal_type' => $product->animalType?->name,
                 'category' => $product->category?->fullName(),
             ],

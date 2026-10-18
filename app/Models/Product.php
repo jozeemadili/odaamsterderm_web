@@ -89,6 +89,15 @@ class Product extends Model implements HasMedia
         return $this->getFirstMedia('image');
     }
 
+    /**
+     * What customers see: the catalog image, or — when the catalog has none —
+     * a seller's photo of this product (set by MarketplaceSearch::attachSellerPhotos).
+     */
+    public function imageUrl(): ?string
+    {
+        return $this->image()?->getUrl() ?? $this->getAttribute('seller_image_url');
+    }
+
     public function scopeApproved(Builder $query): Builder
     {
         return $query->where('status', self::STATUS_APPROVED);

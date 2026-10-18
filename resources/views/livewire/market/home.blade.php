@@ -116,8 +116,8 @@
                     <a href="{{ route('market.product', $product->slug) }}" class="block group">
                         <x-ui.card padding="p-0" class="h-full overflow-hidden group-hover:border-primary/40 transition">
                             <div class="aspect-[16/9] bg-canvas-soft flex items-center justify-center overflow-hidden">
-                                @if($product->image())
-                                    <img src="{{ $product->image()->getUrl() }}" alt="" class="h-full w-full object-cover">
+                                @if($product->imageUrl())
+                                    <img src="{{ $product->imageUrl() }}" alt="{{ $product->displayName() }}" class="h-full w-full object-cover" loading="lazy">
                                 @else
                                     <x-icon.inventory class="h-10 w-10 text-ink-mute/50" />
                                 @endif
