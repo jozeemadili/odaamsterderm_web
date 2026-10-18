@@ -17,7 +17,7 @@ use Illuminate\Database\Seeder;
  */
 class MarketplaceDemoSeeder extends Seeder
 {
-    public function run(): void
+    public function run(bool $withLogins = true): void
     {
         $inventory = app(InventoryService::class);
 
@@ -60,13 +60,16 @@ class MarketplaceDemoSeeder extends Seeder
                 'reviewed_at' => now(),
             ]);
 
-            $owner = User::factory()->create([
-                'name' => $s['owner'],
-                'email' => $s['email'],
-                'user_type' => User::TYPE_MERCHANT,
-                'merchant_id' => $merchant->id,
-            ]);
-            $owner->assignRole('merchant_owner');
+            $owner = null;
+            if ($withLogins) {
+                $owner = User::factory()->create([
+                    'name' => $s['owner'],
+                    'email' => $s['email'],
+                    'user_type' => User::TYPE_MERCHANT,
+                    'merchant_id' => $merchant->id,
+                ]);
+                $owner->assignRole('merchant_owner');
+            }
 
             $store = Branch::create([
                 'merchant_id' => $merchant->id,
@@ -97,12 +100,16 @@ class MarketplaceDemoSeeder extends Seeder
                 ]);
 
                 if ($onHand > 0) {
-                    $inventory->stockIn($item, $onHand, ['reference' => 'opening_stock', 'recorded_by' => $owner->id]);
+                    $inventory->stockIn($item, $onHand, ['reference' => 'opening_stock', 'recorded_by' => $owner?->id]);
                 }
 
                 // Listed even at zero so customers see "Out of stock" when comparing.
-                $inventory->updateMarketplace($item, true, $online, true, ['recorded_by' => $owner->id]);
+                $inventory->updateMarketplace($item, true, $online, true, ['recorded_by' => $owner?->id]);
             }
+        }
+
+        if (! $withLogins) {
+            return;
         }
 
         $customer = User::factory()->create([

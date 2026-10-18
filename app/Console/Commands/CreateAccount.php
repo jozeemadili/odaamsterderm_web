@@ -24,7 +24,8 @@ class CreateAccount extends Command
         {--name= : Person\'s full name}
         {--phone= : Phone number}
         {--business= : Seller business name}
-        {--store= : Seller first store name}';
+        {--store= : Seller first store name}
+        {--existing-business= : Give an existing seller business (e.g. a demo seller) its owner login}';
 
     protected $description = 'Create an admin, seller or customer login (password asked hidden)';
 
@@ -44,9 +45,24 @@ class CreateAccount extends Command
             return self::FAILURE;
         }
 
-        $name = $this->option('name') ?: $this->ask('Full name');
+        $existing = null;
+        if ($type === 'seller' && ($businessName = $this->option('existing-business'))) {
+            $existing = Merchant::where('business_name', $businessName)->first();
+            if (! $existing) {
+                $this->error("No seller business named \"{$businessName}\".");
+
+                return self::FAILURE;
+            }
+            if ($existing->users()->exists()) {
+                $this->error("{$businessName} already has a login.");
+
+                return self::FAILURE;
+            }
+        }
+
+        $name = $this->option('name') ?: ($existing?->owner_name ?? $this->ask('Full name'));
         $phone = $this->option('phone') ?: ($type === 'admin' ? null : $this->ask('Phone (e.g. +2557…)', ''));
-        $business = $type === 'seller' ? ($this->option('business') ?: $this->ask('Business name')) : null;
+        $business = $type === 'seller' ? ($existing?->business_name ?? $this->option('business') ?: $this->ask('Business name')) : null;
 
         $password = $this->secret('Password (min 10 characters, letters and numbers, hidden)');
         $confirm = $this->secret('Repeat password');
@@ -70,7 +86,9 @@ class CreateAccount extends Command
 
         $user = DB::transaction(fn () => match ($type) {
             'admin' => $this->admin($name, $email, $password),
-            'seller' => $this->seller($name, $email, $phone ?: null, $password, $business),
+            'seller' => $existing
+                ? $this->ownerLogin($existing, $name, $email, $phone ?: null, $password)
+                : $this->seller($name, $email, $phone ?: null, $password, $business),
             'customer' => User::registerCustomer(['name' => $name, 'email' => $email, 'phone' => $phone ?: null, 'password' => $password]),
         });
         $user->forceFill(['email_verified_at' => now()])->save();
@@ -87,6 +105,21 @@ class CreateAccount extends Command
     {
         $user = User::create(['name' => $name, 'email' => $email, 'password' => $password, 'user_type' => User::TYPE_INTERNAL]);
         $user->assignRole('super_admin');
+
+        return $user;
+    }
+
+    protected function ownerLogin(Merchant $merchant, string $name, string $email, ?string $phone, string $password): User
+    {
+        $user = User::create([
+            'name' => $name,
+            'email' => $email,
+            'phone' => $phone,
+            'password' => $password,
+            'user_type' => User::TYPE_MERCHANT,
+            'merchant_id' => $merchant->id,
+        ]);
+        $user->assignRole('merchant_owner');
 
         return $user;
     }
