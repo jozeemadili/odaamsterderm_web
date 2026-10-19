@@ -16,7 +16,7 @@ class DamageReportController extends Controller
 {
     public function index(Request $request)
     {
-        $reports = DamageReport::where('merchant_id', Auth::user()->merchant_id)
+        $reports = DamageReport::forUser()
             ->with(['inventoryItem', 'branch', 'reportedBy'])
             ->latest('reported_at')
             ->limit($request->integer('limit', 50))

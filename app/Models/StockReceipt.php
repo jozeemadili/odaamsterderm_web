@@ -2,22 +2,23 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToStore;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Spatie\Activitylog\Support\LogOptions;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
+use Spatie\Activitylog\Support\LogOptions;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 
 #[Fillable([
-    'merchant_id', 'supplier_id', 'reference_no', 'status', 'total_amount',
+    'merchant_id', 'branch_id', 'supplier_id', 'reference_no', 'status', 'total_amount',
     'receipt_date', 'notes', 'created_by', 'approved_by', 'approved_at',
 ])]
 class StockReceipt extends Model implements HasMedia
 {
-    use LogsActivity;
+    use BelongsToStore, LogsActivity;
     use InteractsWithMedia;
 
     public function registerMediaCollections(): void
@@ -51,6 +52,11 @@ class StockReceipt extends Model implements HasMedia
     public function isPending(): bool
     {
         return $this->status === self::STATUS_PENDING;
+    }
+
+    public function branch(): BelongsTo
+    {
+        return $this->belongsTo(Branch::class);
     }
 
     public function merchant(): BelongsTo

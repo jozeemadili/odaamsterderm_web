@@ -9,6 +9,7 @@ use App\Models\StockReceipt;
 use App\Models\StockReceiptItem;
 use App\Models\SupplierTransaction;
 use App\Services\InventoryService;
+use App\Support\StoreAccess;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -17,7 +18,7 @@ class StockReceiptController extends Controller
 {
     public function index(Request $request)
     {
-        $receipts = StockReceipt::where('merchant_id', Auth::user()->merchant_id)
+        $receipts = StockReceipt::forUser()
             ->with('supplier')
             ->withCount('items')
             ->latest()
@@ -36,6 +37,7 @@ class StockReceiptController extends Controller
         ]);
 
         $receipt = StockReceipt::create([
+            'branch_id' => StoreAccess::defaultStoreId(),
             ...$data,
             'merchant_id' => Auth::user()->merchant_id,
             'status' => StockReceipt::STATUS_PENDING,
@@ -69,10 +71,14 @@ class StockReceiptController extends Controller
         $merchantId = $receipt->merchant_id;
 
         if (! empty($data['inventory_item_id'])) {
-            $item = InventoryItem::forUser()->findOrFail($data['inventory_item_id']);
+            // Stock is received into the receipt's own store.
+            $item = InventoryItem::forUser()
+                ->when($receipt->branch_id, fn ($q) => $q->where('branch_id', $receipt->branch_id))
+                ->findOrFail($data['inventory_item_id']);
         } else {
             $item = InventoryItem::create([
                 'merchant_id' => $merchantId,
+                'branch_id' => $receipt->branch_id,
                 'name' => $data['new_product_name'],
                 'unit' => $data['new_product_unit'] ?? null,
                 'unit_cost' => $data['unit_cost'],
@@ -162,6 +168,6 @@ class StockReceiptController extends Controller
 
     protected function authorizeReceipt(Request $request, StockReceipt $receipt): void
     {
-        abort_unless($receipt->merchant_id === $request->user()->merchant_id, 403);
+        abort_unless($receipt->merchant_id === $request->user()->merchant_id && StoreAccess::allows($receipt->branch_id, $request->user()), 403);
     }
 }

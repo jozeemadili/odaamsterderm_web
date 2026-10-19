@@ -6,6 +6,7 @@ use App\Models\DamageReport;
 use App\Models\InventoryItem;
 use App\Models\StockMovement;
 use App\Services\InventoryService;
+use App\Support\StoreAccess;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
@@ -119,9 +120,9 @@ class Index extends Component
 
         return view('livewire.portal.notifications.index', [
             'updates' => $updates,
-            'lowStockItems' => $merchant->lowStockItems()->with(['category', 'branch'])->limit(20)->get(),
-            'expiringSoonItems' => $merchant->expiringSoonItems()->with(['category', 'branch'])->orderBy('expiry_date')->limit(20)->get(),
-            'damagedItems' => $merchant->damageReports()->with(['inventoryItem', 'branch', 'reportedBy'])->latest('reported_at')->limit(20)->get(),
+            'lowStockItems' => StoreAccess::limit($merchant->lowStockItems())->with(['category', 'branch'])->limit(20)->get(),
+            'expiringSoonItems' => StoreAccess::limit($merchant->expiringSoonItems())->with(['category', 'branch'])->orderBy('expiry_date')->limit(20)->get(),
+            'damagedItems' => StoreAccess::limit($merchant->damageReports())->with(['inventoryItem', 'branch', 'reportedBy'])->latest('reported_at')->limit(20)->get(),
         ]);
     }
 }

@@ -4,6 +4,7 @@ namespace App\Livewire\Portal\StockReceipts;
 
 use App\Models\StockReceipt;
 use App\Models\Supplier;
+use App\Support\StoreAccess;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -39,6 +40,7 @@ class Index extends Component
 
         $receipt = StockReceipt::create([
             'merchant_id' => Auth::user()->merchant_id,
+            'branch_id' => StoreAccess::defaultStoreId(),
             'supplier_id' => $this->supplier_id ?: null,
             'reference_no' => $this->reference_no ?: null,
             'receipt_date' => $this->receipt_date,
@@ -52,7 +54,7 @@ class Index extends Component
 
     public function render()
     {
-        $receipts = StockReceipt::where('merchant_id', Auth::user()->merchant_id)
+        $receipts = StockReceipt::forUser()
             ->with('supplier')
             ->withCount('items')
             ->latest()

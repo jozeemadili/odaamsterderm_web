@@ -4,6 +4,7 @@ namespace App\Livewire\Portal\Invoices;
 
 use App\Models\Customer;
 use App\Models\Invoice;
+use App\Support\StoreAccess;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -64,6 +65,7 @@ class Index extends Component
 
         $invoice = Invoice::create([
             'merchant_id' => $merchantId,
+            'branch_id' => StoreAccess::defaultStoreId(),
             'customer_id' => $this->customer_id,
             'number' => $number,
             'status' => Invoice::STATUS_DRAFT,
@@ -80,7 +82,7 @@ class Index extends Component
     {
         $merchantId = Auth::user()->merchant_id;
 
-        $invoices = Invoice::where('merchant_id', $merchantId)
+        $invoices = Invoice::forUser()
             ->when($this->statusFilter, fn ($q) => $q->where('status', $this->statusFilter))
             ->when($this->dateFrom, fn ($q) => $q->whereDate('issue_date', '>=', $this->dateFrom))
             ->when($this->dateTo, fn ($q) => $q->whereDate('issue_date', '<=', $this->dateTo))

@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Portal\Reports;
 
+use App\Support\StoreAccess;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
@@ -33,6 +34,7 @@ class ProductPerformance extends Component
             ->join('inventory_items', 'inventory_items.id', '=', 'sale_items.inventory_item_id')
             ->leftJoin('branches', 'branches.id', '=', 'inventory_items.branch_id')
             ->where('sales_records.merchant_id', $merchantId)
+            ->tap(fn ($q) => StoreAccess::limit($q, null, 'sales_records.branch_id'))
             ->select([
                 'sale_items.inventory_item_id',
                 'sale_items.item_name as product_name',

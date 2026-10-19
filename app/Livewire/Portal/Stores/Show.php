@@ -4,6 +4,7 @@ namespace App\Livewire\Portal\Stores;
 
 use App\Models\Branch;
 use App\Models\Region;
+use App\Support\StoreAccess;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -40,7 +41,7 @@ class Show extends Component
 
     public function mount(Branch $store)
     {
-        abort_unless($store->merchant_id === Auth::user()->merchant_id, 403);
+        abort_unless($store->merchant_id === Auth::user()->merchant_id && StoreAccess::allows($store->id), 403);
         $this->store = $store;
 
         // A new store lands here straight after creation to set its location.

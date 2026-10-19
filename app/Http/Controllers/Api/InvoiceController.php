@@ -10,6 +10,7 @@ use App\Models\InvoiceItem;
 use App\Models\InvoicePayment;
 use App\Models\StockMovement;
 use App\Services\InventoryService;
+use App\Support\StoreAccess;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -19,7 +20,7 @@ class InvoiceController extends Controller
 {
     public function index(Request $request)
     {
-        $invoices = Invoice::where('merchant_id', Auth::user()->merchant_id)
+        $invoices = Invoice::forUser()
             ->when($request->filled('status'), fn ($q) => $q->where('status', $request->string('status')))
             ->when($request->filled('date_from'), fn ($q) => $q->whereDate('issue_date', '>=', $request->date('date_from')))
             ->when($request->filled('date_to'), fn ($q) => $q->whereDate('issue_date', '<=', $request->date('date_to')))
@@ -44,6 +45,7 @@ class InvoiceController extends Controller
         $number = 'INV-'.str_pad((string) (Invoice::where('merchant_id', $merchantId)->count() + 1), 5, '0', STR_PAD_LEFT);
 
         $invoice = Invoice::create([
+            'branch_id' => StoreAccess::defaultStoreId(),
             ...$data,
             'merchant_id' => $merchantId,
             'number' => $number,
@@ -74,7 +76,9 @@ class InvoiceController extends Controller
             'discount_value' => ['nullable', 'numeric', 'min:0'],
         ]);
 
-        $item = InventoryItem::where('merchant_id', $invoice->merchant_id)->findOrFail($data['inventory_item_id']);
+        $item = InventoryItem::forUser()
+            ->when($invoice->branch_id, fn ($q) => $q->where('branch_id', $invoice->branch_id))
+            ->findOrFail($data['inventory_item_id']);
 
         $quantity = (float) $data['quantity'];
         $unitPrice = (float) $data['unit_price'];
@@ -276,6 +280,6 @@ class InvoiceController extends Controller
 
     protected function authorizeInvoice(Request $request, Invoice $invoice): void
     {
-        abort_unless($invoice->merchant_id === $request->user()->merchant_id, 403);
+        abort_unless($invoice->merchant_id === $request->user()->merchant_id && StoreAccess::allows($invoice->branch_id, $request->user()), 403);
     }
 }

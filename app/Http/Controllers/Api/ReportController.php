@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Support\StoreAccess;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -25,6 +26,7 @@ class ReportController extends Controller
             ->leftJoin('branches', 'branches.id', '=', 'inventory_items.branch_id')
             ->leftJoin('users', 'users.id', '=', 'sales_records.recorded_by')
             ->where('sales_records.merchant_id', $merchantId)
+            ->tap(fn ($q) => StoreAccess::limit($q, null, 'sales_records.branch_id'))
             ->whereDate('sales_records.sale_date', now()->toDateString())
             ->select([
                 'sale_items.inventory_item_id',
@@ -49,8 +51,8 @@ class ReportController extends Controller
             'product_name' => $row->product_name,
             'quantity_sold' => (float) $row->quantity_sold,
             'total_sales_amount' => (float) $row->total_sales_amount,
-            'total_buying_value' => $row->cost_lines_count > 0  ? (float) $row->total_buying_value_raw : null,
-            'total_profit' => $row->cost_lines_count > 0  ? (float) $row->total_profit_raw : null,
+            'total_buying_value' => $row->cost_lines_count > 0 ? (float) $row->total_buying_value_raw : null,
+            'total_profit' => $row->cost_lines_count > 0 ? (float) $row->total_profit_raw : null,
             'sold_by' => $row->sold_by,
             'store' => $row->branch_name,
         ]);
@@ -84,6 +86,7 @@ class ReportController extends Controller
             ->join('inventory_items', 'inventory_items.id', '=', 'sale_items.inventory_item_id')
             ->leftJoin('branches', 'branches.id', '=', 'inventory_items.branch_id')
             ->where('sales_records.merchant_id', $merchantId)
+            ->tap(fn ($q) => StoreAccess::limit($q, null, 'sales_records.branch_id'))
             ->select([
                 'sale_items.inventory_item_id',
                 'sale_items.item_name as product_name',
@@ -104,7 +107,7 @@ class ReportController extends Controller
             'product_name' => $row->product_name,
             'quantity_sold' => (float) $row->quantity_sold,
             'total_sales_amount' => (float) $row->total_sales_amount,
-            'total_profit' => $row->cost_lines_count > 0  ? (float) $row->total_profit_raw : null,
+            'total_profit' => $row->cost_lines_count > 0 ? (float) $row->total_profit_raw : null,
             'store' => $row->branch_name,
         ];
 

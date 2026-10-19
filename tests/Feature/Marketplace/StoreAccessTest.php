@@ -7,8 +7,10 @@ use App\Livewire\Portal\Pos\Index as Pos;
 use App\Livewire\Portal\Staff\Index as Staff;
 use App\Livewire\Portal\StoreSwitcher;
 use App\Models\Branch;
+use App\Models\Expense;
 use App\Models\InventoryItem;
 use App\Models\SalesRecord;
+use App\Models\StockReceipt;
 use App\Models\User;
 use App\Services\InventoryService;
 use App\Support\StoreAccess;
@@ -152,5 +154,24 @@ class StoreAccessTest extends TestCase
         $this->assertSame([$this->store->id], StoreAccess::branchIds(User::find($created['id'])));
 
         $this->patchJson("/api/v1/staff/{$created['id']}", ['all_stores' => true])->assertOk()->assertJsonPath('data.all_stores', true);
+    }
+
+    public function test_expenses_receipts_and_reports_follow_the_staff_store(): void
+    {
+        $manager = $this->staff([$this->second], role: 'merchant_manager');
+        Sanctum::actingAs($manager);
+
+        $this->postJson('/api/v1/expenses', ['category' => 'Fuel', 'amount' => 5000, 'expense_date' => now()->toDateString()])->assertSuccessful();
+        $this->assertSame($this->second->id, Expense::latest('id')->first()->branch_id);
+
+        Expense::create(['merchant_id' => $this->merchant->id, 'branch_id' => $this->store->id, 'category' => 'Rent', 'amount' => 90000, 'expense_date' => now()]);
+        $this->assertEquals(['Fuel'], collect($this->getJson('/api/v1/expenses')->assertOk()->json('data'))->pluck('category')->all());
+
+        $receipt = $this->postJson('/api/v1/stock-receipts', ['receipt_date' => now()->toDateString()])->assertSuccessful()->json('data');
+        $this->assertSame($this->second->id, StockReceipt::find($receipt['id'])->branch_id);
+        $this->postJson("/api/v1/stock-receipts/{$receipt['id']}/items", ['inventory_item_id' => $this->mwengeItem->id, 'quantity' => 1, 'unit_cost' => 100])->assertNotFound();
+
+        $mwengeReceipt = StockReceipt::create(['merchant_id' => $this->merchant->id, 'branch_id' => $this->store->id, 'receipt_date' => now(), 'status' => 'pending']);
+        $this->getJson("/api/v1/stock-receipts/{$mwengeReceipt->id}")->assertForbidden();
     }
 }

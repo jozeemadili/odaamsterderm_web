@@ -9,6 +9,7 @@ use App\Models\InvoicePayment;
 use App\Models\PaymentMethod;
 use App\Models\StockMovement;
 use App\Services\InventoryService;
+use App\Support\StoreAccess;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -67,7 +68,7 @@ class Show extends Component
 
     public function mount(Invoice $invoice)
     {
-        abort_unless($invoice->merchant_id === Auth::user()->merchant_id, 403);
+        abort_unless($invoice->merchant_id === Auth::user()->merchant_id && StoreAccess::allows($invoice->branch_id), 403);
         $this->invoice = $invoice;
         $this->overallDiscountType = $invoice->discount_type ?? '';
         $this->overallDiscountValue = $invoice->discount_value ? (string) $invoice->discount_value : '';
@@ -89,6 +90,7 @@ class Show extends Component
         }
 
         $this->productMatches = InventoryItem::forUser()
+            ->when($this->invoice->branch_id, fn ($q) => $q->where('branch_id', $this->invoice->branch_id))
             ->where('name', 'like', "%{$trimmed}%")
             ->limit(8)
             ->get(['id', 'name', 'quantity_on_hand', 'unit', 'unit_price'])
@@ -136,7 +138,9 @@ class Show extends Component
             'lineDiscountValue' => ['nullable', 'numeric', 'min:0'],
         ]);
 
-        $item = InventoryItem::forUser()->findOrFail($this->selectedItemId);
+        $item = InventoryItem::forUser()
+            ->when($this->invoice->branch_id, fn ($q) => $q->where('branch_id', $this->invoice->branch_id))
+            ->findOrFail($this->selectedItemId);
 
         $quantity = (float) $this->quantity;
         $unitPrice = (float) $this->unit_price;

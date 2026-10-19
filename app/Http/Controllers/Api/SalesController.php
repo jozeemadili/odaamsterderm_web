@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\SalesRecordResource;
 use App\Models\SalesRecord;
+use App\Support\StoreAccess;
 use Illuminate\Http\Request;
 
 class SalesController extends Controller
@@ -24,7 +25,7 @@ class SalesController extends Controller
 
     public function show(Request $request, SalesRecord $sale)
     {
-        abort_unless($sale->merchant_id === $request->user()->merchant_id, 403);
+        abort_unless($sale->merchant_id === $request->user()->merchant_id && StoreAccess::allows($sale->branch_id, $request->user()), 403);
 
         return new SalesRecordResource($sale->load(['items', 'customer']));
     }

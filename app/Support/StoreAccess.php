@@ -86,6 +86,46 @@ class StoreAccess
         return $current ? [$current] : self::branchIds($user);
     }
 
+    /**
+     * Store a new record goes to: the store being worked in, else the
+     * business's main store (if the person may use it), else their first.
+     */
+    public static function defaultStoreId(?User $user = null): ?int
+    {
+        $user ??= Auth::user();
+        if ($current = self::currentId($user)) {
+            return $current;
+        }
+        $ids = self::branchIds($user);
+        $main = Branch::whereIn('id', $ids)->where('is_primary', true)->value('id');
+
+        return $main ?? ($ids[0] ?? null);
+    }
+
+    /**
+     * Limit a seller query (e.g. $merchant->salesRecords()) to the person's
+     * stores. Does nothing for admins or customers.
+     *
+     * @template T of \Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Eloquent\Relations\Relation
+     *
+     * @param  T  $query
+     * @return T
+     */
+    public static function limit($query, ?User $user = null, ?string $column = null)
+    {
+        $user ??= Auth::user();
+        if (! $user?->merchant_id) {
+            return $query;
+        }
+        $column ??= $query->getModel()->getTable().'.branch_id';
+        $ids = self::scopeIds($user);
+        $withUnassigned = self::seesAll($user) && self::currentId($user) === null;
+
+        return $query->where(fn ($q) => $withUnassigned
+            ? $q->whereIn($column, $ids)->orWhereNull($column)
+            : $q->whereIn($column, $ids));
+    }
+
     public static function choose(?int $branchId): void
     {
         session([self::SESSION_KEY => $branchId && self::allows($branchId) ? $branchId : null]);

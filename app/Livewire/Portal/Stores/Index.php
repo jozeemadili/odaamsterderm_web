@@ -3,6 +3,7 @@
 namespace App\Livewire\Portal\Stores;
 
 use App\Models\Branch;
+use App\Support\StoreAccess;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -52,6 +53,7 @@ class Index extends Component
         $merchantId = Auth::user()->merchant_id;
 
         $stores = Branch::where('merchant_id', $merchantId)
+            ->whereIn('id', StoreAccess::branchIds())
             ->withCount('inventoryItems')
             ->orderByDesc('is_primary')
             ->orderBy('name')

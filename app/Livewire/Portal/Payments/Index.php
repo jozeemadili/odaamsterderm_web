@@ -3,6 +3,7 @@
 namespace App\Livewire\Portal\Payments;
 
 use App\Models\PaymentRecord;
+use App\Support\StoreAccess;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -39,6 +40,7 @@ class Index extends Component
 
         $payment = PaymentRecord::create([
             'merchant_id' => Auth::user()->merchant_id,
+            'branch_id' => StoreAccess::defaultStoreId(),
             'amount' => $this->amount,
             'payer_name' => $this->payer_name ?: null,
             'payment_date' => $this->payment_date,
@@ -58,7 +60,7 @@ class Index extends Component
 
     public function render()
     {
-        $payments = PaymentRecord::where('merchant_id', Auth::user()->merchant_id)
+        $payments = PaymentRecord::forUser()
             ->latest('payment_date')
             ->paginate(15);
 

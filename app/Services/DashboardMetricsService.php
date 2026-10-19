@@ -6,6 +6,7 @@ use App\Models\InventoryItem;
 use App\Models\Invoice;
 use App\Models\Merchant;
 use App\Models\Order;
+use App\Support\StoreAccess;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -36,18 +37,18 @@ class DashboardMetricsService
             default => $this->dailyTrend($merchant, 30),
         };
 
-        $posSales = (float) $merchant->salesRecords()->where('sale_date', '>=', $trend['start'])->sum('amount');
+        $posSales = (float) StoreAccess::limit($merchant->salesRecords())->where('sale_date', '>=', $trend['start'])->sum('amount');
         $invoiceSales = $this->paidInvoiceTotal($merchant, $trend['start']);
         $salesTotal = $posSales + $invoiceSales;
         $cogsTotal = $this->posCogs($merchant, $trend['start']) + $this->invoiceCogs($merchant, $trend['start']);
-        $expensesTotal = (float) $merchant->expenses()->where('expense_date', '>=', $trend['start'])->sum('amount');
+        $expensesTotal = (float) StoreAccess::limit($merchant->expenses())->where('expense_date', '>=', $trend['start'])->sum('amount');
 
         $today = now()->toDateString();
-        $todayPosSales = (float) $merchant->salesRecords()->where('sale_date', $today)->sum('amount');
+        $todayPosSales = (float) StoreAccess::limit($merchant->salesRecords())->where('sale_date', $today)->sum('amount');
         $todayInvoiceSales = $this->paidInvoiceTotal($merchant, $today);
         $todaySales = $todayPosSales + $todayInvoiceSales;
         $todayCogs = $this->posCogs($merchant, $today) + $this->invoiceCogs($merchant, $today);
-        $todayExpenses = (float) $merchant->expenses()->where('expense_date', $today)->sum('amount');
+        $todayExpenses = (float) StoreAccess::limit($merchant->expenses())->where('expense_date', $today)->sum('amount');
 
         return [
             'period' => $period,
@@ -58,11 +59,11 @@ class DashboardMetricsService
             'today_sales_total' => $todaySales,
             'today_expenses_total' => $todayExpenses,
             'today_profit_total' => $todaySales - $todayCogs - $todayExpenses,
-            'today_sales_count' => $merchant->salesRecords()->where('sale_date', $today)->count()
-                + $merchant->invoices()->where('status', Invoice::STATUS_PAID)->whereDate('paid_at', $today)->count(),
-            'low_stock_count' => $merchant->lowStockItems()->count(),
-            'expiring_soon_count' => $merchant->expiringSoonItems()->count(),
-            'unverified_payments_count' => $merchant->paymentRecords()->where('status', 'recorded')->count(),
+            'today_sales_count' => StoreAccess::limit($merchant->salesRecords())->where('sale_date', $today)->count()
+                + StoreAccess::limit($merchant->invoices())->where('status', Invoice::STATUS_PAID)->whereDate('paid_at', $today)->count(),
+            'low_stock_count' => StoreAccess::limit($merchant->lowStockItems())->count(),
+            'expiring_soon_count' => StoreAccess::limit($merchant->expiringSoonItems())->count(),
+            'unverified_payments_count' => StoreAccess::limit($merchant->paymentRecords())->where('status', 'recorded')->count(),
             'trend' => [
                 'labels' => $trend['labels'],
                 'sales' => $trend['sales'],
@@ -83,7 +84,7 @@ class DashboardMetricsService
      */
     public function paidInvoiceTotal(Merchant $merchant, string $sinceDate): float
     {
-        return (float) $merchant->invoices()
+        return (float) StoreAccess::limit($merchant->invoices())
             ->where('status', Invoice::STATUS_PAID)
             ->whereNotNull('paid_at')
             ->whereDate('paid_at', '>=', $sinceDate)
@@ -127,7 +128,7 @@ class DashboardMetricsService
      */
     public function unpaidInvoiceTotal(Merchant $merchant, bool $today): float
     {
-        $invoices = $merchant->invoices()
+        $invoices = StoreAccess::limit($merchant->invoices())
             ->whereIn('status', [Invoice::STATUS_INVOICED, Invoice::STATUS_PARTIALLY_PAID])
             ->when($today, fn ($q) => $q->whereDate('issue_date', now()->toDateString()))
             ->get(['total', 'amount_paid']);
@@ -142,7 +143,7 @@ class DashboardMetricsService
      */
     public function stockSummary(Merchant $merchant): array
     {
-        $row = $merchant->inventoryItems()
+        $row = StoreAccess::limit($merchant->inventoryItems())
             ->selectRaw('SUM(quantity_on_hand * COALESCE(unit_cost, 0)) as buying_value')
             ->selectRaw('SUM(quantity_on_hand * COALESCE(unit_price, 0)) as selling_value')
             ->selectRaw('SUM(quantity_on_hand) as total_quantity')
@@ -171,18 +172,18 @@ class DashboardMetricsService
     {
         return [
             'approved' => $merchant->canSellOnMarketplace(),
-            'listed_count' => $merchant->inventoryItems()->onMarketplace()->count(),
-            'units_exposed' => (float) $merchant->inventoryItems()->onMarketplace()->sum('marketplace_quantity'),
-            'out_of_stock_count' => $merchant->inventoryItems()
+            'listed_count' => StoreAccess::limit($merchant->inventoryItems())->onMarketplace()->count(),
+            'units_exposed' => (float) StoreAccess::limit($merchant->inventoryItems())->onMarketplace()->sum('marketplace_quantity'),
+            'out_of_stock_count' => StoreAccess::limit($merchant->inventoryItems())
                 ->where('is_marketplace_visible', true)
                 ->where('marketplace_status', InventoryItem::MARKET_OUT_OF_STOCK)
                 ->count(),
-            'hidden_count' => $merchant->inventoryItems()->where('is_marketplace_visible', false)->count(),
+            'hidden_count' => StoreAccess::limit($merchant->inventoryItems())->where('is_marketplace_visible', false)->count(),
             'orders' => [
-                'pending' => $merchant->orders()->where('status', Order::PENDING)->count(),
-                'accepted' => $merchant->orders()->whereIn('status', [Order::ACCEPTED, Order::PREPARING])->count(),
-                'ready' => $merchant->orders()->where('status', Order::READY)->count(),
-                'completed' => $merchant->orders()->where('status', Order::COMPLETED)->count(),
+                'pending' => StoreAccess::limit($merchant->orders())->where('status', Order::PENDING)->count(),
+                'accepted' => StoreAccess::limit($merchant->orders())->whereIn('status', [Order::ACCEPTED, Order::PREPARING])->count(),
+                'ready' => StoreAccess::limit($merchant->orders())->where('status', Order::READY)->count(),
+                'completed' => StoreAccess::limit($merchant->orders())->where('status', Order::COMPLETED)->count(),
             ],
         ];
     }
@@ -198,13 +199,13 @@ class DashboardMetricsService
         $dates = collect(range($days - 1, 0))->map(fn ($i) => now()->subDays($i)->toDateString());
         $start = $dates->first();
 
-        $posSalesByDay = $merchant->salesRecords()
+        $posSalesByDay = StoreAccess::limit($merchant->salesRecords())
             ->selectRaw('sale_date, SUM(amount) as total')
             ->where('sale_date', '>=', $start)
             ->groupBy('sale_date')
             ->pluck('total', 'sale_date');
 
-        $invoiceSalesByDay = $merchant->invoices()
+        $invoiceSalesByDay = StoreAccess::limit($merchant->invoices())
             ->where('status', Invoice::STATUS_PAID)
             ->whereNotNull('paid_at')
             ->whereDate('paid_at', '>=', $start)
@@ -230,7 +231,7 @@ class DashboardMetricsService
             ->groupBy('d')
             ->pluck('total', 'd');
 
-        $expensesByDay = $merchant->expenses()
+        $expensesByDay = StoreAccess::limit($merchant->expenses())
             ->selectRaw('expense_date, SUM(amount) as total')
             ->where('expense_date', '>=', $start)
             ->groupBy('expense_date')
@@ -260,13 +261,13 @@ class DashboardMetricsService
         $periods = collect(range($months - 1, 0))->map(fn ($i) => now()->subMonths($i)->startOfMonth());
         $start = $periods->first();
 
-        $sales = $merchant->salesRecords()
+        $sales = StoreAccess::limit($merchant->salesRecords())
             ->where('sale_date', '>=', $start)
             ->get(['sale_date', 'amount'])
             ->groupBy(fn ($row) => Carbon::parse($row->sale_date)->format('Y-m'))
             ->map(fn ($rows) => (float) $rows->sum('amount'));
 
-        $invoiceSales = $merchant->invoices()
+        $invoiceSales = StoreAccess::limit($merchant->invoices())
             ->where('status', Invoice::STATUS_PAID)
             ->whereNotNull('paid_at')
             ->where('paid_at', '>=', $start)
@@ -294,7 +295,7 @@ class DashboardMetricsService
             ->groupBy(fn ($row) => Carbon::parse($row->paid_at)->format('Y-m'))
             ->map(fn ($rows) => (float) $rows->sum('cogs'));
 
-        $expenses = $merchant->expenses()
+        $expenses = StoreAccess::limit($merchant->expenses())
             ->where('expense_date', '>=', $start)
             ->get(['expense_date', 'amount'])
             ->groupBy(fn ($row) => Carbon::parse($row->expense_date)->format('Y-m'))

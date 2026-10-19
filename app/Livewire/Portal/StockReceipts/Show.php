@@ -10,6 +10,7 @@ use App\Models\SupplierTransaction;
 use App\Services\InventoryExcelImporter;
 use App\Services\InventoryExcelTemplate;
 use App\Services\InventoryService;
+use App\Support\StoreAccess;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
@@ -58,7 +59,7 @@ class Show extends Component
 
     public function mount(StockReceipt $receipt)
     {
-        abort_unless($receipt->merchant_id === Auth::user()->merchant_id, 403);
+        abort_unless($receipt->merchant_id === Auth::user()->merchant_id && StoreAccess::allows($receipt->branch_id), 403);
         $this->receipt = $receipt;
     }
 
@@ -75,6 +76,7 @@ class Show extends Component
         }
 
         $this->productMatches = InventoryItem::forUser()
+            ->when($this->receipt->branch_id, fn ($q) => $q->where('branch_id', $this->receipt->branch_id))
             ->where('name', 'like', "%{$trimmed}%")
             ->limit(8)
             ->get(['id', 'name', 'quantity_on_hand', 'unit', 'unit_price'])
@@ -118,7 +120,9 @@ class Show extends Component
             'unit_cost' => ['required', 'numeric', 'min:0'],
         ]);
 
-        $item = InventoryItem::forUser()->findOrFail($this->inventory_item_id);
+        $item = InventoryItem::forUser()
+            ->when($this->receipt->branch_id, fn ($q) => $q->where('branch_id', $this->receipt->branch_id))
+            ->findOrFail($this->inventory_item_id);
 
         $this->storeLine($item->id, (float) $this->quantity, (float) $this->unit_cost);
 
@@ -157,7 +161,7 @@ class Show extends Component
 
         $item = InventoryItem::create([
             'merchant_id' => Auth::user()->merchant_id,
-            'branch_id' => $this->new_branch_id ?: null,
+            'branch_id' => $this->receipt->branch_id ?? ($this->new_branch_id ?: null),
             'name' => $this->new_name,
             'sku' => $this->new_sku ?: null,
             'unit' => $this->new_unit ?: null,
@@ -309,7 +313,7 @@ class Show extends Component
         return view('livewire.portal.stock-receipts.show', [
             'lines' => $this->receipt->items()->with('inventoryItem')->get(),
             'documents' => $this->receipt->getMedia('documents'),
-            'branches' => Branch::where('merchant_id', Auth::user()->merchant_id)->orderBy('name')->get(),
+            'branches' => Branch::whereIn('id', StoreAccess::branchIds())->orderBy('name')->get(),
         ]);
     }
 }

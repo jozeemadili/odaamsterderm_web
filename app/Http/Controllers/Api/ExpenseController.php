@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ExpenseResource;
 use App\Models\Expense;
+use App\Support\StoreAccess;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -12,7 +13,7 @@ class ExpenseController extends Controller
 {
     public function index(Request $request)
     {
-        $expenses = Expense::where('merchant_id', Auth::user()->merchant_id)
+        $expenses = Expense::forUser()
             ->when($request->filled('date_from'), fn ($q) => $q->whereDate('expense_date', '>=', $request->date('date_from')))
             ->when($request->filled('date_to'), fn ($q) => $q->whereDate('expense_date', '<=', $request->date('date_to')))
             ->latest('expense_date')
@@ -31,6 +32,7 @@ class ExpenseController extends Controller
         ]);
 
         $expense = Expense::create([
+            'branch_id' => StoreAccess::defaultStoreId(),
             ...$data,
             'merchant_id' => Auth::user()->merchant_id,
             'recorded_by' => Auth::id(),

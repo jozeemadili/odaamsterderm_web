@@ -3,6 +3,7 @@
 namespace App\Livewire\Portal;
 
 use App\Services\DashboardMetricsService;
+use App\Support\StoreAccess;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -27,9 +28,9 @@ class Dashboard extends Component
         return view('livewire.portal.dashboard', [
             'merchant' => $merchant,
             'summary' => $summary,
-            'lowStockItems' => $merchant->lowStockItems()->limit(5)->get(),
-            'expiringSoonItems' => $merchant->expiringSoonItems()->orderBy('expiry_date')->limit(5)->get(),
-            'recentPayments' => $merchant->paymentRecords()->latest('payment_date')->limit(5)->get(),
+            'lowStockItems' => StoreAccess::limit($merchant->lowStockItems())->limit(5)->get(),
+            'expiringSoonItems' => StoreAccess::limit($merchant->expiringSoonItems())->orderBy('expiry_date')->limit(5)->get(),
+            'recentPayments' => StoreAccess::limit($merchant->paymentRecords())->latest('payment_date')->limit(5)->get(),
         ]);
     }
 }

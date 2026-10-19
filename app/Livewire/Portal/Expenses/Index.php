@@ -4,6 +4,7 @@ namespace App\Livewire\Portal\Expenses;
 
 use App\Models\Expense;
 use App\Models\ExpenseCategory;
+use App\Support\StoreAccess;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -68,6 +69,7 @@ class Index extends Component
 
         Expense::create([
             'merchant_id' => Auth::user()->merchant_id,
+            'branch_id' => StoreAccess::defaultStoreId(),
             'category' => $categoryName,
             'amount' => $this->amount,
             'description' => $this->description,
@@ -84,7 +86,7 @@ class Index extends Component
     {
         $merchantId = Auth::user()->merchant_id;
 
-        $expenses = Expense::where('merchant_id', $merchantId)
+        $expenses = Expense::forUser()
             ->latest('expense_date')
             ->paginate(15);
 
