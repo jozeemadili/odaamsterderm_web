@@ -99,6 +99,15 @@
                     <a href="{{ route('portal.stock-receipts.index') }}" class="icon-dock-item {{ request()->routeIs('portal.stock-receipts.*') ? 'is-active' : '' }}">
                         <x-icon.stock-receipt class="h-4 w-4 shrink-0" /> Stock Receipts
                     </a>
+                    <a href="{{ route('portal.transfers.index') }}" class="icon-dock-item {{ request()->routeIs('portal.transfers.*') ? 'is-active' : '' }}">
+                        <x-icon.transfer class="h-4 w-4 shrink-0" /> Transfers
+                        @php
+                            $incomingTransfers = \App\Models\StockTransfer::where('merchant_id', auth()->user()->merchant_id)->where('status', 'sent')->whereIn('to_branch_id', \App\Support\StoreAccess::scopeIds())->count();
+                        @endphp
+                        @if($incomingTransfers)
+                            <span class="ml-auto h-5 min-w-[20px] px-1.5 rounded-full bg-primary text-ink text-[11px] leading-5 text-center font-medium">{{ $incomingTransfers }}</span>
+                        @endif
+                    </a>
                     <a href="{{ route('portal.inventory.index') }}" class="icon-dock-item {{ request()->routeIs('portal.inventory.*') ? 'is-active' : '' }}">
                         <x-icon.inventory class="h-4 w-4 shrink-0" /> Inventory
                     </a>

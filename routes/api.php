@@ -25,6 +25,7 @@ use App\Http\Controllers\Api\SalesController;
 use App\Http\Controllers\Api\SellerOrderController;
 use App\Http\Controllers\Api\StaffController;
 use App\Http\Controllers\Api\StockReceiptController;
+use App\Http\Controllers\Api\StockTransferController;
 use App\Http\Controllers\Api\SupplierController;
 use App\Http\Controllers\Api\UserNotificationController;
 use Illuminate\Support\Facades\Route;
@@ -119,6 +120,11 @@ Route::prefix('v1')->group(function () {
             Route::patch('/branches/{branch}', [BranchController::class, 'update']);
 
             // --- Stock receipts --------------------------------------------
+            Route::get('/transfers', [StockTransferController::class, 'index']);
+            Route::post('/transfers', [StockTransferController::class, 'store']);
+            Route::get('/transfers/{transfer}', [StockTransferController::class, 'show']);
+            Route::post('/transfers/{transfer}/receive', [StockTransferController::class, 'receive']);
+            Route::post('/transfers/{transfer}/cancel', [StockTransferController::class, 'cancel']);
             Route::get('/stock-receipts', [StockReceiptController::class, 'index']);
             Route::post('/stock-receipts', [StockReceiptController::class, 'store']);
             Route::get('/stock-receipts/{receipt}', [StockReceiptController::class, 'show']);

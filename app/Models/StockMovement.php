@@ -29,6 +29,9 @@ class StockMovement extends Model
     /** Reserved units handed to the customer — physical stock leaves. */
     public const TYPE_ONLINE_SALE = 'online_sale';
 
+    /** Stock sent to another store of the same seller. */
+    public const TYPE_TRANSFER_OUT = 'transfer_out';
+
     protected function casts(): array
     {
         return [

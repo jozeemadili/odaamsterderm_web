@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\GoogleController;
 use App\Http\Controllers\InvoicePublicController;
 use App\Http\Controllers\ReceiptController;
+use App\Http\Controllers\TransferNoteController;
 use App\Livewire\Admin;
 use App\Livewire\Auth\CompleteRegistration;
 use App\Livewire\Auth\CustomerRegister;
@@ -28,6 +29,7 @@ Route::middleware(['auth', 'customer'])->group(function () {
 
 // Branded receipts — signed links customers can open or share without signing in.
 Route::get('/receipts/orders/{order}', [ReceiptController::class, 'order'])->name('receipts.order')->middleware('signed');
+Route::get('/transfers/{transfer}/note', TransferNoteController::class)->name('transfers.note')->middleware('signed');
 Route::get('/receipts/sales/{sale}', [ReceiptController::class, 'sale'])->name('receipts.sale')->middleware('signed');
 
 Route::get('/i/{invoice}/pdf', [InvoicePublicController::class, 'download'])
@@ -98,6 +100,8 @@ Route::middleware(['auth', 'merchant'])->prefix('portal')->name('portal.')->grou
     Route::get('/stock-receipts', Portal\StockReceipts\Index::class)->name('stock-receipts.index');
     Route::get('/stock-receipts/{receipt}', Portal\StockReceipts\Show::class)->name('stock-receipts.show');
     Route::get('/suppliers', Portal\Suppliers\Index::class)->name('suppliers.index');
+    Route::get('/transfers', Portal\Transfers\Index::class)->name('transfers.index');
+    Route::get('/transfers/{transfer}', Portal\Transfers\Show::class)->name('transfers.show');
     Route::get('/stores', Portal\Stores\Index::class)->name('stores.index');
     Route::get('/stores/{store}', Portal\Stores\Show::class)->name('stores.show');
     Route::get('/customers', Portal\Customers\Index::class)->name('customers.index');
