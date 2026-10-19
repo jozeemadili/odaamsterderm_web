@@ -9,6 +9,7 @@ use App\Models\InventoryItem;
 use App\Models\Product;
 use App\Models\StockMovement;
 use App\Services\InventoryService;
+use App\Support\StoreAccess;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -20,7 +21,7 @@ class InventoryController extends Controller
 {
     public function index(Request $request)
     {
-        $items = InventoryItem::where('merchant_id', Auth::user()->merchant_id)
+        $items = InventoryItem::forUser()
             ->when($request->filled('category_id'), fn ($q) => $q->where('category_id', $request->integer('category_id')))
             ->when($request->filled('branch_id'), fn ($q) => $q->where('branch_id', $request->integer('branch_id')))
             ->when($request->filled('search'), fn ($q) => $q->where(function ($q) use ($request) {
@@ -55,7 +56,7 @@ class InventoryController extends Controller
             'sku' => ['nullable', 'string', 'max:255'],
             'barcode' => ['nullable', 'string', 'max:64', 'unique:inventory_items,barcode'],
             'category_id' => ['required', $this->ownRule('inventory_categories')],
-            'branch_id' => ['required', $this->ownRule('branches')],
+            'branch_id' => ['required', Rule::in(StoreAccess::branchIds())],
             'product_id' => ['nullable', $this->usableProductRule()],
             'unit' => ['nullable', 'string', 'max:255'],
             'reorder_level' => ['nullable', 'numeric', 'min:0'],
@@ -168,7 +169,7 @@ class InventoryController extends Controller
      */
     public function lookupBarcode(Request $request, string $code)
     {
-        $item = InventoryItem::where('merchant_id', Auth::user()->merchant_id)
+        $item = InventoryItem::forUser()
             ->where('barcode', $code)
             ->with(['category', 'branch'])
             ->first();
@@ -253,7 +254,7 @@ class InventoryController extends Controller
 
         $merchant = $request->user()->merchant;
 
-        $items = InventoryItem::where('merchant_id', $merchant->id)
+        $items = InventoryItem::forUser()
             ->whereIn('id', $data['item_ids'])
             ->whereNotNull('barcode')
             ->orderBy('name')
@@ -317,6 +318,7 @@ class InventoryController extends Controller
 
     protected function authorizeItem(Request $request, InventoryItem $item): void
     {
-        abort_unless($item->merchant_id === $request->user()->merchant_id, 403);
+        abort_unless($item->merchant_id === $request->user()->merchant_id
+            && StoreAccess::allows($item->branch_id, $request->user()), 403);
     }
 }

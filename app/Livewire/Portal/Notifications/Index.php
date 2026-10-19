@@ -45,7 +45,7 @@ class Index extends Component
             return;
         }
 
-        $this->itemMatches = InventoryItem::where('merchant_id', Auth::user()->merchant_id)
+        $this->itemMatches = InventoryItem::forUser()
             ->where('name', 'like', "%{$trimmed}%")
             ->limit(8)
             ->get(['id', 'name', 'quantity_on_hand', 'unit'])
@@ -76,7 +76,7 @@ class Index extends Component
         ]);
 
         $merchantId = Auth::user()->merchant_id;
-        $item = InventoryItem::where('merchant_id', $merchantId)->findOrFail($data['inventory_item_id']);
+        $item = InventoryItem::forUser()->findOrFail($data['inventory_item_id']);
 
         if ((float) $data['quantity'] > $item->availableQuantity()) {
             $this->addError('quantity', "Not enough stock for {$item->name} ({$item->availableQuantity()} {$item->unit} available).");

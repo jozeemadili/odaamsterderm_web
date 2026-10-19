@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\BranchResource;
 use App\Http\Resources\InventoryItemResource;
 use App\Models\Branch;
+use App\Support\StoreAccess;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -14,6 +15,7 @@ class BranchController extends Controller
     public function index(Request $request)
     {
         $branches = Branch::where('merchant_id', Auth::user()->merchant_id)
+            ->whereIn('id', StoreAccess::branchIds())
             ->withCount('inventoryItems')
             ->orderByDesc('is_primary')
             ->orderBy('name')

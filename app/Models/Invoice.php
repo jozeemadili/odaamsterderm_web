@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToStore;
 use Endroid\QrCode\QrCode;
 use Endroid\QrCode\Writer\PngWriter;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -19,7 +20,7 @@ use Spatie\Activitylog\Support\LogOptions;
 ])]
 class Invoice extends Model
 {
-    use LogsActivity;
+    use BelongsToStore, LogsActivity;
 
     public const STATUS_DRAFT = 'draft';
 

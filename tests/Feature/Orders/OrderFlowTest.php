@@ -9,6 +9,7 @@ use App\Livewire\Portal\Orders\Show as SellerOrderShow;
 use App\Models\InventoryItem;
 use App\Models\Order;
 use App\Models\User;
+use App\Services\OrderService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
 use Livewire\Livewire;
@@ -30,6 +31,7 @@ class OrderFlowTest extends TestCase
         $this->buildMarketplace();
         $this->customer = User::registerCustomer(['name' => 'Juma', 'email' => 'juma@example.com', 'phone' => '+255700000099', 'password' => 'secret-pass']);
         $this->sellerA = User::factory()->create(['user_type' => User::TYPE_MERCHANT, 'merchant_id' => $this->stores['A']->merchant_id]);
+        $this->sellerA->assignRole('merchant_owner');
     }
 
     private function offerA(): InventoryItem
@@ -87,13 +89,14 @@ class OrderFlowTest extends TestCase
 
     public function test_customers_only_see_their_own_orders_and_sellers_only_theirs(): void
     {
-        app(\App\Services\OrderService::class)->addToCart($this->customer, $this->offerA()->id, 1);
-        $order = app(\App\Services\OrderService::class)->checkout($this->customer)->first();
+        app(OrderService::class)->addToCart($this->customer, $this->offerA()->id, 1);
+        $order = app(OrderService::class)->checkout($this->customer)->first();
 
         $other = User::registerCustomer(['name' => 'Other', 'email' => 'other@example.com', 'password' => 'secret-pass']);
         $this->actingAs($other)->get(route('market.order', $order))->assertNotFound();
 
         $sellerB = User::factory()->create(['user_type' => User::TYPE_MERCHANT, 'merchant_id' => $this->stores['B']->merchant_id]);
+        $sellerB->assignRole('merchant_owner');
         $this->actingAs($sellerB)->get(route('portal.orders.show', $order))->assertForbidden();
 
         $this->actingAs($this->sellerA)->get(route('portal.orders.index'))->assertOk()->assertSee($order->reference);

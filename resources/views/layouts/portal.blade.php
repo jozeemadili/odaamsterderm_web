@@ -80,6 +80,9 @@
                     </button>
                 </div>
 
+                @if(auth()->user()->merchant_id)
+                    <livewire:portal.store-switcher />
+                @endif
                 <nav class="space-y-1 flex-1 overflow-y-auto" @click="sidebarOpen = false">
                     <a href="{{ route('portal.dashboard') }}" class="icon-dock-item {{ request()->routeIs('portal.dashboard') ? 'is-active' : '' }}">
                         <x-icon.dashboard class="h-4 w-4 shrink-0" /> Dashboard
@@ -100,7 +103,7 @@
                         <x-icon.inventory class="h-4 w-4 shrink-0" /> Inventory
                     </a>
                     @php
-                        $pendingOrders = \App\Models\Order::where('merchant_id', auth()->user()->merchant_id)->where('status', \App\Models\Order::PENDING)->count();
+                        $pendingOrders = \App\Models\Order::forUser()->where('status', \App\Models\Order::PENDING)->count();
                     @endphp
                     <a href="{{ route('portal.orders.index') }}" class="icon-dock-item {{ request()->routeIs('portal.orders.*') ? 'is-active' : '' }}">
                         <x-icon.receipt class="h-4 w-4 shrink-0" /> Orders

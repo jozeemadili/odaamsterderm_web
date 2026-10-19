@@ -47,7 +47,7 @@ class Index extends Component
 
     protected function filteredQuery(): Builder
     {
-        return SalesRecord::where('merchant_id', Auth::user()->merchant_id)
+        return SalesRecord::forUser()
             ->when($this->dateFrom, fn ($q) => $q->whereDate('sale_date', '>=', $this->dateFrom))
             ->when($this->dateTo, fn ($q) => $q->whereDate('sale_date', '<=', $this->dateTo))
             ->with('customer')
@@ -60,7 +60,7 @@ class Index extends Component
     {
         $sales = $this->filteredQuery()->get();
 
-        $spreadsheet = new Spreadsheet();
+        $spreadsheet = new Spreadsheet;
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('Sales report');
 

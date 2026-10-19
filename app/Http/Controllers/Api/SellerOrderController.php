@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\Market\OrderResource;
 use App\Models\Order;
 use App\Services\OrderService;
+use App\Support\StoreAccess;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -18,7 +19,7 @@ class SellerOrderController extends Controller
     {
         $status = $request->query('status', 'open');
 
-        $orders = Order::where('merchant_id', $request->user()->merchant_id)
+        $orders = Order::forUser($request->user())
             ->when($status === 'open', fn ($q) => $q->open())
             ->when($status === 'closed', fn ($q) => $q->whereIn('status', [Order::REJECTED, Order::CANCELLED]))
             ->when(! in_array($status, ['open', 'closed', 'all'], true), fn ($q) => $q->where('status', $status))
@@ -53,6 +54,7 @@ class SellerOrderController extends Controller
 
     protected function authorizeOrder(Request $request, Order $order): void
     {
-        abort_unless($order->merchant_id === $request->user()->merchant_id, 404);
+        abort_unless($order->merchant_id === $request->user()->merchant_id
+            && StoreAccess::allows($order->branch_id, $request->user()), 404);
     }
 }

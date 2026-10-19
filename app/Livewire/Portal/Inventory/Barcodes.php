@@ -24,7 +24,7 @@ class Barcodes extends Component
 
     public function mount(): void
     {
-        $items = InventoryItem::where('merchant_id', Auth::user()->merchant_id)
+        $items = InventoryItem::forUser()
             ->whereNotNull('barcode')
             ->pluck('id');
 
@@ -50,7 +50,7 @@ class Barcodes extends Component
 
         $selectedIds = collect($this->selected)->filter()->keys()->all();
 
-        $items = InventoryItem::where('merchant_id', $merchant->id)
+        $items = InventoryItem::forUser()
             ->whereIn('id', $selectedIds)
             ->whereNotNull('barcode')
             ->orderBy('name')
@@ -99,12 +99,12 @@ class Barcodes extends Component
     {
         $merchantId = Auth::user()->merchant_id;
 
-        $items = InventoryItem::where('merchant_id', $merchantId)
+        $items = InventoryItem::forUser()
             ->whereNotNull('barcode')
             ->orderBy('name')
             ->get();
 
-        $withoutBarcodeCount = InventoryItem::where('merchant_id', $merchantId)
+        $withoutBarcodeCount = InventoryItem::forUser()
             ->whereNull('barcode')
             ->count();
 

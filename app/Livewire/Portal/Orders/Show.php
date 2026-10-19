@@ -4,6 +4,7 @@ namespace App\Livewire\Portal\Orders;
 
 use App\Models\Order;
 use App\Services\OrderService;
+use App\Support\StoreAccess;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
@@ -21,7 +22,7 @@ class Show extends Component
 
     public function mount(Order $order): void
     {
-        abort_unless($order->merchant_id === Auth::user()->merchant_id, 403);
+        abort_unless($order->merchant_id === Auth::user()->merchant_id && StoreAccess::allows($order->branch_id), 403);
         $this->order = $order;
     }
 

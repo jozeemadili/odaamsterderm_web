@@ -10,10 +10,10 @@ use App\Models\PaymentMethod;
 use App\Models\SaleItem;
 use App\Models\SalesRecord;
 use App\Models\StockMovement;
-use App\Services\InventoryService;
 use App\Models\User;
+use App\Services\InventoryService;
+use App\Support\StoreAccess;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
@@ -44,10 +44,17 @@ class PosController extends Controller
 
         $merchantId = $request->user()->merchant_id;
 
-        $items = InventoryItem::where('merchant_id', $merchantId)
+        $items = InventoryItem::forUser()
             ->whereIn('id', array_column($data['items'], 'inventory_item_id'))
             ->get()
             ->keyBy('id');
+
+        // A sale belongs to one store: all items must come from the same one.
+        $storeIds = $items->pluck('branch_id')->unique()->values();
+        if ($storeIds->count() > 1) {
+            throw ValidationException::withMessages(['items' => 'All items in a sale must come from the same store.']);
+        }
+        $storeId = $storeIds->first() ?? StoreAccess::currentId($request->user());
 
         $lines = [];
         $gross = 0.0;
@@ -149,9 +156,10 @@ class PosController extends Controller
 
         $tendered = $data['amount_tendered'] ?? $total;
 
-        $sale = DB::transaction(function () use ($merchantId, $data, $lines, $subtotal, $total, $lineDiscountTotal, $overallDiscount, $overallDiscountType, $overallDiscountValue, $approvedBy, $paymentMethod, $tendered, $user) {
+        $sale = DB::transaction(function () use ($merchantId, $storeId, $data, $lines, $subtotal, $total, $lineDiscountTotal, $overallDiscount, $overallDiscountType, $overallDiscountValue, $approvedBy, $paymentMethod, $tendered, $user) {
             $sale = SalesRecord::create([
                 'merchant_id' => $merchantId,
+                'branch_id' => $storeId,
                 'customer_id' => $data['customer_id'] ?? null,
                 'amount' => $total,
                 'subtotal' => $subtotal,

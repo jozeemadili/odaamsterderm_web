@@ -88,7 +88,7 @@ class Show extends Component
             return;
         }
 
-        $this->productMatches = InventoryItem::where('merchant_id', Auth::user()->merchant_id)
+        $this->productMatches = InventoryItem::forUser()
             ->where('name', 'like', "%{$trimmed}%")
             ->limit(8)
             ->get(['id', 'name', 'quantity_on_hand', 'unit', 'unit_price'])
@@ -136,7 +136,7 @@ class Show extends Component
             'lineDiscountValue' => ['nullable', 'numeric', 'min:0'],
         ]);
 
-        $item = InventoryItem::where('merchant_id', Auth::user()->merchant_id)->findOrFail($this->selectedItemId);
+        $item = InventoryItem::forUser()->findOrFail($this->selectedItemId);
 
         $quantity = (float) $this->quantity;
         $unitPrice = (float) $this->unit_price;

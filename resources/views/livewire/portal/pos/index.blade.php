@@ -1,4 +1,20 @@
-<div class="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-4 items-start">
+<div>
+    @if(! $currentStore)
+        <x-ui.card class="mb-4">
+            <p class="text-[15px] font-medium">Which store are you selling from?</p>
+            <p class="text-[13px] text-ink-mute mt-1">The till sells that store's stock and records the sale under it.</p>
+            <div class="flex flex-wrap gap-2 mt-3">
+                @forelse($storeChoices as $store)
+                    <x-ui.button size="sm" wire:click="chooseStore({{ $store->id }})">{{ $store->name }}</x-ui.button>
+                @empty
+                    <p class="text-[13px] text-ruby">You have no store assigned. Ask the business owner to give you access to a store.</p>
+                @endforelse
+            </div>
+        </x-ui.card>
+    @else
+        <p class="text-[12px] text-ink-mute mb-3">Selling from <strong class="text-ink">{{ $currentStore->name }}</strong></p>
+    @endif
+    <div class="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-4 items-start">
     <div class="space-y-4">
         @if($lastReceiptTotal)
             <div class="rounded-lg bg-primary-subtle/30 border border-primary/20 text-primary-deep px-4 py-2.5 text-[14px] flex items-center justify-between">
@@ -260,4 +276,5 @@
             </div>
         </x-ui.card>
     </div>
+</div>
 </div>

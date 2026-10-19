@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Portal\Pos;
 
+use App\Models\Branch;
 use App\Models\Customer;
 use App\Models\DiscountLimit;
 use App\Models\InventoryItem;
@@ -9,8 +10,9 @@ use App\Models\PaymentMethod;
 use App\Models\SaleItem;
 use App\Models\SalesRecord;
 use App\Models\StockMovement;
-use App\Services\InventoryService;
 use App\Models\User;
+use App\Services\InventoryService;
+use App\Support\StoreAccess;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -82,9 +84,20 @@ class Index extends Component
             ->value('id');
     }
 
+    /** The POS sells from one store: pick it when the person works in several. */
+    public function chooseStore(int $branchId): void
+    {
+        StoreAccess::choose($branchId);
+        $this->redirectRoute('portal.pos.index', navigate: false);
+    }
+
     public function addToCart(int $itemId): void
     {
-        $item = InventoryItem::where('merchant_id', Auth::user()->merchant_id)->findOrFail($itemId);
+        if (! StoreAccess::currentId()) {
+            return;
+        }
+
+        $item = InventoryItem::forUser()->findOrFail($itemId);
 
         $inCart = $this->cart[$itemId]['quantity'] ?? 0;
 
@@ -430,15 +443,22 @@ class Index extends Component
         }
 
         $merchantId = Auth::user()->merchant_id;
+        $storeId = StoreAccess::currentId();
+        if (! $storeId) {
+            $this->checkoutError = 'Choose the store you are selling from first.';
+
+            return;
+        }
         $totals = $this->totals();
         $paymentMethod = $this->paymentMethodId
             ? PaymentMethod::where('merchant_id', $merchantId)->find($this->paymentMethodId)
             : null;
         $tendered = $this->amountTendered !== '' ? (float) $this->amountTendered : $totals['total'];
 
-        DB::transaction(function () use ($merchantId, $totals, $paymentMethod, $tendered) {
+        DB::transaction(function () use ($merchantId, $storeId, $totals, $paymentMethod, $tendered) {
             $sale = SalesRecord::create([
                 'merchant_id' => $merchantId,
+                'branch_id' => $storeId,
                 'customer_id' => $this->customerId,
                 'amount' => $totals['total'],
                 'subtotal' => $totals['subtotal'],
@@ -504,7 +524,7 @@ class Index extends Component
 
         $merchantId = Auth::user()->merchant_id;
 
-        $match = InventoryItem::where('merchant_id', $merchantId)
+        $match = InventoryItem::forUser()
             ->whereNotNull('unit_price')
             ->where(function ($q) {
                 $q->where('barcode', $this->search)->orWhere('sku', $this->search);
@@ -521,7 +541,10 @@ class Index extends Component
     {
         $merchantId = Auth::user()->merchant_id;
 
-        $items = InventoryItem::where('merchant_id', $merchantId)
+        $currentStore = StoreAccess::current();
+
+        $items = InventoryItem::forUser()
+            ->when(! $currentStore, fn ($q) => $q->whereRaw('1 = 0'))
             ->whereNotNull('unit_price')
             ->when($this->search, fn ($q) => $q->where(function ($q) {
                 $q->where('name', 'like', "%{$this->search}%")
@@ -552,6 +575,8 @@ class Index extends Component
             'customers' => $customers,
             'totals' => $this->totals(),
             'paymentMethods' => $paymentMethods,
+            'currentStore' => $currentStore,
+            'storeChoices' => $currentStore ? collect() : Branch::whereIn('id', StoreAccess::branchIds())->orderBy('name')->get(['id', 'name']),
         ]);
     }
 }

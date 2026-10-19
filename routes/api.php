@@ -182,6 +182,7 @@ Route::prefix('v1')->group(function () {
             Route::post('/kyc-documents', [KycDocumentController::class, 'store']);
             Route::get('/staff', [StaffController::class, 'index']);
             Route::post('/staff', [StaffController::class, 'store']);
+            Route::patch('/staff/{staff}', [StaffController::class, 'update']);
         });
     });
 });

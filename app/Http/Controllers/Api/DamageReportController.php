@@ -40,7 +40,7 @@ class DamageReportController extends Controller
             'photo' => ['nullable', 'image', 'max:4096'],
         ]);
 
-        $item = InventoryItem::where('merchant_id', $merchantId)->findOrFail($data['inventory_item_id']);
+        $item = InventoryItem::forUser()->findOrFail($data['inventory_item_id']);
 
         if ((float) $data['quantity'] > $item->availableQuantity()) {
             return response()->json([

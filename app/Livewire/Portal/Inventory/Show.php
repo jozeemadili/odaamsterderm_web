@@ -6,6 +6,7 @@ use App\Livewire\Concerns\PicksCatalogProduct;
 use App\Models\InventoryItem;
 use App\Models\StockReceiptItem;
 use App\Services\InventoryService;
+use App\Support\StoreAccess;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
@@ -32,7 +33,7 @@ class Show extends Component
 
     public function mount(InventoryItem $item)
     {
-        abort_unless($item->merchant_id === Auth::user()->merchant_id, 403);
+        abort_unless($item->merchant_id === Auth::user()->merchant_id && StoreAccess::allows($item->branch_id), 403);
         $this->item = $item->load('branch', 'category', 'product', 'merchant');
         $this->fillMarketplaceFields();
     }

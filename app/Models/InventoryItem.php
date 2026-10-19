@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToStore;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -17,7 +18,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 ])]
 class InventoryItem extends Model implements HasMedia
 {
-    use InteractsWithMedia;
+    use BelongsToStore, InteractsWithMedia;
 
     public const MARKET_ACTIVE = 'active';
 

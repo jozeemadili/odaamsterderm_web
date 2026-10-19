@@ -8,11 +8,13 @@ use App\Models\InventoryCategory;
 use App\Models\InventoryItem;
 use App\Models\Product;
 use App\Models\StockMovement;
-use App\Services\InventoryService;
 use App\Services\InventoryExcelImporter;
 use App\Services\InventoryExcelTemplate;
+use App\Services\InventoryService;
+use App\Support\StoreAccess;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -87,7 +89,7 @@ class Index extends Component
             return;
         }
 
-        $this->nameMatches = InventoryItem::where('merchant_id', Auth::user()->merchant_id)
+        $this->nameMatches = InventoryItem::forUser()
             ->where('name', 'like', "%{$trimmed}%")
             ->limit(5)
             ->get(['id', 'name', 'quantity_on_hand', 'unit'])
@@ -168,12 +170,20 @@ class Index extends Component
         }
     }
 
+    /** New stock goes into the store being worked in, unless another is picked. */
+    public function updatedShowItemForm(bool $open): void
+    {
+        if ($open && $this->branch_id === '' && ($current = StoreAccess::currentId())) {
+            $this->branch_id = (string) $current;
+        }
+    }
+
     public function addItem()
     {
         $this->validate($this->catalogProductRules() + [
             'name' => ['required', 'string', 'max:255'],
             'category_id' => ['required', 'exists:inventory_categories,id'],
-            'branch_id' => ['required', 'exists:branches,id'],
+            'branch_id' => ['required', Rule::in(StoreAccess::branchIds())],
             'expiry_date' => ['nullable', 'date'],
             'barcode' => ['nullable', 'string', 'max:64', 'unique:inventory_items,barcode'],
             'reorder_level' => ['required', 'numeric', 'min:0'],
@@ -224,7 +234,7 @@ class Index extends Component
             'movementReason' => [$this->movementType === 'adjustment' ? 'required' : 'nullable', 'string', 'max:255'],
         ]);
 
-        $item = InventoryItem::where('merchant_id', Auth::user()->merchant_id)->findOrFail($this->movingItemId);
+        $item = InventoryItem::forUser()->findOrFail($this->movingItemId);
         $quantity = (float) $this->movementQuantity;
         $meta = ['reference' => 'manual', 'reason' => $this->movementReason ?: null];
 
@@ -303,18 +313,19 @@ class Index extends Component
     {
         $merchantId = Auth::user()->merchant_id;
 
-        $items = InventoryItem::where('merchant_id', $merchantId)
+        $items = InventoryItem::forUser()
             ->when($this->categoryFilter, fn ($q) => $q->where('category_id', $this->categoryFilter))
             ->with(['category', 'branch'])
             ->orderBy('name')
             ->paginate(10);
 
-        $expiringSoon = Auth::user()->merchant->expiringSoonItems()->orderBy('expiry_date')->get();
+        $expiringSoon = Auth::user()->merchant->expiringSoonItems()
+            ->whereIn('branch_id', StoreAccess::scopeIds())->orderBy('expiry_date')->get();
 
         return view('livewire.portal.inventory.index', [
             'items' => $items,
             'categories' => InventoryCategory::where('merchant_id', $merchantId)->withCount('items')->orderBy('name')->get(),
-            'branches' => Branch::where('merchant_id', $merchantId)->orderBy('name')->get(),
+            'branches' => Branch::whereIn('id', StoreAccess::branchIds())->orderBy('name')->get(),
             'expiringSoon' => $expiringSoon,
         ]);
     }

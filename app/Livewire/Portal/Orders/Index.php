@@ -3,7 +3,6 @@
 namespace App\Livewire\Portal\Orders;
 
 use App\Models\Order;
-use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Url;
 use Livewire\Component;
@@ -34,7 +33,7 @@ class Index extends Component
 
     public function render()
     {
-        $base = Order::where('merchant_id', Auth::user()->merchant_id);
+        $base = Order::forUser();
 
         $orders = (clone $base)
             ->when($this->tab === 'open', fn ($q) => $q->open())

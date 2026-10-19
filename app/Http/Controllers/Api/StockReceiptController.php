@@ -5,11 +5,10 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\StockReceiptResource;
 use App\Models\InventoryItem;
-use App\Models\StockMovement;
-use App\Services\InventoryService;
 use App\Models\StockReceipt;
 use App\Models\StockReceiptItem;
 use App\Models\SupplierTransaction;
+use App\Services\InventoryService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -70,7 +69,7 @@ class StockReceiptController extends Controller
         $merchantId = $receipt->merchant_id;
 
         if (! empty($data['inventory_item_id'])) {
-            $item = InventoryItem::where('merchant_id', $merchantId)->findOrFail($data['inventory_item_id']);
+            $item = InventoryItem::forUser()->findOrFail($data['inventory_item_id']);
         } else {
             $item = InventoryItem::create([
                 'merchant_id' => $merchantId,

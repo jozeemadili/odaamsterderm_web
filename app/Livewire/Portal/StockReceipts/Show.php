@@ -4,13 +4,12 @@ namespace App\Livewire\Portal\StockReceipts;
 
 use App\Models\Branch;
 use App\Models\InventoryItem;
-use App\Models\StockMovement;
-use App\Services\InventoryService;
 use App\Models\StockReceipt;
 use App\Models\StockReceiptItem;
 use App\Models\SupplierTransaction;
 use App\Services\InventoryExcelImporter;
 use App\Services\InventoryExcelTemplate;
+use App\Services\InventoryService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
@@ -75,7 +74,7 @@ class Show extends Component
             return;
         }
 
-        $this->productMatches = InventoryItem::where('merchant_id', Auth::user()->merchant_id)
+        $this->productMatches = InventoryItem::forUser()
             ->where('name', 'like', "%{$trimmed}%")
             ->limit(8)
             ->get(['id', 'name', 'quantity_on_hand', 'unit', 'unit_price'])
@@ -119,7 +118,7 @@ class Show extends Component
             'unit_cost' => ['required', 'numeric', 'min:0'],
         ]);
 
-        $item = InventoryItem::where('merchant_id', Auth::user()->merchant_id)->findOrFail($this->inventory_item_id);
+        $item = InventoryItem::forUser()->findOrFail($this->inventory_item_id);
 
         $this->storeLine($item->id, (float) $this->quantity, (float) $this->unit_cost);
 

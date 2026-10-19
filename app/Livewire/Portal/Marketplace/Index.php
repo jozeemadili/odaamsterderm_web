@@ -84,7 +84,7 @@ class Index extends Component
 
     protected function findItem(?int $id): InventoryItem
     {
-        return InventoryItem::where('merchant_id', Auth::user()->merchant_id)
+        return InventoryItem::forUser()
             ->with(['merchant', 'product', 'branch'])
             ->findOrFail($id);
     }
@@ -92,7 +92,7 @@ class Index extends Component
     public function render()
     {
         $merchant = Auth::user()->merchant;
-        $base = InventoryItem::where('merchant_id', $merchant->id)
+        $base = InventoryItem::forUser()
             ->when($this->storeFilter, fn ($q) => $q->where('branch_id', $this->storeFilter));
 
         $items = (clone $base)

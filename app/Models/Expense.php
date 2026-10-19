@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToStore;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -9,6 +10,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 #[Fillable(['merchant_id', 'branch_id', 'category', 'amount', 'description', 'expense_date', 'recorded_by'])]
 class Expense extends Model
 {
+    use BelongsToStore;
+
     protected function casts(): array
     {
         return [

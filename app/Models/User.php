@@ -8,12 +8,15 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Str;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 
-#[Fillable(['name', 'email', 'google_id', 'password', 'user_type', 'merchant_id', 'phone', 'status', 'latitude', 'longitude', 'location_label'])]
+#[Fillable(['name', 'email', 'google_id', 'password', 'user_type', 'merchant_id', 'all_branches', 'phone', 'status', 'latitude', 'longitude', 'location_label'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -37,9 +40,16 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'all_branches' => 'boolean',
             'latitude' => 'float',
             'longitude' => 'float',
         ];
+    }
+
+    /** Stores this staff member works in (ignored when all_branches is on). */
+    public function branches(): BelongsToMany
+    {
+        return $this->belongsToMany(Branch::class);
     }
 
     public function merchant(): BelongsTo
@@ -72,7 +82,7 @@ class User extends Authenticatable
         };
     }
 
-    public function orders(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function orders(): HasMany
     {
         return $this->hasMany(Order::class);
     }
@@ -94,7 +104,7 @@ class User extends Authenticatable
             'email' => $data['email'],
             'phone' => $data['phone'] ?? null,
             'google_id' => $data['google_id'] ?? null,
-            'password' => $data['password'] ?? \Illuminate\Support\Str::random(32),
+            'password' => $data['password'] ?? Str::random(32),
             'user_type' => self::TYPE_CUSTOMER,
         ]);
 

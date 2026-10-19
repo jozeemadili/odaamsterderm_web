@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToStore;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -26,7 +27,7 @@ use Spatie\Activitylog\Support\LogOptions;
 ])]
 class Order extends Model
 {
-    use LogsActivity;
+    use BelongsToStore, LogsActivity;
 
     public const PENDING = 'pending';
 

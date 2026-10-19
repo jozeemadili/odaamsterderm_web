@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToStore;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -12,7 +13,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 #[Fillable(['merchant_id', 'inventory_item_id', 'branch_id', 'quantity', 'description', 'reported_by', 'reported_at'])]
 class DamageReport extends Model implements HasMedia
 {
-    use InteractsWithMedia;
+    use BelongsToStore, InteractsWithMedia;
 
     protected function casts(): array
     {
