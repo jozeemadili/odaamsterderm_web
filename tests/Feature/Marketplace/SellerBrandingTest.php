@@ -49,6 +49,10 @@ class SellerBrandingTest extends TestCase
         $this->actingAs($this->seller)->get(route('portal.dashboard'))->assertOk()
             ->assertSee('--brand:#14532D;--brand-ink:#FFFFFF;--brand-accent:#84CC16;--brand-accent-ink:#01162F;', false);
 
+        // Store cards on the marketplace home and the stores API carry the branding.
+        $this->get('/')->assertOk()->assertSee('background: #14532D', false)->assertSee('background: #84CC16', false);
+        $this->getJson('/api/v1/market/stores')->assertJsonFragment(['brand_color' => '#14532D', 'brand_accent_color' => '#84CC16']);
+
         $this->get("/stores/{$this->stores['B']->id}")->assertOk()->assertSee('background: #14532D', false)->assertSee('background: #84CC16', false);
 
         Livewire::actingAs($this->seller)->test(Branding::class)

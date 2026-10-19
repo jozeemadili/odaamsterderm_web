@@ -2,7 +2,7 @@
 
 namespace App\Http\Resources\Market;
 
-use App\Models\Branch;
+use App\Models\Merchant;
 use App\Support\GeoPoint;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -17,7 +17,14 @@ class PublicStoreResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
-            'seller' => $this->whenLoaded('merchant', fn () => ['id' => $this->merchant->id, 'name' => $this->merchant->business_name]),
+            'seller' => $this->whenLoaded('merchant', fn () => [
+                'id' => $this->merchant->id,
+                'name' => $this->merchant->business_name,
+                'logo_url' => $this->merchant->logo()?->getUrl(),
+                'brand_color' => $this->merchant->brandColor(),
+                'brand_accent_color' => $this->merchant->accentColor(),
+                'brand_text_color' => Merchant::textColorOn($this->merchant->brandColor()),
+            ]),
             'address' => $this->address,
             'city' => $this->city,
             'phone' => $this->phone,

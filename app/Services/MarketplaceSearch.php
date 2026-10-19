@@ -207,7 +207,7 @@ class MarketplaceSearch
             ->select('branches.*')
             ->join('merchants', 'merchants.id', '=', 'branches.merchant_id')
             ->tap(fn (Builder $q) => $this->onlyActiveSellersAndStores($q))
-            ->with('merchant')
+            ->with('merchant.media')
             ->withCount(['inventoryItems as offers_count' => fn (Builder $q) => $q
                 ->where('is_marketplace_visible', true)
                 ->whereRaw($available)

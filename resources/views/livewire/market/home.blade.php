@@ -165,19 +165,33 @@
                     <h2 class="text-[17px] font-light tracking-tight mb-3">{{ $from ? 'Stores near you' : 'Stores' }}</h2>
                     <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
                         @foreach($stores as $store)
-                            <a href="{{ route('market.store', $store) }}" class="block">
-                                <x-ui.card padding="p-4" class="h-full hover:border-primary/40 transition">
-                                    <div class="flex items-start justify-between gap-2">
-                                        <div>
-                                            <p class="text-[15px] font-medium">{{ $store->name }}</p>
-                                            <p class="text-[12px] text-ink-mute">{{ $store->merchant->business_name }}</p>
+                            @php
+                                $seller = $store->merchant;
+                                $brand = $seller->brandColor();
+                                $accent = $seller->accentColor();
+                            @endphp
+                            <a href="{{ route('market.store', $store) }}" class="block group">
+                                <x-ui.card padding="p-0" class="h-full overflow-hidden group-hover:border-primary/40 transition">
+                                    {{-- The seller's own colours and logo, so customers recognise the store. --}}
+                                    <div class="px-4 py-3 flex items-center gap-3" style="background: {{ $brand }}; color: {{ \App\Models\Merchant::textColorOn($brand) }}">
+                                        @if($seller->logo())
+                                            <img src="{{ $seller->logo()->getUrl() }}" alt="{{ $seller->business_name }} logo" class="h-11 w-11 rounded-lg bg-white object-contain p-0.5 shrink-0" loading="lazy">
+                                        @else
+                                            <span class="h-11 w-11 rounded-lg shrink-0 flex items-center justify-center text-[15px] font-semibold" style="background: {{ $accent }}; color: {{ \App\Models\Merchant::textColorOn($accent) }}">{{ \Illuminate\Support\Str::upper(\Illuminate\Support\Str::substr($seller->business_name, 0, 2)) }}</span>
+                                        @endif
+                                        <div class="min-w-0 flex-1">
+                                            <p class="text-[15px] font-semibold truncate">{{ $seller->business_name }}</p>
+                                            <p class="text-[12px] opacity-80 truncate">{{ $store->name }}</p>
                                         </div>
                                         @if($store->distance_km !== null)
-                                            <x-ui.badge tone="primary">{{ \App\Support\GeoPoint::formatKm($store->distance_km) }}</x-ui.badge>
+                                            <x-market.distance :km="$store->distance_km" class="shrink-0 !bg-white/90 !text-ink" />
                                         @endif
                                     </div>
-                                    <p class="text-[12px] text-ink-mute mt-2">{{ collect([$store->address, $store->city])->filter()->join(', ') }}</p>
-                                    <p class="text-[12px] text-primary mt-2">{{ $store->offers_count }} {{ \Illuminate\Support\Str::plural('product', $store->offers_count) }} available &rarr;</p>
+                                    <div class="h-1" style="background: {{ $accent }}"></div>
+                                    <div class="p-4">
+                                        <p class="text-[12px] text-ink-mute">{{ collect([$store->address, $store->city])->filter()->join(', ') }}</p>
+                                        <p class="text-[12px] text-primary mt-2">{{ $store->offers_count }} {{ \Illuminate\Support\Str::plural('product', $store->offers_count) }} available &rarr;</p>
+                                    </div>
                                 </x-ui.card>
                             </a>
                         @endforeach
