@@ -76,6 +76,8 @@ class StockTransferTest extends TestCase
 
         // A second transfer adds to the same product in the receiving store.
         Sanctum::actingAs($this->owner);
+        $this->getJson('/api/v1/transfers')->assertJsonPath('can_send', true)->assertJsonCount(2, 'to_stores');
+        $this->getJson("/api/v1/transfers/stock?store_id={$this->store->id}&search=layers")->assertJsonPath('data.0.available', 15);
         $id = $this->postJson('/api/v1/transfers', [
             'from_store_id' => $this->store->id, 'to_store_id' => $this->second->id,
             'items' => [['inventory_item_id' => $this->feed->id, 'quantity' => 3]],
@@ -120,6 +122,7 @@ class StockTransferTest extends TestCase
         Sanctum::actingAs($this->staff([$other]));
         $this->getJson("/api/v1/transfers/{$transfer['id']}")->assertForbidden();
         $this->assertCount(0, $this->getJson('/api/v1/transfers')->json('data'));
+        $this->getJson("/api/v1/transfers/stock?store_id={$this->store->id}")->assertForbidden();
 
         Sanctum::actingAs($this->owner);
         $this->postJson("/api/v1/transfers/{$transfer['id']}/cancel")->assertOk()->assertJsonPath('data.status', 'cancelled');

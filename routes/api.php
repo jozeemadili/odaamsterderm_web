@@ -122,6 +122,7 @@ Route::prefix('v1')->group(function () {
             // --- Stock receipts --------------------------------------------
             Route::get('/transfers', [StockTransferController::class, 'index']);
             Route::post('/transfers', [StockTransferController::class, 'store']);
+            Route::get('/transfers/stock', [StockTransferController::class, 'stock']);
             Route::get('/transfers/{transfer}', [StockTransferController::class, 'show']);
             Route::post('/transfers/{transfer}/receive', [StockTransferController::class, 'receive']);
             Route::post('/transfers/{transfer}/cancel', [StockTransferController::class, 'cancel']);

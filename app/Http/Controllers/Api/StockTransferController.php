@@ -4,8 +4,11 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\StockTransferResource;
+use App\Models\Branch;
+use App\Models\InventoryItem;
 use App\Models\StockTransfer;
 use App\Services\StockTransferService;
+use App\Support\StoreAccess;
 use Illuminate\Http\Request;
 
 class StockTransferController extends Controller
@@ -21,7 +24,34 @@ class StockTransferController extends Controller
             ->latest('id')
             ->paginate($request->integer('per_page', 20));
 
-        return StockTransferResource::collection($transfers)->additional(['can_send' => StockTransfer::canSend($request->user())]);
+        return StockTransferResource::collection($transfers)->additional([
+            'can_send' => StockTransfer::canSend($request->user()),
+            // Sending: stores the person works in. Receiving end: any store of the business.
+            'from_stores' => Branch::whereIn('id', StoreAccess::branchIds($request->user()))->orderBy('name')->get(['id', 'name']),
+            'to_stores' => Branch::where('merchant_id', $request->user()->merchant_id)->orderBy('name')->get(['id', 'name']),
+        ]);
+    }
+
+    /** Products in stock in one sending store, whatever store the app is working in. */
+    public function stock(Request $request)
+    {
+        $data = $request->validate(['store_id' => ['required', 'integer'], 'search' => ['nullable', 'string', 'max:100']]);
+        abort_unless(StoreAccess::allows($data['store_id'], $request->user()), 403);
+
+        $items = InventoryItem::where('merchant_id', $request->user()->merchant_id)
+            ->where('branch_id', $data['store_id'])
+            ->where('quantity_on_hand', '>', 0)
+            ->when($data['search'] ?? null, fn ($q, $term) => $q->where('name', 'like', "%{$term}%"))
+            ->orderBy('name')
+            ->limit(30)
+            ->get();
+
+        return response()->json(['data' => $items->map(fn (InventoryItem $item) => [
+            'id' => $item->id,
+            'name' => $item->name,
+            'unit' => $item->unit,
+            'available' => (float) $item->availableQuantity(),
+        ])]);
     }
 
     public function store(Request $request)
