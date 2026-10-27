@@ -197,11 +197,11 @@ class InventoryController extends Controller
     public function uploadImage(Request $request, InventoryItem $item)
     {
         $this->authorizeItem($request, $item);
-        $request->validate(['image' => ['required', 'image', 'max:4096']]);
+        $request->validate(['image' => ['required', 'image', 'max:4096'], 'side' => ['nullable', 'in:front,back']]);
 
         $item->addMedia($request->file('image')->getRealPath())
             ->usingFileName($request->file('image')->getClientOriginalName())
-            ->toMediaCollection('image');
+            ->toMediaCollection(InventoryItem::photoCollection($request->input('side')));
 
         return new InventoryItemResource($item->fresh());
     }
@@ -209,7 +209,8 @@ class InventoryController extends Controller
     public function removeImage(Request $request, InventoryItem $item)
     {
         $this->authorizeItem($request, $item);
-        $item->clearMediaCollection('image');
+        $request->validate(['side' => ['nullable', 'in:front,back']]);
+        $item->clearMediaCollection(InventoryItem::photoCollection($request->input('side')));
 
         return new InventoryItemResource($item->fresh());
     }

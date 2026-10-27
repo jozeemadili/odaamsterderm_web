@@ -30,6 +30,7 @@ class OfferResource extends JsonResource
             'distance_label' => GeoPoint::formatKm($distance),
             // The seller's own photo first, so customers see what this store has.
             'image_url' => $this->photoUrl(),
+            'image_urls' => $this->photoUrls(),
             'seller' => [
                 'id' => $this->merchant->id,
                 'name' => $this->merchant->business_name,

@@ -37,6 +37,8 @@ class ProductForm extends Form
 
     public $image;
 
+    public $backImage;
+
     public function setProduct(Product $product): void
     {
         $this->product = $product;
@@ -49,6 +51,7 @@ class ProductForm extends Form
         $this->product_category_id = (string) $product->product_category_id;
         $this->description = (string) $product->description;
         $this->image = null;
+        $this->backImage = null;
     }
 
     protected function rules(): array
@@ -63,6 +66,7 @@ class ProductForm extends Form
             'product_category_id' => ['required', Rule::exists('product_categories', 'id')->where('is_active', true)],
             'description' => ['nullable', 'string', 'max:5000'],
             'image' => ['nullable', 'image', 'max:4096'],
+            'backImage' => ['nullable', 'image', 'max:4096'],
         ];
     }
 
@@ -113,6 +117,12 @@ class ProductForm extends Form
             $product->addMedia($this->image->getRealPath())
                 ->usingFileName($this->image->getClientOriginalName())
                 ->toMediaCollection('image');
+        }
+
+        if ($this->backImage) {
+            $product->addMedia($this->backImage->getRealPath())
+                ->usingFileName($this->backImage->getClientOriginalName())
+                ->toMediaCollection(Product::BACK_PHOTO);
         }
 
         $this->reset();

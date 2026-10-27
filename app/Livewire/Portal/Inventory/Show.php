@@ -23,6 +23,9 @@ class Show extends Component
     /** New photo of this stock item (shown to customers on the marketplace). */
     public $photo;
 
+    /** Photo of the back of the pack (ingredients, dosage, expiry). */
+    public $backPhoto;
+
     public InventoryItem $item;
 
     public bool $mpVisible = false;
@@ -40,22 +43,32 @@ class Show extends Component
 
     public function updatedPhoto(): void
     {
-        $this->validate(['photo' => ['image', 'max:4096']], [], ['photo' => 'photo']);
-
-        $this->item->addMedia($this->photo->getRealPath())
-            ->usingFileName($this->photo->getClientOriginalName())
-            ->toMediaCollection('image');
-
-        $this->reset('photo');
-        $this->item->refresh();
-        session()->flash('status', 'Photo saved. Customers see it next to your offer on the marketplace.');
+        $this->savePhoto('photo', 'front');
     }
 
-    public function removePhoto(): void
+    public function updatedBackPhoto(): void
     {
-        $this->item->clearMediaCollection('image');
+        $this->savePhoto('backPhoto', 'back');
+    }
+
+    protected function savePhoto(string $field, string $side): void
+    {
+        $this->validate([$field => ['image', 'max:4096']], [], [$field => $side.' photo']);
+
+        $this->item->addMedia($this->{$field}->getRealPath())
+            ->usingFileName($this->{$field}->getClientOriginalName())
+            ->toMediaCollection(InventoryItem::photoCollection($side));
+
+        $this->reset($field);
         $this->item->refresh();
-        session()->flash('status', 'Photo removed.');
+        session()->flash('status', ucfirst($side).' photo saved. Customers see it next to your offer on the marketplace.');
+    }
+
+    public function removePhoto(string $side = 'front'): void
+    {
+        $this->item->clearMediaCollection(InventoryItem::photoCollection($side));
+        $this->item->refresh();
+        session()->flash('status', ucfirst($side).' photo removed.');
     }
 
     protected function fillMarketplaceFields(): void

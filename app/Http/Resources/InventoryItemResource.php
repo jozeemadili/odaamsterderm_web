@@ -24,6 +24,7 @@ class InventoryItemResource extends JsonResource
             'is_expiring_soon' => $this->isExpiringSoon(),
             'is_expired' => $this->isExpired(),
             'image_url' => $this->image()?->getUrl(),
+            'back_image_url' => $this->backImage()?->getUrl(),
             'category' => $this->whenLoaded('category', fn () => $this->category ? [
                 'id' => $this->category->id,
                 'name' => $this->category->name,

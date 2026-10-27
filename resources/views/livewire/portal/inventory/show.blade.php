@@ -5,21 +5,26 @@
 
     <x-ui.card>
         <div class="flex items-start gap-4">
-            <div class="shrink-0 w-24 text-center">
-                @if($item->image())
-                    <img src="{{ $item->image()->getUrl() }}" alt="" class="h-24 w-24 rounded-lg object-cover border border-hairline">
-                @else
-                    <div class="h-24 w-24 rounded-lg bg-canvas-soft border border-dashed border-hairline flex items-center justify-center text-ink-mute text-[11px] px-2">No photo yet</div>
-                @endif
-                <label class="mt-2 block cursor-pointer text-[12px] text-primary hover:text-primary-deep">
-                    <span wire:loading.remove wire:target="photo">{{ $item->image() ? 'Change photo' : 'Add photo' }}</span>
-                    <span wire:loading wire:target="photo">Uploading…</span>
-                    <input type="file" wire:model="photo" accept="image/*" class="sr-only">
-                </label>
-                @if($item->image())
-                    <button type="button" wire:click="removePhoto" wire:confirm="Remove this photo?" class="text-[11px] text-ink-mute hover:text-ruby">Remove</button>
-                @endif
-                @error('photo')<p class="text-[11px] text-ruby mt-1">{{ $message }}</p>@enderror
+            <div class="shrink-0 flex gap-3">
+                @foreach(['front' => ['Front', $item->image(), 'photo'], 'back' => ['Back', $item->backImage(), 'backPhoto']] as $side => [$label, $media, $field])
+                    <div class="w-24 text-center">
+                        @if($media)
+                            <img src="{{ $media->getUrl() }}" alt="{{ $label }} of {{ $item->name }}" class="h-24 w-24 rounded-lg object-cover border border-hairline">
+                        @else
+                            <div class="h-24 w-24 rounded-lg bg-canvas-soft border border-dashed border-hairline flex items-center justify-center text-ink-mute text-[11px] px-2">No {{ strtolower($label) }} photo</div>
+                        @endif
+                        <p class="mt-1 text-[10.5px] uppercase tracking-wide text-ink-mute">{{ $label }}</p>
+                        <label class="block cursor-pointer text-[12px] text-primary hover:text-primary-deep">
+                            <span wire:loading.remove wire:target="{{ $field }}">{{ $media ? 'Change' : 'Add' }}</span>
+                            <span wire:loading wire:target="{{ $field }}">Uploading…</span>
+                            <input type="file" wire:model="{{ $field }}" accept="image/*" class="sr-only">
+                        </label>
+                        @if($media)
+                            <button type="button" wire:click="removePhoto('{{ $side }}')" wire:confirm="Remove the {{ strtolower($label) }} photo?" class="text-[11px] text-ink-mute hover:text-ruby">Remove</button>
+                        @endif
+                        @error($field)<p class="text-[11px] text-ruby mt-1">{{ $message }}</p>@enderror
+                    </div>
+                @endforeach
             </div>
             <div class="flex-1">
                 <div class="flex items-center gap-2 flex-wrap">

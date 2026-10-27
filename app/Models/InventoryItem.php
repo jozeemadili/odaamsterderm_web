@@ -18,6 +18,9 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 ])]
 class InventoryItem extends Model implements HasMedia
 {
+    /** Media collection for the back-of-pack photo; 'image' is the front. */
+    public const BACK_PHOTO = 'image_back';
+
     use BelongsToStore, InteractsWithMedia;
 
     public const MARKET_ACTIVE = 'active';
@@ -52,6 +55,7 @@ class InventoryItem extends Model implements HasMedia
     public function registerMediaCollections(): void
     {
         $this->addMediaCollection('image')->singleFile();
+        $this->addMediaCollection(self::BACK_PHOTO)->singleFile();
     }
 
     public function merchant(): BelongsTo
@@ -164,6 +168,29 @@ class InventoryItem extends Model implements HasMedia
     public function image(): ?Media
     {
         return $this->getFirstMedia('image');
+    }
+
+    public function backImage(): ?Media
+    {
+        return $this->getFirstMedia(self::BACK_PHOTO);
+    }
+
+    /** Back of the pack: the seller's own, else the catalog product's. */
+    public function backPhotoUrl(): ?string
+    {
+        return $this->backImage()?->getUrl() ?? ($this->image() ? null : $this->product?->backImage()?->getUrl());
+    }
+
+    /** Front first, then back. */
+    public function photoUrls(): array
+    {
+        return array_values(array_filter([$this->photoUrl(), $this->backPhotoUrl()]));
+    }
+
+    /** Media collection for a photo side ('front' or 'back'). */
+    public static function photoCollection(?string $side): string
+    {
+        return $side === 'back' ? self::BACK_PHOTO : 'image';
     }
 
     /** The seller's own photo of this stock, else the catalog product's image. */

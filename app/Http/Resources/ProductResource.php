@@ -21,6 +21,7 @@ class ProductResource extends JsonResource
             'status' => $this->status,
             'review_notes' => $this->when($this->status === 'rejected', $this->review_notes),
             'image_url' => $this->image()?->getUrl(),
+            'back_image_url' => $this->backImage()?->getUrl(),
             'animal_type' => $this->whenLoaded('animalType', fn () => $this->animalType ? [
                 'id' => $this->animalType->id,
                 'name' => $this->animalType->name,

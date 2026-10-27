@@ -45,14 +45,14 @@ class ProductPhotoTest extends TestCase
         Livewire::actingAs($this->sellerB)->test(StockShow::class, ['item' => $this->offerB])
             ->set('photo', $this->photo())
             ->assertHasNoErrors()
-            ->assertSee('Change photo');
+            ->assertSee('Front photo saved');
         $this->assertNotNull($this->offerB->fresh()->image());
 
         Livewire::actingAs($this->sellerB)->test(StockShow::class, ['item' => $this->offerB])
             ->set('photo', UploadedFile::fake()->create('notes.pdf', 10, 'application/pdf'))
             ->assertHasErrors('photo')
             ->call('removePhoto')
-            ->assertSee('Add photo');
+            ->assertSee('No front photo');
         $this->assertNull($this->offerB->fresh()->image());
     }
 
@@ -101,7 +101,7 @@ class ProductPhotoTest extends TestCase
 
         Livewire::actingAs($admin)->test(AdminProducts::class)
             ->call('startEditing', $product->id)
-            ->assertSee('Current catalog image')
+            ->assertSee('Front photo')
             ->call('removeImage', $product->id);
 
         $this->assertNull($product->fresh()->image());

@@ -62,12 +62,12 @@ class Index extends Component
         $this->showForm = true;
     }
 
-    public function removeImage(int $id): void
+    public function removeImage(int $id, string $side = 'front'): void
     {
         abort_unless(auth()->user()->can('manage-catalog'), 403);
-        Product::findOrFail($id)->clearMediaCollection('image');
+        Product::findOrFail($id)->clearMediaCollection($side === 'back' ? Product::BACK_PHOTO : 'image');
         $this->form->product?->refresh();
-        session()->flash('status', 'Catalog image removed. Customers now see a seller\'s photo of this product, if any.');
+        session()->flash('status', ucfirst($side).' photo removed.');
     }
 
     public function startEditing(int $id): void

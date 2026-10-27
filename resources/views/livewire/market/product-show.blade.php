@@ -3,11 +3,23 @@
 
     <x-ui.card>
         <div class="flex flex-col sm:flex-row gap-5">
-            <div class="h-32 w-32 shrink-0 rounded-lg bg-canvas-soft border border-hairline flex items-center justify-center overflow-hidden">
-                @if($imageUrl)
-                    <img src="{{ $imageUrl }}" alt="{{ $product->displayName() }}" class="h-full w-full object-cover">
-                @else
-                    <x-icon.inventory class="h-10 w-10 text-ink-mute/50" />
+            <div class="shrink-0" x-data="{ shown: 0 }">
+                <div class="h-40 w-40 rounded-lg bg-canvas-soft border border-hairline flex items-center justify-center overflow-hidden">
+                    @forelse($photos as $i => $url)
+                        <img src="{{ $url }}" x-show="shown === {{ $i }}" @if($i) x-cloak @endif alt="{{ $product->displayName() }} {{ $i ? 'back' : 'front' }}" class="h-full w-full object-cover">
+                    @empty
+                        <x-icon.inventory class="h-10 w-10 text-ink-mute/50" />
+                    @endforelse
+                </div>
+                @if(count($photos) > 1)
+                    <div class="mt-2 flex gap-2">
+                        @foreach($photos as $i => $url)
+                            <button type="button" @click="shown = {{ $i }}" :class="shown === {{ $i }} ? 'border-primary' : 'border-hairline'" class="h-11 w-11 rounded-md overflow-hidden border-2" aria-label="Show {{ $i ? 'back' : 'front' }}">
+                                <img src="{{ $url }}" alt="" class="h-full w-full object-cover">
+                            </button>
+                        @endforeach
+                        <span class="self-center text-[11px] text-ink-mute">Front · Back</span>
+                    </div>
                 @endif
             </div>
             <div class="flex-1">
@@ -64,9 +76,9 @@
                             <tr class="{{ $offer->is_available ? '' : 'text-ink-mute' }}">
                                 <td class="px-4 py-3">
                                     <div class="flex items-center gap-3">
-                                        @if($photo = $offer->photoUrl())
-                                            <a href="{{ $photo }}" target="_blank" rel="noopener" title="Photo from {{ $offer->merchant->business_name }}"><img src="{{ $photo }}" alt="" class="h-10 w-10 shrink-0 rounded object-cover border border-hairline"></a>
-                                        @endif
+                                        @foreach($offer->photoUrls() as $i => $photo)
+                                            <a href="{{ $photo }}" target="_blank" rel="noopener" title="{{ $i ? 'Back' : 'Front' }} photo from {{ $offer->merchant->business_name }}" class="{{ $i ? '-ml-2' : '' }}"><img src="{{ $photo }}" alt="" class="h-10 w-10 shrink-0 rounded object-cover border border-hairline bg-canvas"></a>
+                                        @endforeach
                                         <div>
                                             <a href="{{ route('market.store', $offer->branch_id) }}" class="font-medium text-ink hover:text-primary-deep">{{ $offer->merchant->business_name }}</a>
                                             <p class="text-[12px] text-ink-mute">{{ $offer->branch->name }}</p>

@@ -24,6 +24,7 @@ class MarketProductResource extends JsonResource
             'unit' => $this->unit,
             'description' => $this->description,
             'image_url' => $this->imageUrl(),
+            'image_urls' => $this->imageUrls(),
             'animal_type' => $this->animalType ? ['id' => $this->animalType->id, 'name' => $this->animalType->name] : null,
             'category' => $this->category ? ['id' => $this->category->id, 'name' => $this->category->fullName()] : null,
             'min_price' => $this->min_price !== null ? (float) $this->min_price : null,

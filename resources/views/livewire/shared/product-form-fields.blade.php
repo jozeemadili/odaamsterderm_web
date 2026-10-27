@@ -43,9 +43,11 @@
     <div class="md:col-span-3">
         <x-ui.textarea wire:model="form.description" label="Description (shown to customers)" id="product_description" rows="3" :error="$errors->first('form.description')"></x-ui.textarea>
     </div>
-    <div>
-        <label class="block text-[13px] text-ink-mute mb-1.5" for="product_image">Image (optional)</label>
-        <input type="file" wire:model="form.image" id="product_image" accept="image/*" class="block w-full text-[13px] text-ink-secondary file:mr-3 file:rounded-pill file:border-0 file:bg-canvas-soft file:px-3 file:py-1.5 file:text-[12px]">
-        @error('form.image') <p class="text-ruby text-[12px] mt-1">{{ $message }}</p> @enderror
-    </div>
+    @foreach(['image' => 'Front photo (optional)', 'backImage' => 'Back photo (optional)'] as $field => $label)
+        <div>
+            <label class="block text-[13px] text-ink-mute mb-1.5" for="product_{{ $field }}">{{ $label }}</label>
+            <input type="file" wire:model="form.{{ $field }}" id="product_{{ $field }}" accept="image/*" class="block w-full text-[13px] text-ink-secondary file:mr-3 file:rounded-pill file:border-0 file:bg-canvas-soft file:px-3 file:py-1.5 file:text-[12px]">
+            @error('form.'.$field) <p class="text-ruby text-[12px] mt-1">{{ $message }}</p> @enderror
+        </div>
+    @endforeach
 </div>

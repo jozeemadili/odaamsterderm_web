@@ -65,6 +65,8 @@ class Index extends Component
 
     public $image;
 
+    public $backImage;
+
     public ?int $movingItemId = null;
 
     public string $movementType = 'in';
@@ -104,7 +106,7 @@ class Index extends Component
 
     public function useExistingItem(int $itemId): void
     {
-        $this->reset(['name', 'sku', 'barcode', 'branch_id', 'expiry_date', 'unit', 'reorder_level', 'unit_cost', 'unit_price', 'image', 'showItemForm', 'nameMatches']);
+        $this->reset(['name', 'sku', 'barcode', 'branch_id', 'expiry_date', 'unit', 'reorder_level', 'unit_cost', 'unit_price', 'image', 'backImage', 'showItemForm', 'nameMatches']);
         $this->reorder_level = '0';
         $this->startMovement($itemId);
     }
@@ -190,6 +192,7 @@ class Index extends Component
             'unit_cost' => ['nullable', 'numeric', 'min:0'],
             'unit_price' => ['nullable', 'numeric', 'min:0'],
             'image' => ['nullable', 'image', 'max:4096'],
+            'backImage' => ['nullable', 'image', 'max:4096'],
         ]);
 
         $item = InventoryItem::create([
@@ -213,7 +216,13 @@ class Index extends Component
                 ->toMediaCollection('image');
         }
 
-        $this->reset(['product_id', 'productLabel', 'catalogSearch', 'catalogMatches', 'name', 'sku', 'barcode', 'category_id', 'branch_id', 'addingNewBranch', 'newBranchName', 'addingNewCategory', 'newCategoryName', 'expiry_date', 'unit', 'reorder_level', 'unit_cost', 'unit_price', 'image', 'showItemForm', 'nameMatches']);
+        if ($this->backImage) {
+            $item->addMedia($this->backImage->getRealPath())
+                ->usingFileName($this->backImage->getClientOriginalName())
+                ->toMediaCollection(InventoryItem::BACK_PHOTO);
+        }
+
+        $this->reset(['product_id', 'productLabel', 'catalogSearch', 'catalogMatches', 'name', 'sku', 'barcode', 'category_id', 'branch_id', 'addingNewBranch', 'newBranchName', 'addingNewCategory', 'newCategoryName', 'expiry_date', 'unit', 'reorder_level', 'unit_cost', 'unit_price', 'image', 'backImage', 'showItemForm', 'nameMatches']);
         $this->reorder_level = '0';
         session()->flash('status', 'Inventory item added.');
     }

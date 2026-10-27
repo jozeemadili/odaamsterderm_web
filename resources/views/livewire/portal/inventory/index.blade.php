@@ -132,11 +132,15 @@
                     <x-ui.input type="number" step="0.01" wire:model="unit_price" label="Selling price" id="item_price" />
                 </div>
 
-                <div>
-                    <label class="block text-[13px] text-ink-mute mb-1.5">Product image (optional)</label>
-                    <input type="file" wire:model="image" accept="image/*" class="text-[13px] text-ink-secondary file:mr-3 file:py-1.5 file:px-3 file:rounded-pill file:border-0 file:text-[12px] file:bg-primary-subtle/40 file:text-primary-deep">
-                    @error('image') <p class="text-ruby text-[12px] mt-1">{{ $message }}</p> @enderror
-                    <div wire:loading wire:target="image" class="text-[12px] text-ink-mute mt-1">Uploading…</div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    @foreach(['image' => 'Front photo (optional)', 'backImage' => 'Back photo (optional)'] as $field => $label)
+                        <div>
+                            <label class="block text-[13px] text-ink-mute mb-1.5">{{ $label }}</label>
+                            <input type="file" wire:model="{{ $field }}" accept="image/*" class="text-[13px] text-ink-secondary file:mr-3 file:py-1.5 file:px-3 file:rounded-pill file:border-0 file:text-[12px] file:bg-primary-subtle/40 file:text-primary-deep">
+                            @error($field) <p class="text-ruby text-[12px] mt-1">{{ $message }}</p> @enderror
+                            <div wire:loading wire:target="{{ $field }}" class="text-[12px] text-ink-mute mt-1">Uploading…</div>
+                        </div>
+                    @endforeach
                 </div>
 
                 <x-ui.button type="submit" target="addItem">Save item</x-ui.button>

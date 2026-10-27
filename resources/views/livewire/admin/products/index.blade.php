@@ -19,13 +19,20 @@
     @if($showForm)
         <x-ui.card>
             <h2 class="text-[15px] text-ink mb-4">{{ $form->product ? 'Edit '.$form->product->displayName() : 'New catalog product' }}</h2>
-            @if($form->product?->image())
-                <div class="flex items-center gap-3 mb-4">
-                    <img src="{{ $form->product->image()->getUrl() }}" alt="" class="h-16 w-16 rounded object-cover border border-hairline">
-                    <div class="text-[12px] text-ink-mute">
-                        Current catalog image. Choose a new file below to replace it, or
-                        <button type="button" wire:click="removeImage({{ $form->product->id }})" wire:confirm="Remove the catalog image?" class="text-ruby hover:underline">remove it</button>.
-                    </div>
+            @if($form->product?->image() || $form->product?->backImage())
+                <div class="flex flex-wrap items-center gap-4 mb-4">
+                    @foreach(['front' => $form->product->image(), 'back' => $form->product->backImage()] as $side => $media)
+                        @if($media)
+                            <div class="flex items-center gap-2">
+                                <img src="{{ $media->getUrl() }}" alt="" class="h-16 w-16 rounded object-cover border border-hairline">
+                                <div class="text-[12px] text-ink-mute">
+                                    {{ ucfirst($side) }} photo<br>
+                                    <button type="button" wire:click="removeImage({{ $form->product->id }}, '{{ $side }}')" wire:confirm="Remove the {{ $side }} photo?" class="text-ruby hover:underline">remove</button>
+                                </div>
+                            </div>
+                        @endif
+                    @endforeach
+                    <p class="text-[12px] text-ink-mute">Choose new files below to replace them.</p>
                 </div>
             @endif
             <form wire:submit="save" class="space-y-4">

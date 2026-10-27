@@ -25,6 +25,9 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 ])]
 class Product extends Model implements HasMedia
 {
+    /** Media collection for the back-of-pack photo; 'image' is the front. */
+    public const BACK_PHOTO = 'image_back';
+
     use InteractsWithMedia, LogsActivity;
 
     public const STATUS_PENDING = 'pending';
@@ -82,11 +85,44 @@ class Product extends Model implements HasMedia
     public function registerMediaCollections(): void
     {
         $this->addMediaCollection('image')->singleFile();
+        $this->addMediaCollection(self::BACK_PHOTO)->singleFile();
     }
 
     public function image(): ?Media
     {
         return $this->getFirstMedia('image');
+    }
+
+    public function backImage(): ?Media
+    {
+        return $this->getFirstMedia(self::BACK_PHOTO);
+    }
+
+    /**
+     * Photos for the product page, front then back: the catalog's own, else
+     * the first seller offer that has a photo.
+     *
+     * @param  iterable<InventoryItem>  $offers
+     */
+    public function galleryUrls(iterable $offers = []): array
+    {
+        if ($this->image()) {
+            return $this->imageUrls();
+        }
+
+        foreach ($offers as $offer) {
+            if ($offer->image()) {
+                return array_values(array_filter([$offer->image()->getUrl(), $offer->backImage()?->getUrl()]));
+            }
+        }
+
+        return array_values(array_filter([$this->getAttribute('seller_image_url')]));
+    }
+
+    /** Front first, then back: the photos customers can swipe through. */
+    public function imageUrls(): array
+    {
+        return array_values(array_filter([$this->imageUrl(), $this->backImage()?->getUrl()]));
     }
 
     /**
