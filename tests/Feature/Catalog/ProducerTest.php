@@ -64,7 +64,7 @@ class ProducerTest extends TestCase
     {
         $producer = Producer::create(['name' => 'Silverlands']);
         $chicken = AnimalType::where('slug', 'chicken')->first();
-        $grower = ProductCategory::where('slug', 'feed-grower')->first();
+        $grower = ProductCategory::where('code', 'C1010')->first();
 
         Livewire::actingAs($this->admin)->test(ProductsIndex::class)
             ->call('startCreating')
@@ -119,7 +119,7 @@ class ProducerTest extends TestCase
             'unit' => 'bag',
             'producer_id' => $producer->id,
             'animal_type_id' => AnimalType::where('slug', 'chicken')->value('id'),
-            'product_category_id' => ProductCategory::where('slug', 'feed-finisher')->value('id'),
+            'product_category_id' => ProductCategory::where('code', 'C1010')->value('id'),
         ])->assertCreated()
             ->assertJsonPath('data.producer.name', 'Silverlands')
             ->assertJsonPath('data.brand', 'Silverlands')

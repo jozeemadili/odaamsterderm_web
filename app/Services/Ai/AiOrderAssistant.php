@@ -113,7 +113,7 @@ class AiOrderAssistant
             $basket[$offer->id] = [
                 'offer_id' => $offer->id,
                 'product_slug' => $offer->product->slug,
-                'name' => $offer->product->displayName(),
+                'name' => $offer->offerName(),
                 'store' => $offer->branch->name,
                 'seller' => $offer->merchant->business_name,
                 'unit' => $offer->unit,

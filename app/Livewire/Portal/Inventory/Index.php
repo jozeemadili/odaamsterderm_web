@@ -55,6 +55,8 @@ class Index extends Component
 
     public string $expiry_date = '';
 
+    public string $batch_no = '';
+
     public string $unit = '';
 
     public string $reorder_level = '0';
@@ -187,6 +189,7 @@ class Index extends Component
             'category_id' => ['required', 'exists:inventory_categories,id'],
             'branch_id' => ['required', Rule::in(StoreAccess::branchIds())],
             'expiry_date' => ['nullable', 'date'],
+            'batch_no' => ['nullable', 'string', 'max:64'],
             'barcode' => ['nullable', 'string', 'max:64', 'unique:inventory_items,barcode'],
             'reorder_level' => ['required', 'numeric', 'min:0'],
             'unit_cost' => ['nullable', 'numeric', 'min:0'],
@@ -200,6 +203,7 @@ class Index extends Component
             'category_id' => $this->category_id,
             'branch_id' => $this->branch_id,
             'product_id' => $this->product_id,
+            'product_variant_id' => $this->product_variant_id,
             'name' => $this->name,
             'sku' => $this->sku ?: null,
             'barcode' => $this->barcode ?: null,
@@ -208,6 +212,7 @@ class Index extends Component
             'unit_cost' => $this->unit_cost ?: null,
             'unit_price' => $this->unit_price ?: null,
             'expiry_date' => $this->expiry_date ?: null,
+            'batch_no' => trim($this->batch_no) ?: null,
         ]);
 
         if ($this->image) {
@@ -222,7 +227,7 @@ class Index extends Component
                 ->toMediaCollection(InventoryItem::BACK_PHOTO);
         }
 
-        $this->reset(['product_id', 'productLabel', 'catalogSearch', 'catalogMatches', 'name', 'sku', 'barcode', 'category_id', 'branch_id', 'addingNewBranch', 'newBranchName', 'addingNewCategory', 'newCategoryName', 'expiry_date', 'unit', 'reorder_level', 'unit_cost', 'unit_price', 'image', 'backImage', 'showItemForm', 'nameMatches']);
+        $this->reset(['product_id', 'product_variant_id', 'variantOptions', 'batch_no', 'productLabel', 'catalogSearch', 'catalogMatches', 'name', 'sku', 'barcode', 'category_id', 'branch_id', 'addingNewBranch', 'newBranchName', 'addingNewCategory', 'newCategoryName', 'expiry_date', 'unit', 'reorder_level', 'unit_cost', 'unit_price', 'image', 'backImage', 'showItemForm', 'nameMatches']);
         $this->reorder_level = '0';
         session()->flash('status', 'Inventory item added.');
     }

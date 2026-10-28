@@ -39,6 +39,12 @@ class Show extends Component
 
     public string $subscription_tier = 'basic';
 
+    public string $legal_name = '';
+
+    public string $website = '';
+
+    public string $selcom_merchant_id = '';
+
     public function mount(Merchant $merchant)
     {
         $this->merchant = $merchant;
@@ -58,6 +64,9 @@ class Show extends Component
         $this->region_id = (string) $this->merchant->region_id;
         $this->city = (string) $this->merchant->city;
         $this->subscription_tier = $this->merchant->subscription_tier;
+        $this->legal_name = (string) $this->merchant->legal_name;
+        $this->website = (string) $this->merchant->website;
+        $this->selcom_merchant_id = (string) $this->merchant->selcom_merchant_id;
     }
 
     public function startEditing(): void
@@ -85,6 +94,9 @@ class Show extends Component
             'region_id' => ['nullable', 'exists:regions,id'],
             'city' => ['nullable', 'string', 'max:255'],
             'subscription_tier' => ['required', 'in:basic,business,professional'],
+            'legal_name' => ['nullable', 'string', 'max:255'],
+            'website' => ['nullable', 'string', 'max:255'],
+            'selcom_merchant_id' => ['nullable', 'string', 'max:64'],
         ]);
 
         $this->merchant->update([
@@ -98,6 +110,9 @@ class Show extends Component
             'region_id' => $this->region_id ?: null,
             'city' => $this->city ?: null,
             'subscription_tier' => $this->subscription_tier,
+            'legal_name' => $this->legal_name ?: null,
+            'website' => $this->website ?: null,
+            'selcom_merchant_id' => $this->selcom_merchant_id ?: null,
         ]);
 
         $this->isEditing = false;

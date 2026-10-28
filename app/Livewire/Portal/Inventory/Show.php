@@ -74,6 +74,8 @@ class Show extends Component
     protected function fillMarketplaceFields(): void
     {
         $this->product_id = $this->item->product_id;
+        $this->product_variant_id = $this->item->product_variant_id;
+        $this->loadVariantOptions();
         $this->productLabel = $this->item->product
             ? $this->item->product->displayName().($this->item->product->isPending() ? ' (pending approval)' : '')
             : '';
@@ -86,7 +88,7 @@ class Show extends Component
     {
         $this->validate($this->catalogProductRules());
 
-        $this->item->update(['product_id' => $this->product_id]);
+        $this->item->update(['product_id' => $this->product_id, 'product_variant_id' => $this->product_variant_id]);
 
         // An item without an approved catalog product can't stay listed.
         if ($this->item->is_marketplace_visible && $this->item->fresh()->marketplaceBlockers()) {

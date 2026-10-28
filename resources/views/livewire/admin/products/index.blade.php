@@ -103,9 +103,9 @@
                                 </div>
                             </div>
                         </td>
-                        <td class="px-5 py-3 text-ink-secondary">{{ $product->animalType?->fullName() }}</td>
+                        <td class="px-5 py-3 text-ink-secondary">{{ $product->animalTypes->pluck('name')->join(', ') ?: $product->animalType?->fullName() }}</td>
                         <td class="px-5 py-3 text-ink-secondary">{{ $product->category?->fullName() }}</td>
-                        <td class="px-5 py-3 text-ink-secondary">{{ $product->unit }}</td>
+                        <td class="px-5 py-3 text-ink-secondary">{{ $product->unit }}@if($product->variants->count() > 1)<p class="text-[11px] text-ink-mute">{{ $product->variants->pluck('name')->join(' · ') }}</p>@endif</td>
                         <td class="px-5 py-3 tnum text-ink-secondary">{{ $product->sellers_count }}</td>
                         <td class="px-5 py-3">
                             <x-ui.badge :tone="['approved' => 'success', 'pending' => 'warning', 'rejected' => 'danger'][$product->status] ?? 'neutral'">{{ ucfirst($product->status) }}</x-ui.badge>

@@ -65,15 +65,15 @@ class Index extends Component
     public function render()
     {
         $merchantId = Auth::user()->merchant_id;
-        $animalIds = $this->animalFilter ? AnimalType::find($this->animalFilter)?->selfAndChildIds() : null;
 
         $products = Product::approved()
             ->with(['animalType', 'category.parent', 'media', 'producer.media'])
             ->withCount(['inventoryItems as stocked_count' => fn ($q) => $q->where('merchant_id', $merchantId)])
             ->when($this->search, fn ($q) => $q->where(fn ($s) => $s
                 ->where('name', 'like', "%{$this->search}%")
-                ->orWhere('brand', 'like', "%{$this->search}%")))
-            ->when($animalIds, fn ($q) => $q->whereIn('animal_type_id', $animalIds))
+                ->orWhere('brand', 'like', "%{$this->search}%")
+                ->orWhere('search_keywords', 'like', "%{$this->search}%")))
+            ->forAnimal($this->animalFilter)
             ->orderBy('name')
             ->paginate(20);
 
@@ -86,7 +86,6 @@ class Index extends Component
                 ->latest()->get(),
             'animalGroups' => $animalGroups,
             'formCategories' => ProductCategory::active()->whereNull('parent_id')
-                ->forAnimalType($this->form->animal_type_id ? (int) $this->form->animal_type_id : null)
                 ->with(['children' => fn ($q) => $q->active()])
                 ->orderBy('sort_order')->get(),
         ]);

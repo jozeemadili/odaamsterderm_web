@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Branch;
 use App\Models\Cart;
 use App\Models\CartItem;
 use App\Models\InventoryItem;
@@ -59,7 +60,7 @@ class OrderService
      * Cart lines grouped by pickup store, each line with its offer and
      * whether it can still be ordered as-is.
      *
-     * @return array<int, array{store: \App\Models\Branch, lines: array, total: float}>
+     * @return array<int, array{store: Branch, lines: array, total: float}>
      */
     public function cartByStore(User $customer): array
     {
@@ -149,8 +150,8 @@ class OrderService
                     $order->items()->create([
                         'inventory_item_id' => $offer->id,
                         'product_id' => $offer->product_id,
-                        'name' => $offer->product?->displayName() ?? $offer->name,
-                        'unit' => $offer->product?->unit ?? $offer->unit,
+                        'name' => $offer->offerName(),
+                        'unit' => $offer->sellingUnit(),
                         'unit_price' => (float) $offer->unit_price,
                         'quantity' => $quantity,
                         'line_total' => $lineTotal,

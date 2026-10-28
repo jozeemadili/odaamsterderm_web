@@ -98,7 +98,7 @@ class MarketplaceSearch
         $results = Product::query()
             ->select('products.*', 'agg.min_price', 'agg.max_price', 'agg.sellers_count', 'agg.available_quantity', 'agg.nearest_km')
             ->joinSub($query->toBase(), 'agg', 'agg.product_id', '=', 'products.id')
-            ->with(['animalType', 'category.parent', 'media', 'producer.media']);
+            ->with(['animalType', 'animalTypes', 'lifeStages', 'variants', 'category.parent', 'media', 'producer.media']);
 
         $ids = array_values(array_map('intval', $filters['product_ids'] ?? []));
 
@@ -147,9 +147,11 @@ class MarketplaceSearch
      *
      * @return Collection<int, InventoryItem> each with distance_km and is_available
      */
-    public function offersFor(Product $product, ?GeoPoint $from = null, string $sort = self::SORT_NEAREST): Collection
+    public function offersFor(Product $product, ?GeoPoint $from = null, string $sort = self::SORT_NEAREST, ?int $variantId = null): Collection
     {
-        $query = $this->offers($from)->where('inventory_items.product_id', $product->id);
+        $query = $this->offers($from)
+            ->where('inventory_items.product_id', $product->id)
+            ->when($variantId, fn (Builder $q) => $q->where('inventory_items.product_variant_id', $variantId));
 
         $sort = $sort === self::SORT_NEAREST && ! $from ? self::SORT_PRICE : $sort;
 
@@ -269,7 +271,7 @@ class MarketplaceSearch
             ->join('products', 'products.id', '=', 'inventory_items.product_id')
             ->tap(fn (Builder $q) => $this->onlyPublicOffers($q))
             ->where('products.status', Product::STATUS_APPROVED)
-            ->with(['branch', 'merchant', 'media', 'product.media', 'product.producer.media']);
+            ->with(['branch', 'merchant', 'media', 'variant', 'product.media', 'product.producer.media']);
 
         if ($from) {
             [$distance, $bindings] = $from->distanceSql('branches.latitude', 'branches.longitude');
@@ -310,7 +312,8 @@ class MarketplaceSearch
             $query->where(fn (Builder $q) => $q
                 ->where('products.name', 'like', "%{$term}%")
                 ->orWhere('products.brand', 'like', "%{$term}%")
-                ->orWhere('products.pack_size', 'like', "%{$term}%"));
+                ->orWhere('products.pack_size', 'like', "%{$term}%")
+                ->orWhere('products.search_keywords', 'like', "%{$term}%"));
         }
 
         // Any of these words (e.g. a sentence when Ask AI is unavailable).
@@ -327,7 +330,7 @@ class MarketplaceSearch
         }
 
         if ($animal = AnimalType::find($filters['animal_type_id'] ?? null)) {
-            $query->whereIn('products.animal_type_id', $animal->selfAndChildIds());
+            $query->whereIn('products.id', Product::idsTaggedWith($animal));
         }
 
         if ($category = ProductCategory::find($filters['category_id'] ?? null)) {

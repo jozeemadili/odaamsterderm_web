@@ -18,13 +18,16 @@
             <div class="h-1.5" style="background: {{ $seller->accentColor() }}"></div>
             <div class="p-5">
             <h1 class="sr-only">{{ $store->name }}</h1>
-            <p class="text-[14px] text-ink-secondary mt-1">{{ collect([$store->address, $store->city])->filter()->join(', ') }}</p>
+            <p class="text-[14px] text-ink-secondary mt-1">{{ collect([$store->address, $store->area, $store->city])->filter()->unique()->join(', ') }}</p>
             <div class="flex flex-wrap items-center gap-2 mt-3">
                 @if($distance !== null)
                     <x-ui.badge tone="primary">{{ \App\Support\GeoPoint::formatKm($distance) }} from you</x-ui.badge>
                 @endif
                 @if($store->phone)
                     <a href="tel:{{ $store->phone }}" class="text-[13px] text-primary hover:text-primary-deep">{{ $store->phone }}</a>
+                @endif
+                @if($store->whatsapp)
+                    <a href="https://wa.me/{{ preg_replace('/\D/', '', $store->whatsapp) }}" target="_blank" rel="noopener" class="text-[13px] text-primary hover:text-primary-deep">WhatsApp</a>
                 @endif
                 <a href="https://www.google.com/maps/dir/?api=1&destination={{ $store->latitude }},{{ $store->longitude }}" target="_blank" rel="noopener" class="text-[13px] text-primary hover:text-primary-deep">Directions &rarr;</a>
             </div>
@@ -43,8 +46,18 @@
                 <div>
                     <p class="text-[11px] uppercase tracking-wide text-ink-mute mb-1">Pickup point</p>
                     <p class="text-ink-secondary">{{ $store->pickup_instructions ?: 'Ask at the counter.' }}</p>
+                    @if($store->landmark)
+                        <p class="text-ink-mute mt-1">{{ $store->landmark }}</p>
+                    @endif
+                </div>
+                <div class="sm:col-span-2">
+                    <p class="text-[11px] uppercase tracking-wide text-ink-mute mb-1">Delivery &amp; services</p>
+                    @include('livewire.shared.store-services', ['store' => $store, 'distance' => $distance])
                 </div>
             </div>
+            @if($bio = $store->localBio())
+                <p class="text-[13px] text-ink-secondary mt-5 leading-relaxed">{{ $bio }}</p>
+            @endif
             </div>
         </x-ui.card>
 
@@ -74,9 +87,9 @@
                             <span class="h-12 w-12 shrink-0 rounded bg-canvas-soft border border-hairline flex items-center justify-center"><x-icon.inventory class="h-5 w-5 text-ink-mute/50" /></span>
                         @endif
                         <div>
-                        <p class="font-medium text-[14px] {{ $offer->is_available ? 'text-ink' : '' }}">{{ $offer->product->displayName() }}</p>
+                        <p class="font-medium text-[14px] {{ $offer->is_available ? 'text-ink' : '' }}">{{ $offer->offerName() }}</p>
                         <x-market.producer :product="$offer->product" />
-                        <p class="text-[12px] text-ink-mute">{{ $offer->is_available ? rtrim(rtrim((string) $offer->marketplace_quantity, '0'), '.').' '.$offer->product->unit.' available' : 'Out of stock' }}</p>
+                        <p class="text-[12px] text-ink-mute">{{ $offer->is_available ? rtrim(rtrim((string) $offer->marketplace_quantity, '0'), '.').' '.$offer->sellingUnit().' available' : 'Out of stock' }}</p>
                         </div>
                     </a>
                     <div class="flex items-center gap-3">

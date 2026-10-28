@@ -13,8 +13,8 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 #[Fillable([
-    'merchant_id', 'category_id', 'branch_id', 'product_id', 'name', 'sku', 'barcode', 'unit', 'quantity_on_hand', 'reorder_level',
-    'unit_cost', 'unit_price', 'expiry_date', 'is_marketplace_visible', 'marketplace_quantity', 'reserved_quantity', 'marketplace_status',
+    'merchant_id', 'category_id', 'branch_id', 'product_id', 'product_variant_id', 'name', 'sku', 'barcode', 'unit', 'quantity_on_hand', 'reorder_level',
+    'unit_cost', 'unit_price', 'expiry_date', 'batch_no', 'is_marketplace_visible', 'marketplace_quantity', 'reserved_quantity', 'marketplace_status',
 ])]
 class InventoryItem extends Model implements HasMedia
 {
@@ -52,6 +52,24 @@ class InventoryItem extends Model implements HasMedia
         ];
     }
 
+    protected static function booted(): void
+    {
+        // The variant decides the product; a product with one pack size
+        // decides the variant.
+        static::saving(function (InventoryItem $item) {
+            if ($item->product_variant_id && $item->isDirty('product_variant_id')) {
+                $item->product_id = ProductVariant::whereKey($item->product_variant_id)->value('product_id') ?? $item->product_id;
+            }
+
+            if (! $item->product_id) {
+                $item->product_variant_id = null;
+            } elseif ($item->isDirty('product_id') && ! ProductVariant::whereKey($item->product_variant_id)->where('product_id', $item->product_id)->exists()) {
+                $ids = ProductVariant::where('product_id', $item->product_id)->limit(2)->pluck('id');
+                $item->product_variant_id = $ids->count() === 1 ? $ids->first() : null;
+            }
+        });
+    }
+
     public function registerMediaCollections(): void
     {
         $this->addMediaCollection('image')->singleFile();
@@ -76,6 +94,31 @@ class InventoryItem extends Model implements HasMedia
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
+    }
+
+    public function variant(): BelongsTo
+    {
+        return $this->belongsTo(ProductVariant::class, 'product_variant_id');
+    }
+
+    /**
+     * What customers see: the product's name with its pack size when it has
+     * one pack ("Chicken Starter 25KG"), else with the stocked variant
+     * ("Broiler Starter Crumbs - 25 kg bag").
+     */
+    public function offerName(): string
+    {
+        if ($this->product && ! $this->product->pack_size && $this->variant) {
+            return $this->product->name.' - '.$this->variant->name;
+        }
+
+        return $this->product?->displayName() ?? $this->name;
+    }
+
+    /** Selling unit of the stocked pack: the variant's, else the product's, else the seller's own. */
+    public function sellingUnit(): ?string
+    {
+        return $this->variant?->selling_unit ?? $this->product?->unit ?? $this->unit;
     }
 
     /** Physical stock not already held for open marketplace orders. */
@@ -118,6 +161,8 @@ class InventoryItem extends Model implements HasMedia
             $blockers[] = 'Link this item to a catalog product.';
         } elseif (! $this->product?->isApproved()) {
             $blockers[] = 'The linked catalog product is waiting for admin approval.';
+        } elseif (! $this->product_variant_id && $this->product->variants()->count() > 1) {
+            $blockers[] = 'Choose which pack size of the catalog product this is.';
         }
 
         if (! $this->branch_id) {

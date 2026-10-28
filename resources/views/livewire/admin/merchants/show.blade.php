@@ -63,6 +63,12 @@
                     </x-ui.select>
                 </div>
 
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <x-ui.input wire:model="legal_name" label="Legal name" id="edit_legal_name" :error="$errors->first('legal_name')" />
+                    <x-ui.input wire:model="website" label="Website" id="edit_website" :error="$errors->first('website')" />
+                    <x-ui.input wire:model="selcom_merchant_id" label="Selcom merchant id (for payouts)" id="edit_selcom" :error="$errors->first('selcom_merchant_id')" />
+                </div>
+
                 <div class="flex gap-2">
                     <x-ui.button type="submit" target="updateProfile">Save changes</x-ui.button>
                     <x-ui.button type="button" variant="ghost" wire:click="cancelEditing">Cancel</x-ui.button>
@@ -78,6 +84,10 @@
                 <div><p class="text-ink-mute mb-1">Region / City</p><p class="text-ink font-medium">{{ $merchant->regionRef?->name ?? $merchant->region }} {{ $merchant->city }}</p></div>
                 <div><p class="text-ink-mute mb-1">TIN</p><p class="text-ink font-medium tnum">{{ $merchant->tin_number ?: '—' }}</p></div>
                 <div><p class="text-ink-mute mb-1">Subscription tier</p><p class="text-ink font-medium capitalize">{{ $merchant->subscription_tier }}</p></div>
+                <div><p class="text-ink-mute mb-1">Legal name</p><p class="text-ink font-medium">{{ $merchant->legal_name ?: '—' }}</p></div>
+                <div><p class="text-ink-mute mb-1">Website</p><p class="text-ink font-medium">{{ $merchant->website ?: '—' }}</p></div>
+                <div><p class="text-ink-mute mb-1">Selcom merchant id</p><p class="text-ink font-medium tnum">{{ $merchant->selcom_merchant_id ?: 'Not set' }}</p></div>
+                <div><p class="text-ink-mute mb-1">Workbook code</p><p class="text-ink font-medium tnum">{{ $merchant->code ?: '—' }}</p></div>
             </div>
         @endif
     </x-ui.card>

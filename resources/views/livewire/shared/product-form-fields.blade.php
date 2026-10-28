@@ -40,6 +40,71 @@
         <p class="self-end pb-2 text-[12px] text-ink-mute">Customers will see “by {{ \App\Models\Producer::find($form->producer_id)?->name }}” with the producer's logo.</p>
     @endif
 
+    @php
+        $chosenAnimalIds = array_filter([$form->animal_type_id, ...$form->animal_type_ids]);
+        $chosenGroupIds = \App\Models\AnimalType::whereIn('id', $chosenAnimalIds)->get(['id', 'parent_id'])->map(fn ($a) => $a->parent_id ?? $a->id)->all();
+        $stageOptions = \App\Models\LifeStage::active()
+            ->where(fn ($q) => $q->whereNull('animal_type_id')->orWhereIn('animal_type_id', $chosenGroupIds))
+            ->orderBy('sort_order')->get(['id', 'name', 'animal_type_id']);
+        $checkboxClass = 'inline-flex items-center gap-1.5 rounded-pill border border-hairline px-2.5 py-1 text-[12px] text-ink-secondary has-[:checked]:border-primary has-[:checked]:text-ink';
+    @endphp
+
+    <div class="md:col-span-4">
+        <p class="text-[13px] text-ink-mute mb-1.5">Also for (other animals on the label)</p>
+        <div class="flex flex-wrap gap-2">
+            @foreach($animalGroups as $group)
+                @foreach([$group, ...$group->children] as $animal)
+                    @continue((string) $animal->id === $form->animal_type_id)
+                    <label class="{{ $checkboxClass }}">
+                        <input type="checkbox" wire:model.live="form.animal_type_ids" value="{{ $animal->id }}" class="rounded-sm">
+                        {{ $animal->parent_id ? $group->name.' › '.$animal->name : $animal->name }}
+                    </label>
+                @endforeach
+            @endforeach
+        </div>
+        @error('form.animal_type_ids.*') <p class="text-ruby text-[12px] mt-1">{{ $message }}</p> @enderror
+    </div>
+
+    <div class="md:col-span-4">
+        <p class="text-[13px] text-ink-mute mb-1.5">Life stages</p>
+        <div class="flex flex-wrap gap-2">
+            @foreach($stageOptions as $stage)
+                <label class="{{ $checkboxClass }}">
+                    <input type="checkbox" wire:model="form.life_stage_ids" value="{{ $stage->id }}" class="rounded-sm">
+                    {{ $stage->name }}
+                </label>
+            @endforeach
+        </div>
+        @error('form.life_stage_ids.*') <p class="text-ruby text-[12px] mt-1">{{ $message }}</p> @enderror
+    </div>
+
+    <x-ui.select wire:model="form.regulatory_class" label="How it may be sold" id="product_regulatory_class" :error="$errors->first('form.regulatory_class')">
+        <option value="">— Not set —</option>
+        @foreach(\App\Models\ProductAttribute::options('regulatory_class') as $code => $label)
+            <option value="{{ $code }}">{{ $label }}</option>
+        @endforeach
+    </x-ui.select>
+    <div class="md:col-span-3 flex flex-wrap items-end gap-4 pb-2">
+        <label class="inline-flex items-center gap-2 text-[13px] text-ink-secondary">
+            <input type="checkbox" wire:model="form.prescription_required" id="product_prescription" class="rounded-sm"> Prescription needed
+        </label>
+        <label class="inline-flex items-center gap-2 text-[13px] text-ink-secondary">
+            <input type="checkbox" wire:model="form.cold_chain_required" id="product_cold_chain" class="rounded-sm"> Must be kept cold (2–8 °C)
+        </label>
+    </div>
+
+    <div class="md:col-span-2">
+        <x-ui.input wire:model="form.active_ingredients" label="Active ingredients" id="product_ingredients" placeholder="e.g. Albendazole 100 mg/ml" :error="$errors->first('form.active_ingredients')" />
+    </div>
+    <div class="md:col-span-2 grid grid-cols-3 gap-2">
+        <x-ui.input wire:model="form.withdrawal_meat_days" type="number" min="0" label="Meat withdrawal (days)" id="product_withdrawal_meat" :error="$errors->first('form.withdrawal_meat_days')" />
+        <x-ui.input wire:model="form.withdrawal_eggs_days" type="number" min="0" label="Eggs (days)" id="product_withdrawal_eggs" :error="$errors->first('form.withdrawal_eggs_days')" />
+        <x-ui.input wire:model="form.withdrawal_milk_days" type="number" min="0" label="Milk (days)" id="product_withdrawal_milk" :error="$errors->first('form.withdrawal_milk_days')" />
+    </div>
+    <div class="md:col-span-4">
+        <x-ui.input wire:model="form.search_keywords" label="Search words (separate with |, Kiswahili first)" id="product_keywords" placeholder="e.g. dawa ya minyoo|minyoo|dewormer" :error="$errors->first('form.search_keywords')" />
+    </div>
+
     <div class="md:col-span-3">
         <x-ui.textarea wire:model="form.description" label="Description (shown to customers)" id="product_description" rows="3" :error="$errors->first('form.description')"></x-ui.textarea>
     </div>

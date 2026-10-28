@@ -27,4 +27,14 @@
         @endif
     @endif
     @error('product_id') <p class="text-ruby text-[12px] mt-1">{{ $message }}</p> @enderror
+    @if($product_id && count($variantOptions) > 1)
+        <div class="mt-2">
+            <x-ui.select wire:model="product_variant_id" label="Pack size" id="catalog_variant" :error="$errors->first('product_variant_id')">
+                <option value="">— Choose the pack you stock —</option>
+                @foreach($variantOptions as $id => $name)
+                    <option value="{{ $id }}">{{ $name }}</option>
+                @endforeach
+            </x-ui.select>
+        </div>
+    @endif
 </div>

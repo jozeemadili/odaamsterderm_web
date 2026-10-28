@@ -40,7 +40,7 @@
             <tbody class="divide-y divide-hairline">
                 @forelse($listings as $item)
                     <tr class="hover:bg-canvas-soft/60">
-                        <td class="px-5 py-3"><p class="text-ink font-medium">{{ $item->product?->displayName() ?? $item->name }}</p><p class="text-[11px] text-ink-mute">{{ $item->product?->animalType?->name }}</p></td>
+                        <td class="px-5 py-3"><p class="text-ink font-medium">{{ $item->offerName() }}</p><p class="text-[11px] text-ink-mute">{{ $item->product?->animalType?->name }}</p></td>
                         <td class="px-5 py-3 text-ink-secondary"><a href="{{ route('admin.merchants.show', $item->merchant) }}" class="text-primary">{{ $item->merchant->business_name }}</a><br><span class="text-[11px] text-ink-mute">{{ $item->branch?->name }}</span></td>
                         <td class="px-5 py-3 tnum">{{ $item->unit_price !== null ? number_format($item->unit_price) : '—' }}</td>
                         <td class="px-5 py-3 tnum">{{ rtrim(rtrim((string) $item->quantity_on_hand, '0'), '.') }} {{ $item->unit }}</td>

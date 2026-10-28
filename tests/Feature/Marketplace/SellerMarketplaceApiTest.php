@@ -2,9 +2,11 @@
 
 namespace Tests\Feature\Marketplace;
 
+use App\Models\AnimalType;
 use App\Models\Branch;
 use App\Models\Merchant;
 use App\Models\Product;
+use App\Models\ProductCategory;
 use App\Models\StockMovement;
 use App\Services\InventoryService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -149,17 +151,18 @@ class SellerMarketplaceApiTest extends TestCase
         $this->getJson('/api/v1/catalog/animal-types')->assertOk()->assertJsonPath('data.0.name', 'Poultry');
         $this->getJson('/api/v1/catalog/products?search=starter')->assertOk()->assertJsonPath('data.0.display_name', 'Chicken Starter 25KG');
 
-        $chicken = \App\Models\AnimalType::where('slug', 'chicken')->first();
+        $chicken = AnimalType::where('slug', 'chicken')->first();
+        // Any category can be used for any animal, so the picker lists them all.
         $cats = $this->getJson("/api/v1/catalog/categories?animal_type_id={$chicken->id}")->assertOk()->json('data');
-        $this->assertContains('Vaccines', array_column($cats, 'name'));
-        $this->assertNotContains('Veterinary Products', array_column($cats, 'name'));
+        $this->assertContains('Vaccines & biologicals', array_column($cats, 'name'));
+        $this->assertContains('Live animals & genetics', array_column($cats, 'name'));
 
         $this->postJson('/api/v1/catalog/products', [
             'name' => 'Broiler Booster',
             'pack_size' => '1KG',
             'unit' => 'sachet',
             'animal_type_id' => $chicken->id,
-            'product_category_id' => \App\Models\ProductCategory::where('slug', 'vitamins-supplements')->first()->id,
+            'product_category_id' => ProductCategory::where('code', 'C2010')->first()->id,
         ])->assertCreated()->assertJsonPath('data.status', 'pending');
 
         // The proposer sees their pending proposal; other sellers don't.

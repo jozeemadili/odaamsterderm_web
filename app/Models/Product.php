@@ -6,7 +6,10 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Query\Builder as QueryBuilder;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\Support\LogOptions;
@@ -20,8 +23,12 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * compare the same product across sellers.
  */
 #[Fillable([
-    'name', 'slug', 'animal_type_id', 'product_category_id', 'producer_id', 'brand', 'description', 'unit', 'pack_size',
+    'code', 'name', 'slug', 'animal_type_id', 'product_category_id', 'producer_id', 'brand', 'description', 'unit', 'pack_size',
     'status', 'proposed_by_merchant_id', 'reviewed_by', 'reviewed_at', 'review_notes',
+    'regulatory_class', 'prescription_required', 'cold_chain_required', 'production_purpose', 'use_cases',
+    'disease_target', 'administration_route', 'form', 'active_ingredients', 'crude_protein_pct', 'inclusion_or_dosage',
+    'withdrawal_meat_days', 'withdrawal_eggs_days', 'withdrawal_milk_days', 'storage', 'registration_no',
+    'capacity', 'power_source', 'breed_strain', 'country_of_origin', 'search_keywords', 'is_demo',
 ])]
 class Product extends Model implements HasMedia
 {
@@ -36,12 +43,23 @@ class Product extends Model implements HasMedia
 
     public const STATUS_REJECTED = 'rejected';
 
-    public const UNITS = ['bag', 'kg', 'g', 'litre', 'ml', 'bottle', 'sachet', 'box', 'vial', 'tin', 'piece', 'pack', 'dose'];
+    public const UNITS = [
+        'bag', 'kg', 'g', 'litre', 'ml', 'bottle', 'sachet', 'box', 'vial', 'tin', 'piece', 'pack', 'dose',
+        'bale', 'set', 'bird', 'head', 'straw',
+    ];
 
     protected function casts(): array
     {
         return [
             'reviewed_at' => 'datetime',
+            'prescription_required' => 'boolean',
+            'cold_chain_required' => 'boolean',
+            'is_demo' => 'boolean',
+            'production_purpose' => 'array',
+            'use_cases' => 'array',
+            'disease_target' => 'array',
+            'administration_route' => 'array',
+            'crude_protein_pct' => 'decimal:2',
         ];
     }
 
@@ -57,6 +75,13 @@ class Product extends Model implements HasMedia
         static::creating(function (Product $product) {
             if (! $product->slug) {
                 $product->slug = static::uniqueSlug(trim($product->displayName().' '.$product->brand));
+            }
+        });
+
+        // The main animal is always one of the product's animal tags.
+        static::saved(function (Product $product) {
+            if ($product->animal_type_id && ($product->wasRecentlyCreated || $product->wasChanged('animal_type_id'))) {
+                $product->animalTypes()->syncWithoutDetaching([$product->animal_type_id]);
             }
         });
     }
@@ -77,7 +102,10 @@ class Product extends Model implements HasMedia
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-            ->logOnly(['name', 'brand', 'producer_id', 'unit', 'pack_size', 'status', 'animal_type_id', 'product_category_id'])
+            ->logOnly([
+                'name', 'brand', 'producer_id', 'unit', 'pack_size', 'status', 'animal_type_id', 'product_category_id',
+                'regulatory_class', 'prescription_required', 'cold_chain_required',
+            ])
             ->logOnlyDirty()
             ->useLogName('catalog');
     }
@@ -134,6 +162,27 @@ class Product extends Model implements HasMedia
         return $this->image()?->getUrl() ?? $this->getAttribute('seller_image_url');
     }
 
+    /** Products tagged with this animal, its children or its parent (see AnimalType::filterIds). */
+    public function scopeForAnimal(Builder $query, int|string|null $animalTypeId): Builder
+    {
+        $animal = $animalTypeId ? AnimalType::find($animalTypeId) : null;
+
+        return $animal ? $query->whereIn($query->qualifyColumn('id'), static::idsTaggedWith($animal)) : $query;
+    }
+
+    /**
+     * Subquery of product ids for an animal filter, for queries that join
+     * products. The main animal counts too, for rows saved without model
+     * events (seeders) that never got their animal tag.
+     */
+    public static function idsTaggedWith(AnimalType $animal): QueryBuilder
+    {
+        $ids = $animal->filterIds();
+
+        return DB::table('animal_type_product')->select('product_id')->whereIn('animal_type_id', $ids)
+            ->union(DB::table('products')->select('id')->whereIn('animal_type_id', $ids));
+    }
+
     public function scopeApproved(Builder $query): Builder
     {
         return $query->where('status', self::STATUS_APPROVED);
@@ -167,6 +216,36 @@ class Product extends Model implements HasMedia
         return $this->name;
     }
 
+    /**
+     * Label facts buyers should see before they buy, as label => value;
+     * empty fields are left out.
+     *
+     * @return array<string, string>
+     */
+    public function detailsForBuyers(): array
+    {
+        $days = fn (?int $n) => $n === null ? null : ($n === 0 ? 'None' : $n.' '.Str::plural('day', $n));
+        $labels = fn (string $key, ?array $codes) => $codes
+            ? implode(', ', array_map(fn ($code) => ProductAttribute::options($key)[$code] ?? $code, $codes))
+            : null;
+
+        return array_filter([
+            'Prescription' => $this->prescription_required ? 'Needs a vet prescription' : null,
+            'Cold chain' => $this->cold_chain_required ? 'Keep at 2–8 °C' : null,
+            'Active ingredients' => $this->active_ingredients,
+            'Crude protein' => $this->crude_protein_pct !== null ? rtrim(rtrim((string) $this->crude_protein_pct, '0'), '.').'%' : null,
+            'How to give' => $labels('administration_route', $this->administration_route),
+            'Dosage' => $this->inclusion_or_dosage,
+            'Protects against' => $labels('disease_target', $this->disease_target),
+            'Meat withdrawal' => $days($this->withdrawal_meat_days),
+            'Egg withdrawal' => $days($this->withdrawal_eggs_days),
+            'Milk withdrawal' => $days($this->withdrawal_milk_days),
+            'Storage' => $this->storage,
+            'Registration no.' => $this->registration_no,
+            'Made in' => $this->country_of_origin,
+        ], fn ($value) => $value !== null && $value !== '');
+    }
+
     /** Who makes it: the producer's name, or the free-text brand when no producer is linked. */
     public function makerName(): ?string
     {
@@ -193,14 +272,25 @@ class Product extends Model implements HasMedia
         return $this->belongsTo(Producer::class);
     }
 
+    /** The main animal, shown on cards; animalTypes() holds every animal the label covers. */
     public function animalType(): BelongsTo
     {
         return $this->belongsTo(AnimalType::class);
     }
 
+    public function animalTypes(): BelongsToMany
+    {
+        return $this->belongsToMany(AnimalType::class)->orderBy('sort_order');
+    }
+
     public function category(): BelongsTo
     {
         return $this->belongsTo(ProductCategory::class, 'product_category_id');
+    }
+
+    public function lifeStages(): BelongsToMany
+    {
+        return $this->belongsToMany(LifeStage::class)->orderBy('sort_order');
     }
 
     public function proposedBy(): BelongsTo
@@ -216,5 +306,31 @@ class Product extends Model implements HasMedia
     public function inventoryItems(): HasMany
     {
         return $this->hasMany(InventoryItem::class);
+    }
+
+    /** Pack sizes / SKUs, smallest first as listed in the workbook. */
+    public function variants(): HasMany
+    {
+        return $this->hasMany(ProductVariant::class)->orderBy('sort_order')->orderBy('id');
+    }
+
+    /**
+     * Keeps a product typed in by hand (one pack size on the product) in
+     * step with its single variant: creates it, or renames it when the pack
+     * size changes. Products with workbook SKUs are left alone.
+     */
+    public function syncDefaultVariant(): void
+    {
+        if (! $this->pack_size) {
+            return;
+        }
+
+        $variants = $this->variants()->get();
+
+        if ($variants->isEmpty()) {
+            $this->variants()->create(['name' => $this->pack_size, 'selling_unit' => $this->unit]);
+        } elseif ($variants->count() === 1 && ! $variants->first()->sku) {
+            $variants->first()->update(['name' => $this->pack_size, 'selling_unit' => $this->unit]);
+        }
     }
 }

@@ -167,8 +167,8 @@ class Home extends Component
             'stores' => $hasFilters ? collect() : $search->stores($from, 6),
             'animalGroups' => AnimalType::active()->whereNull('parent_id')->with(['children' => fn ($q) => $q->active()])->orderBy('sort_order')->get(),
             'categories' => ProductCategory::active()->whereNull('parent_id')
-                ->forAnimalType($this->animal ? (int) $this->animal : null)
-                ->with(['children' => fn ($q) => $q->active()])
+                ->withProductsFor($this->animal ? (int) $this->animal : null)
+                ->with(['children' => fn ($q) => $q->active()->withProductsFor($this->animal ? (int) $this->animal : null)])
                 ->orderBy('sort_order')->get(),
             'brands' => $search->brands(),
             'sellers' => $search->sellers(),

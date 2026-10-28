@@ -17,14 +17,14 @@ use Spatie\MediaLibrary\InteractsWithMedia;
  * 25KG by Silverlands"). The same product name from two producers is two
  * catalog products, so buyers and sellers can tell them apart.
  */
-#[Fillable(['name', 'slug', 'country', 'website', 'description', 'is_active'])]
+#[Fillable(['code', 'name', 'slug', 'country', 'role', 'website', 'description', 'is_active', 'is_demo'])]
 class Producer extends Model implements HasMedia
 {
     use InteractsWithMedia, LogsActivity;
 
     protected function casts(): array
     {
-        return ['is_active' => 'boolean'];
+        return ['is_active' => 'boolean', 'is_demo' => 'boolean'];
     }
 
     protected static function booted(): void

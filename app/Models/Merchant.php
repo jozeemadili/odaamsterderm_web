@@ -16,8 +16,8 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 #[Fillable([
-    'business_name', 'owner_name', 'phone', 'email', 'business_type', 'business_type_id',
-    'tin_number', 'physical_address', 'region', 'region_id', 'city',
+    'code', 'business_name', 'legal_name', 'owner_name', 'phone', 'email', 'website', 'business_type', 'business_type_id',
+    'tin_number', 'selcom_merchant_id', 'physical_address', 'region', 'region_id', 'city',
     'kyc_status', 'subscription_tier', 'status', 'brand_color', 'brand_accent_color',
     'created_by_agent_id', 'reviewed_by', 'reviewed_at', 'review_notes',
 ])]
@@ -91,7 +91,7 @@ class Merchant extends Model implements HasMedia
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-            ->logOnly(['business_name', 'kyc_status', 'status', 'subscription_tier', 'reviewed_by'])
+            ->logOnly(['business_name', 'kyc_status', 'status', 'subscription_tier', 'selcom_merchant_id', 'reviewed_by'])
             ->logOnlyDirty()
             ->useLogName('merchant');
     }

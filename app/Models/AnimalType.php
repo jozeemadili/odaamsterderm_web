@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\Support\LogOptions;
 
-#[Fillable(['parent_id', 'name', 'slug', 'sort_order', 'is_active'])]
+#[Fillable(['code', 'parent_id', 'name', 'name_sw', 'slug', 'description', 'sort_order', 'is_active'])]
 class AnimalType extends Model
 {
     use LogsActivity;
@@ -43,14 +43,21 @@ class AnimalType extends Model
         return $this->hasMany(self::class, 'parent_id')->orderBy('sort_order')->orderBy('name');
     }
 
-    public function categories(): BelongsToMany
+    public function lifeStages(): HasMany
     {
-        return $this->belongsToMany(ProductCategory::class);
+        return $this->hasMany(LifeStage::class)->orderBy('sort_order');
     }
 
+    /** Products whose main animal is this one. */
     public function products(): HasMany
     {
         return $this->hasMany(Product::class);
+    }
+
+    /** Every product tagged with this animal, main or not. */
+    public function taggedProducts(): BelongsToMany
+    {
+        return $this->belongsToMany(Product::class);
     }
 
     /** "Poultry › Chicken" */
@@ -68,5 +75,16 @@ class AnimalType extends Model
     public function selfAndChildIds(): array
     {
         return [$this->id, ...$this->children()->pluck('id')->all()];
+    }
+
+    /**
+     * Animal tags that match a filter on this type: itself, its children,
+     * and its parent, so "Chicken" also finds a drinker tagged "Poultry".
+     *
+     * @return array<int, int>
+     */
+    public function filterIds(): array
+    {
+        return array_values(array_filter([...$this->selfAndChildIds(), $this->parent_id]));
     }
 }

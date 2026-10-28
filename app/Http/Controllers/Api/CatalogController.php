@@ -9,9 +9,9 @@ use App\Models\Producer;
 use App\Models\Product;
 use App\Models\ProductCategory;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
-use Illuminate\Validation\ValidationException;
 
 /**
  * Shared catalog for sellers: the animal/category trees, approved products
@@ -33,10 +33,11 @@ class CatalogController extends Controller
         ])]);
     }
 
-    public function categories(Request $request)
+    public function categories()
     {
+        // Any category can be used with any animal; animal_type_id is still
+        // accepted from older app versions but no longer narrows the list.
         $categories = ProductCategory::active()->whereNull('parent_id')
-            ->forAnimalType($request->filled('animal_type_id') ? $request->integer('animal_type_id') : null)
             ->with(['children' => fn ($q) => $q->active()])
             ->orderBy('sort_order')->orderBy('name')
             ->get();
@@ -51,15 +52,15 @@ class CatalogController extends Controller
     public function products(Request $request)
     {
         $merchantId = Auth::user()->merchant_id;
-        $animalIds = $request->filled('animal_type_id') ? AnimalType::find($request->integer('animal_type_id'))?->selfAndChildIds() : null;
         $categoryIds = $request->filled('category_id') ? ProductCategory::find($request->integer('category_id'))?->selfAndChildIds() : null;
 
         $products = Product::usableBy($merchantId)
-            ->with(['animalType', 'category.parent', 'media', 'producer.media'])
+            ->with(['animalType', 'animalTypes', 'lifeStages', 'variants', 'category.parent', 'media', 'producer.media'])
             ->when($request->filled('search'), fn ($q) => $q->where(fn ($s) => $s
                 ->where('name', 'like', '%'.$request->string('search').'%')
-                ->orWhere('brand', 'like', '%'.$request->string('search').'%')))
-            ->when($animalIds, fn ($q) => $q->whereIn('animal_type_id', $animalIds))
+                ->orWhere('brand', 'like', '%'.$request->string('search').'%')
+                ->orWhere('search_keywords', 'like', '%'.$request->string('search').'%')))
+            ->forAnimal($request->integer('animal_type_id') ?: null)
             ->when($categoryIds, fn ($q) => $q->whereIn('product_category_id', $categoryIds))
             ->orderBy('name')
             ->paginate($request->integer('per_page', 20));
@@ -98,20 +99,17 @@ class CatalogController extends Controller
             'producer_id' => ['nullable', Rule::exists('producers', 'id')->where('is_active', true)],
             'brand' => ['nullable', 'string', 'max:255'],
             'animal_type_id' => ['required', Rule::exists('animal_types', 'id')->where('is_active', true)],
+            'animal_type_ids' => ['nullable', 'array'],
+            'animal_type_ids.*' => [Rule::exists('animal_types', 'id')->where('is_active', true)],
             'product_category_id' => ['required', Rule::exists('product_categories', 'id')->where('is_active', true)],
             'description' => ['nullable', 'string', 'max:5000'],
         ]);
 
-        $category = ProductCategory::find($data['product_category_id']);
-        $allowed = ProductCategory::forAnimalType((int) $data['animal_type_id'])->pluck('id');
-
-        if (! $allowed->contains($category->parent_id ?? $category->id)) {
-            throw ValidationException::withMessages(['product_category_id' => 'This category is not used for the chosen animal type.']);
-        }
-
         if (! empty($data['producer_id'])) {
             $data['brand'] = Producer::whereKey($data['producer_id'])->value('name');
         }
+
+        $otherAnimals = array_map('intval', Arr::pull($data, 'animal_type_ids') ?? []);
 
         $product = Product::create($data + [
             'slug' => Product::uniqueSlug($data['name'].' '.($data['pack_size'] ?? '').' '.($data['brand'] ?? '')),
@@ -119,6 +117,9 @@ class CatalogController extends Controller
             'proposed_by_merchant_id' => Auth::user()->merchant_id,
         ]);
 
-        return (new ProductResource($product->load(['animalType', 'category.parent'])))->response()->setStatusCode(201);
+        $product->animalTypes()->syncWithoutDetaching($otherAnimals);
+        $product->syncDefaultVariant();
+
+        return (new ProductResource($product->load(['animalType', 'animalTypes', 'category.parent'])))->response()->setStatusCode(201);
     }
 }

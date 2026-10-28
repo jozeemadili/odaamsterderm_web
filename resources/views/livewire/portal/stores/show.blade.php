@@ -58,9 +58,34 @@
                     <div>
                         <p class="text-[11px] uppercase tracking-wide text-ink-mute mb-1">Pickup instructions</p>
                         <p class="text-ink-secondary">{{ $store->pickup_instructions ?: 'Not set' }}</p>
+                        @if($store->landmark)
+                            <p class="text-ink-mute mt-1">Landmark: {{ $store->landmark }}</p>
+                        @endif
                     </div>
+                    <div>
+                        <p class="text-[11px] uppercase tracking-wide text-ink-mute mb-1">Delivery &amp; services</p>
+                        @include('livewire.shared.store-services', ['store' => $store])
+                    </div>
+                    @if($store->manager_name || $store->whatsapp)
+                        <div>
+                            <p class="text-[11px] uppercase tracking-wide text-ink-mute mb-1">Manager</p>
+                            <p class="text-ink-secondary">{{ collect([$store->manager_name, $store->whatsapp ? 'WhatsApp '.$store->whatsapp : null])->filter()->join(' · ') }}</p>
+                        </div>
+                    @endif
                 </div>
             </div>
+            @if($store->bio || $store->bio_sw)
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-5 text-[13px]">
+                    <div>
+                        <p class="text-[11px] uppercase tracking-wide text-ink-mute mb-1">About this store (English)</p>
+                        <p class="text-ink-secondary">{{ $store->bio ?: 'Not set' }}</p>
+                    </div>
+                    <div>
+                        <p class="text-[11px] uppercase tracking-wide text-ink-mute mb-1">Kuhusu duka hili (Kiswahili)</p>
+                        <p class="text-ink-secondary">{{ $store->bio_sw ?: 'Not set' }}</p>
+                    </div>
+                </div>
+            @endif
         @else
             <form wire:submit="save" class="mt-5 space-y-5">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -69,6 +94,10 @@
                     <x-ui.input type="email" wire:model="email" label="Email (optional)" id="store_email" :error="$errors->first('email')" />
                     <x-ui.input wire:model="address" label="Street / physical address" id="store_address" :error="$errors->first('address')" />
                     <x-ui.input wire:model="city" label="City / district" id="store_city" :error="$errors->first('city')" />
+                    <x-ui.input wire:model="area" label="Area / neighbourhood" id="store_area" :error="$errors->first('area')" />
+                    <x-ui.input wire:model="landmark" label="Landmark" id="store_landmark" placeholder="e.g. Near Tegeta bus stand" :error="$errors->first('landmark')" />
+                    <x-ui.input wire:model="whatsapp" label="WhatsApp (optional)" id="store_whatsapp" :error="$errors->first('whatsapp')" />
+                    <x-ui.input wire:model="manager_name" label="Store manager (optional)" id="store_manager" :error="$errors->first('manager_name')" />
                     <x-ui.select wire:model="region_id" label="Region" id="store_region" :error="$errors->first('region_id')">
                         <option value="">— Choose —</option>
                         @foreach($regions as $region)
@@ -118,6 +147,31 @@
                             <input type="checkbox" wire:model="is_marketplace_enabled" class="mt-0.5 rounded border-hairline-input text-primary focus:ring-primary">
                             <span>List this store on the marketplace<br><span class="text-[12px] text-ink-mute">Turn off to keep using the store for offline sales only.</span></span>
                         </label>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="space-y-3">
+                        <p class="text-[13px] text-ink-mute">Delivery — leave the radius empty if this store only does pickup.</p>
+                        <div class="grid grid-cols-3 gap-3">
+                            <x-ui.input type="number" step="0.1" min="0" wire:model="delivery_radius_km" label="Radius (km)" id="store_delivery_radius" :error="$errors->first('delivery_radius_km')" />
+                            <x-ui.input type="number" min="0" wire:model="delivery_base_fee" label="Base fee (TZS)" id="store_delivery_base" :error="$errors->first('delivery_base_fee')" />
+                            <x-ui.input type="number" min="0" wire:model="delivery_fee_per_km" label="Per km (TZS)" id="store_delivery_per_km" :error="$errors->first('delivery_fee_per_km')" />
+                        </div>
+                        @foreach([
+                            'pickup_available' => ['Customers can collect orders here', null],
+                            'cold_chain_capable' => ['Monitored 2–8 °C fridge', 'Needed to sell vaccines and other cold-chain products.'],
+                            'vet_advice_on_site' => ['Livestock officer or vet on site for advice', null],
+                        ] as $field => [$label, $hint])
+                            <label class="flex items-start gap-2 text-[13px] text-ink-secondary">
+                                <input type="checkbox" wire:model="{{ $field }}" id="store_{{ $field }}" class="mt-0.5 rounded border-hairline-input text-primary focus:ring-primary">
+                                <span>{{ $label }}@if($hint)<br><span class="text-[12px] text-ink-mute">{{ $hint }}</span>@endif</span>
+                            </label>
+                        @endforeach
+                    </div>
+                    <div class="space-y-3">
+                        <x-ui.textarea wire:model="bio" label="About this store (English)" id="store_bio" rows="3" :error="$errors->first('bio')"></x-ui.textarea>
+                        <x-ui.textarea wire:model="bio_sw" label="Kuhusu duka hili (Kiswahili)" id="store_bio_sw" rows="3" :error="$errors->first('bio_sw')"></x-ui.textarea>
                     </div>
                 </div>
 

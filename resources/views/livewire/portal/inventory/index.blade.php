@@ -103,6 +103,7 @@
                         @error('branch_id') <p class="text-ruby text-[12px] mt-1">{{ $message }}</p> @enderror
                     </div>
                     <x-ui.input type="date" wire:model="expiry_date" label="Expiry date (optional)" id="item_expiry" />
+                    <x-ui.input wire:model="batch_no" label="Batch no. (optional)" id="item_batch" />
                 </div>
 
                 @if($addingNewCategory)

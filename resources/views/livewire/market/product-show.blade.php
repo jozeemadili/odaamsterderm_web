@@ -23,7 +23,7 @@
                 @endif
             </div>
             <div class="flex-1">
-                <p class="text-[12px] uppercase tracking-wide text-ink-mute">{{ $product->animalType?->fullName() }} · {{ $product->category?->fullName() }}</p>
+                <p class="text-[12px] uppercase tracking-wide text-ink-mute">{{ $product->animalTypes->pluck('name')->join(', ') ?: $product->animalType?->fullName() }} · {{ $product->category?->fullName() }}</p>
                 <h1 class="text-[24px] font-light tracking-tight mt-1">{{ $product->displayName() }}</h1>
                 <x-market.producer :product="$product" size="lg" class="mt-2" />
                 <p class="text-[13px] text-ink-mute mt-1">
@@ -34,6 +34,19 @@
                 @endif
                 @if($product->description)
                     <p class="text-[14px] text-ink-secondary mt-3 max-w-2xl">{{ $product->description }}</p>
+                @endif
+                @if($product->lifeStages->isNotEmpty())
+                    <p class="text-[13px] text-ink-mute mt-2">For: {{ $product->lifeStages->pluck('name')->join(', ') }}</p>
+                @endif
+                @if($details = $product->detailsForBuyers())
+                    <dl class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5 max-w-2xl text-[13px]">
+                        @foreach($details as $label => $value)
+                            <div class="flex gap-2">
+                                <dt class="text-ink-mute shrink-0">{{ $label }}:</dt>
+                                <dd class="text-ink-secondary">{{ $value }}</dd>
+                            </div>
+                        @endforeach
+                    </dl>
                 @endif
             </div>
         </div>
@@ -56,6 +69,16 @@
             @endforeach
         </div>
     </div>
+
+    @if($packs->count() > 1)
+        <div class="flex flex-wrap items-center gap-2 text-[13px]" aria-label="Pack size">
+            <span class="text-ink-mute">Pack size:</span>
+            <button wire:click="$set('pack', null)" class="px-3 py-1 rounded-pill border {{ $pack ? 'border-hairline text-ink-secondary' : 'border-primary text-ink' }}">All</button>
+            @foreach($packs as $variant)
+                <button wire:click="$set('pack', {{ $variant->id }})" class="px-3 py-1 rounded-pill border {{ $pack === $variant->id ? 'border-primary text-ink' : 'border-hairline text-ink-secondary' }}">{{ $variant->name }}</button>
+            @endforeach
+        </div>
+    @endif
 
     <div class="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-5">
         <x-ui.card padding="p-0">
@@ -81,7 +104,7 @@
                                         @endforeach
                                         <div>
                                             <a href="{{ route('market.store', $offer->branch_id) }}" class="font-medium text-ink hover:text-primary-deep">{{ $offer->merchant->business_name }}</a>
-                                            <p class="text-[12px] text-ink-mute">{{ $offer->branch->name }}</p>
+                                            <p class="text-[12px] text-ink-mute">{{ $offer->branch->name }}@if($offer->variant) · {{ $offer->variant->name }}@endif</p>
                                         </div>
                                     </div>
                                 </td>
@@ -93,7 +116,7 @@
                                     @endif
                                 </td>
                                 <td class="px-4 py-3 tnum font-medium">TZS {{ number_format($offer->unit_price) }}</td>
-                                <td class="px-4 py-3 tnum">{{ $offer->is_available ? rtrim(rtrim((string) $offer->marketplace_quantity, '0'), '.').' '.\Illuminate\Support\Str::plural($product->unit, (int) $offer->marketplace_quantity) : '0' }}</td>
+                                <td class="px-4 py-3 tnum">{{ $offer->is_available ? rtrim(rtrim((string) $offer->marketplace_quantity, '0'), '.').' '.\Illuminate\Support\Str::plural($offer->sellingUnit(), (int) $offer->marketplace_quantity) : '0' }}</td>
                                 <td class="px-4 py-3">
                                     <x-ui.badge :tone="$offer->is_available ? 'success' : 'danger'">{{ $offer->is_available ? 'Available' : 'Out of stock' }}</x-ui.badge>
                                 </td>

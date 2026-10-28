@@ -7,6 +7,7 @@ use App\Http\Resources\InventoryItemResource;
 use App\Models\InventoryCategory;
 use App\Models\InventoryItem;
 use App\Models\Product;
+use App\Models\ProductVariant;
 use App\Models\StockMovement;
 use App\Services\InventoryService;
 use App\Support\StoreAccess;
@@ -35,7 +36,7 @@ class InventoryController extends Controller
                 'out_of_stock' => $q->where('is_marketplace_visible', true)->where('marketplace_status', InventoryItem::MARKET_OUT_OF_STOCK),
                 default => $q,
             })
-            ->with(['category', 'branch', 'product.animalType', 'product.category.parent', 'merchant'])
+            ->with(['category', 'branch', 'product.animalType', 'product.category.parent', 'product.variants', 'variant', 'merchant'])
             ->orderBy('name')
             ->paginate($request->integer('per_page', 20));
 
@@ -46,7 +47,7 @@ class InventoryController extends Controller
     {
         $this->authorizeItem($request, $item);
 
-        return new InventoryItemResource($item->load(['category', 'branch', 'product.animalType', 'product.category.parent', 'merchant']));
+        return new InventoryItemResource($item->load(['category', 'branch', 'product.animalType', 'product.category.parent', 'product.variants', 'variant', 'merchant']));
     }
 
     public function store(Request $request)
@@ -58,6 +59,8 @@ class InventoryController extends Controller
             'category_id' => ['required', $this->ownRule('inventory_categories')],
             'branch_id' => ['required', Rule::in(StoreAccess::branchIds())],
             'product_id' => ['nullable', $this->usableProductRule()],
+            'product_variant_id' => ['nullable', $this->variantOfProductRule($request)],
+            'batch_no' => ['nullable', 'string', 'max:64'],
             'unit' => ['nullable', 'string', 'max:255'],
             'reorder_level' => ['nullable', 'numeric', 'min:0'],
             'unit_cost' => ['nullable', 'numeric', 'min:0'],
@@ -81,7 +84,7 @@ class InventoryController extends Controller
             app(InventoryService::class)->stockIn($item, $openingStock, ['reference' => 'opening_stock']);
         }
 
-        return (new InventoryItemResource($item->fresh()->load(['category', 'branch', 'product.animalType', 'product.category.parent', 'merchant'])))
+        return (new InventoryItemResource($item->fresh()->load(['category', 'branch', 'product.animalType', 'product.category.parent', 'product.variants', 'variant', 'merchant'])))
             ->response()
             ->setStatusCode(201);
     }
@@ -97,6 +100,8 @@ class InventoryController extends Controller
             'category_id' => ['nullable', $this->ownRule('inventory_categories')],
             'branch_id' => ['nullable', $this->ownRule('branches')],
             'product_id' => ['nullable', $this->usableProductRule()],
+            'product_variant_id' => ['nullable', $this->variantOfProductRule($request)],
+            'batch_no' => ['nullable', 'string', 'max:64'],
             'unit' => ['nullable', 'string', 'max:255'],
             'reorder_level' => ['nullable', 'numeric', 'min:0'],
             'unit_cost' => ['nullable', 'numeric', 'min:0'],
@@ -113,7 +118,7 @@ class InventoryController extends Controller
             app(InventoryService::class)->updateMarketplace($item, false, (float) $item->marketplace_quantity, $item->marketplace_status !== InventoryItem::MARKET_INACTIVE);
         }
 
-        return new InventoryItemResource($item->fresh()->load(['category', 'branch', 'product.animalType', 'product.category.parent', 'merchant']));
+        return new InventoryItemResource($item->fresh()->load(['category', 'branch', 'product.animalType', 'product.category.parent', 'product.variants', 'variant', 'merchant']));
     }
 
     /**
@@ -137,7 +142,7 @@ class InventoryController extends Controller
             (bool) ($data['active'] ?? true),
         );
 
-        return new InventoryItemResource($item->fresh()->load(['category', 'branch', 'product.animalType', 'product.category.parent', 'merchant']));
+        return new InventoryItemResource($item->fresh()->load(['category', 'branch', 'product.animalType', 'product.category.parent', 'product.variants', 'variant', 'merchant']));
     }
 
     /** Exists rule limited to rows owned by the current merchant. */
@@ -151,6 +156,20 @@ class InventoryController extends Controller
         return function ($attribute, $value, $fail) {
             if (! Product::usableBy(Auth::user()->merchant_id)->whereKey($value)->exists()) {
                 $fail('Choose a product from the catalog.');
+            }
+        };
+    }
+
+    /** A pack size of the chosen product (or, with no product sent, of any product the seller may use). */
+    protected function variantOfProductRule(Request $request): \Closure
+    {
+        return function ($attribute, $value, $fail) use ($request) {
+            $productId = ProductVariant::whereKey($value)->value('product_id');
+
+            if (! $productId
+                || ($request->filled('product_id') && (int) $request->input('product_id') !== $productId)
+                || ! Product::usableBy(Auth::user()->merchant_id)->whereKey($productId)->exists()) {
+                $fail('Choose a pack size of the catalog product.');
             }
         };
     }

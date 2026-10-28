@@ -6,12 +6,14 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\Support\LogOptions;
 
-#[Fillable(['parent_id', 'name', 'slug', 'sort_order', 'is_active'])]
+#[Fillable([
+    'code', 'parent_id', 'name', 'name_sw', 'slug', 'description', 'tie_break_rule', 'required_attributes',
+    'sort_order', 'is_active',
+])]
 class ProductCategory extends Model
 {
     use LogsActivity;
@@ -20,6 +22,7 @@ class ProductCategory extends Model
     {
         return [
             'is_active' => 'boolean',
+            'required_attributes' => 'array',
         ];
     }
 
@@ -33,19 +36,26 @@ class ProductCategory extends Model
         return $query->where('is_active', true);
     }
 
-    /** Categories usable for the given animal type (no restriction = usable everywhere). */
-    public function scopeForAnimalType(Builder $query, ?int $animalTypeId): Builder
+    /**
+     * Categories that hold approved products for the given animal type, so a
+     * browse filter for "Fish" only offers categories with fish products.
+     * A parent counts when it or one of its sub-categories has a match;
+     * "Poultry" also matches products tagged "Chicken", and any of a
+     * product's animals counts. No animal = all.
+     */
+    public function scopeWithProductsFor(Builder $query, ?int $animalTypeId): Builder
     {
         if (! $animalTypeId) {
             return $query;
         }
 
-        $type = AnimalType::find($animalTypeId);
-        $typeIds = $type ? array_filter([$type->id, $type->parent_id]) : [$animalTypeId];
+        $matchingProducts = fn (Builder $p) => $p
+            ->where('status', Product::STATUS_APPROVED)
+            ->forAnimal($animalTypeId);
 
         return $query->where(fn (Builder $q) => $q
-            ->whereDoesntHave('animalTypes')
-            ->orWhereHas('animalTypes', fn (Builder $t) => $t->whereIn('animal_types.id', $typeIds)));
+            ->whereHas('products', $matchingProducts)
+            ->orWhereHas('children.products', $matchingProducts));
     }
 
     public function parent(): BelongsTo
@@ -58,17 +68,12 @@ class ProductCategory extends Model
         return $this->hasMany(self::class, 'parent_id')->orderBy('sort_order')->orderBy('name');
     }
 
-    public function animalTypes(): BelongsToMany
-    {
-        return $this->belongsToMany(AnimalType::class);
-    }
-
     public function products(): HasMany
     {
         return $this->hasMany(Product::class);
     }
 
-    /** "Feed › Starter" */
+    /** "Feed › Complete feed" */
     public function fullName(): string
     {
         return $this->parent ? $this->parent->name.' › '.$this->name : $this->name;

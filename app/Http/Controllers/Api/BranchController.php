@@ -76,6 +76,19 @@ class BranchController extends Controller
             'opening_hours.*.open' => [...$time, 'required_with:opening_hours.*.close'],
             'opening_hours.*.close' => [...$time, 'required_with:opening_hours.*.open'],
             'is_marketplace_enabled' => ['sometimes', 'boolean'],
+            'whatsapp' => ['nullable', 'string', 'max:30'],
+            'manager_name' => ['nullable', 'string', 'max:255'],
+            'area' => ['nullable', 'string', 'max:255'],
+            'landmark' => ['nullable', 'string', 'max:255'],
+            // No radius means pickup only.
+            'delivery_radius_km' => ['nullable', 'numeric', 'min:0', 'max:500'],
+            'delivery_base_fee' => ['nullable', 'numeric', 'min:0'],
+            'delivery_fee_per_km' => ['nullable', 'numeric', 'min:0'],
+            'pickup_available' => ['sometimes', 'boolean'],
+            'cold_chain_capable' => ['sometimes', 'boolean'],
+            'vet_advice_on_site' => ['sometimes', 'boolean'],
+            'bio' => ['nullable', 'string', 'max:2000'],
+            'bio_sw' => ['nullable', 'string', 'max:2000'],
         ];
     }
 

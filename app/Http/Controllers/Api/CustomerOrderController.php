@@ -25,8 +25,8 @@ class CustomerOrderController extends Controller
                 'lines' => collect($g['lines'])->map(fn ($l) => [
                     'offer_id' => $l['offer']->id,
                     'product_id' => $l['offer']->product_id,
-                    'name' => $l['offer']->product?->displayName() ?? $l['offer']->name,
-                    'unit' => $l['offer']->product?->unit ?? $l['offer']->unit,
+                    'name' => $l['offer']->offerName(),
+                    'unit' => $l['offer']->sellingUnit(),
                     'unit_price' => (float) $l['offer']->unit_price,
                     'quantity' => (float) $l['cart_item']->quantity,
                     'available_quantity' => (float) $l['offer']->marketplace_quantity,

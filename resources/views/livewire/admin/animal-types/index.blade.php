@@ -11,9 +11,8 @@
     @if($showForm)
         <x-ui.card>
             <form wire:submit="save" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-                <div class="md:col-span-2">
-                    <x-ui.input wire:model="name" label="Name" id="animal_name" placeholder="e.g. Chicken, Ducks, Rabbits" :error="$errors->first('name')" />
-                </div>
+                <x-ui.input wire:model="name" label="Name" id="animal_name" placeholder="e.g. Chicken, Ducks, Rabbits" :error="$errors->first('name')" />
+                <x-ui.input wire:model="name_sw" label="Name (Kiswahili)" id="animal_name_sw" placeholder="e.g. Kuku, Bata, Sungura" :error="$errors->first('name_sw')" />
                 <x-ui.select wire:model="parent_id" label="Group" id="animal_parent" :error="$errors->first('parent_id')">
                     <option value="">— Top-level group —</option>
                     @foreach($groups as $group)
@@ -37,6 +36,9 @@
             <thead class="bg-canvas-soft text-left text-[11px] uppercase tracking-wide text-ink-mute">
                 <tr>
                     <th class="px-5 py-3 font-normal">Animal type</th>
+                    <th class="px-5 py-3 font-normal">Code</th>
+                    <th class="px-5 py-3 font-normal">Kiswahili</th>
+                    <th class="px-5 py-3 font-normal">Life stages</th>
                     <th class="px-5 py-3 font-normal">Products</th>
                     <th class="px-5 py-3 font-normal">Status</th>
                     <th class="px-5 py-3 font-normal"></th>
@@ -49,6 +51,9 @@
                             <td class="px-5 py-3 {{ $type->parent_id ? 'pl-10 text-ink-secondary' : 'text-ink font-medium' }}">
                                 {{ $type->parent_id ? '↳ ' : '' }}{{ $type->name }}
                             </td>
+                            <td class="px-5 py-3 text-ink-mute text-[12px] tnum">{{ $type->code ?? '—' }}</td>
+                            <td class="px-5 py-3 text-ink-secondary">{{ $type->name_sw ?? '—' }}</td>
+                            <td class="px-5 py-3 text-ink-mute text-[12px]">{{ $type->lifeStages->pluck('name')->join(', ') ?: '—' }}</td>
                             <td class="px-5 py-3 tnum text-ink-secondary">{{ $type->products_count }}</td>
                             <td class="px-5 py-3">
                                 <x-ui.badge :tone="$type->is_active ? 'success' : 'neutral'">{{ $type->is_active ? 'Active' : 'Inactive' }}</x-ui.badge>
@@ -67,7 +72,7 @@
                         </tr>
                     @endforeach
                 @empty
-                    <tr><td colspan="4" class="px-5 py-8 text-center text-ink-mute">No animal types yet.</td></tr>
+                    <tr><td colspan="7" class="px-5 py-8 text-center text-ink-mute">No animal types yet.</td></tr>
                 @endforelse
             </tbody>
         </table>

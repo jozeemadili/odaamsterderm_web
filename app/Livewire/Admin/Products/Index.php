@@ -125,17 +125,18 @@ class Index extends Component
 
     public function render()
     {
-        $animalIds = $this->animalFilter ? AnimalType::find($this->animalFilter)?->selfAndChildIds() : null;
         $categoryIds = $this->categoryFilter ? ProductCategory::find($this->categoryFilter)?->selfAndChildIds() : null;
 
         $products = Product::query()
-            ->with(['animalType.parent', 'category.parent', 'proposedBy', 'media', 'producer'])
+            ->with(['animalType.parent', 'animalTypes', 'variants', 'category.parent', 'proposedBy', 'media', 'producer'])
             ->withCount(['inventoryItems as sellers_count' => fn ($q) => $q->select(DB::raw('count(distinct merchant_id)'))])
             ->when($this->status !== 'all', fn ($q) => $q->where('status', $this->status))
             ->when($this->search, fn ($q) => $q->where(fn ($s) => $s
                 ->where('name', 'like', "%{$this->search}%")
-                ->orWhere('brand', 'like', "%{$this->search}%")))
-            ->when($animalIds, fn ($q) => $q->whereIn('animal_type_id', $animalIds))
+                ->orWhere('brand', 'like', "%{$this->search}%")
+                ->orWhere('code', $this->search)
+                ->orWhere('search_keywords', 'like', "%{$this->search}%")))
+            ->forAnimal($this->animalFilter)
             ->when($categoryIds, fn ($q) => $q->whereIn('product_category_id', $categoryIds))
             ->orderBy('name')
             ->paginate(20);
@@ -148,7 +149,6 @@ class Index extends Component
             'animalGroups' => $animalGroups,
             'filterCategories' => ProductCategory::whereNull('parent_id')->with('children')->orderBy('sort_order')->get(),
             'formCategories' => ProductCategory::active()->whereNull('parent_id')
-                ->forAnimalType($this->form->animal_type_id ? (int) $this->form->animal_type_id : null)
                 ->with(['children' => fn ($q) => $q->active()])
                 ->orderBy('sort_order')->get(),
         ]);

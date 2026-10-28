@@ -2,7 +2,6 @@
 
 namespace App\Livewire\Admin\ProductCategories;
 
-use App\Models\AnimalType;
 use App\Models\ProductCategory;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -18,12 +17,13 @@ class Index extends Component
 
     public string $name = '';
 
+    public string $name_sw = '';
+
+    public string $description = '';
+
     public string $parent_id = '';
 
     public string $sort_order = '0';
-
-    /** @var array<int, string> animal group ids this category applies to; empty = all */
-    public array $animalTypeIds = [];
 
     public function mount(): void
     {
@@ -32,20 +32,21 @@ class Index extends Component
 
     public function startCreating(?int $parentId = null): void
     {
-        $this->reset(['editingId', 'name', 'sort_order', 'animalTypeIds']);
+        $this->reset(['editingId', 'name', 'name_sw', 'description', 'sort_order']);
         $this->parent_id = $parentId ? (string) $parentId : '';
         $this->showForm = true;
     }
 
     public function startEditing(int $id): void
     {
-        $category = ProductCategory::with('animalTypes')->findOrFail($id);
+        $category = ProductCategory::findOrFail($id);
 
         $this->editingId = $category->id;
         $this->name = $category->name;
+        $this->name_sw = (string) $category->name_sw;
+        $this->description = (string) $category->description;
         $this->parent_id = (string) ($category->parent_id ?? '');
         $this->sort_order = (string) $category->sort_order;
-        $this->animalTypeIds = $category->animalTypes->pluck('id')->map(fn ($id) => (string) $id)->all();
         $this->showForm = true;
     }
 
@@ -53,16 +54,18 @@ class Index extends Component
     {
         $this->validate([
             'name' => ['required', 'string', 'max:255'],
+            'name_sw' => ['nullable', 'string', 'max:255'],
+            'description' => ['nullable', 'string', 'max:2000'],
             'parent_id' => ['nullable', Rule::exists('product_categories', 'id')->whereNull('parent_id'), Rule::notIn([$this->editingId])],
             'sort_order' => ['required', 'integer', 'min:0'],
-            'animalTypeIds' => ['array'],
-            'animalTypeIds.*' => ['exists:animal_types,id'],
         ], [
             'parent_id.exists' => 'Choose a top-level category (sub-categories only go one level deep).',
         ]);
 
         $data = [
             'name' => $this->name,
+            'name_sw' => trim($this->name_sw) ?: null,
+            'description' => trim($this->description) ?: null,
             'parent_id' => $this->parent_id ?: null,
             'sort_order' => (int) $this->sort_order,
         ];
@@ -79,14 +82,11 @@ class Index extends Component
             $category->update($data);
             session()->flash('status', 'Category updated.');
         } else {
-            $category = ProductCategory::create($data + ['slug' => $this->uniqueSlug($this->name), 'is_active' => true]);
+            ProductCategory::create($data + ['slug' => $this->uniqueSlug($this->name), 'is_active' => true]);
             session()->flash('status', 'Category added.');
         }
 
-        // Sub-categories inherit their parent's animal restriction.
-        $category->animalTypes()->sync($data['parent_id'] ? [] : $this->animalTypeIds);
-
-        $this->reset(['showForm', 'editingId', 'name', 'parent_id', 'sort_order', 'animalTypeIds']);
+        $this->reset(['showForm', 'editingId', 'name', 'name_sw', 'description', 'parent_id', 'sort_order']);
     }
 
     public function toggleActive(int $id): void
@@ -117,11 +117,10 @@ class Index extends Component
     {
         return view('livewire.admin.product-categories.index', [
             'categories' => ProductCategory::whereNull('parent_id')
-                ->with(['animalTypes', 'children' => fn ($q) => $q->withCount('products')])
+                ->with(['children' => fn ($q) => $q->withCount('products')])
                 ->withCount('products')
                 ->orderBy('sort_order')->orderBy('name')
                 ->get(),
-            'animalGroups' => AnimalType::whereNull('parent_id')->orderBy('sort_order')->orderBy('name')->get(),
         ]);
     }
 }

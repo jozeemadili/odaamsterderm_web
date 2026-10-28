@@ -74,10 +74,11 @@ class MarketplaceController extends Controller
 
         $data = $request->validate([
             'sort' => ['nullable', Rule::in([MarketplaceSearch::SORT_NEAREST, MarketplaceSearch::SORT_PRICE, MarketplaceSearch::SORT_AVAILABILITY])],
+            'variant_id' => ['nullable', 'integer'],
         ] + $this->locationRules());
 
-        $product->load(['animalType', 'category.parent', 'media', 'producer.media']);
-        $offers = $this->search->offersFor($product, $this->point($request), $data['sort'] ?? MarketplaceSearch::SORT_NEAREST);
+        $product->load(['animalType', 'animalTypes', 'lifeStages', 'variants', 'category.parent', 'media', 'producer.media']);
+        $offers = $this->search->offersFor($product, $this->point($request), $data['sort'] ?? MarketplaceSearch::SORT_NEAREST, $data['variant_id'] ?? null);
 
         return response()->json([
             'product' => [
@@ -94,7 +95,11 @@ class MarketplaceController extends Controller
                 'image_url' => ($photos = $product->galleryUrls($offers))[0] ?? null,
                 'image_urls' => $photos,
                 'animal_type' => $product->animalType?->name,
+                'animal_types' => $product->animalTypes->pluck('name')->values(),
+                'life_stages' => $product->lifeStages->pluck('name')->values(),
                 'category' => $product->category?->fullName(),
+                'details' => $product->detailsForBuyers(),
+                'variants' => $product->variants->where('is_active', true)->map(fn ($v) => $v->summary())->values(),
             ],
             'offers' => OfferResource::collection($offers),
         ]);

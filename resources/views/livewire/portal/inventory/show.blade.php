@@ -70,7 +70,7 @@
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <form wire:submit="saveCatalogLink" class="space-y-3">
                     @include('livewire.shared.catalog-picker')
-                    @if($product_id !== $item->product_id)
+                    @if($product_id !== $item->product_id || $product_variant_id !== $item->product_variant_id)
                         <x-ui.button type="submit" size="sm" target="saveCatalogLink">Save catalog link</x-ui.button>
                     @endif
                     @if($item->product)

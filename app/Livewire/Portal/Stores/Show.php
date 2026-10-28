@@ -34,6 +34,30 @@ class Show extends Component
 
     public string $pickup_instructions = '';
 
+    public string $whatsapp = '';
+
+    public string $manager_name = '';
+
+    public string $area = '';
+
+    public string $landmark = '';
+
+    public $delivery_radius_km = null;
+
+    public $delivery_base_fee = null;
+
+    public $delivery_fee_per_km = null;
+
+    public bool $pickup_available = true;
+
+    public bool $cold_chain_capable = false;
+
+    public bool $vet_advice_on_site = false;
+
+    public string $bio = '';
+
+    public string $bio_sw = '';
+
     /** @var array<string, array{closed: bool, open: string, close: string}> */
     public array $hours = [];
 
@@ -63,6 +87,18 @@ class Show extends Component
         $this->longitude = $s->longitude;
         $this->pickup_instructions = (string) $s->pickup_instructions;
         $this->is_marketplace_enabled = $s->is_marketplace_enabled;
+        $this->whatsapp = (string) $s->whatsapp;
+        $this->manager_name = (string) $s->manager_name;
+        $this->area = (string) $s->area;
+        $this->landmark = (string) $s->landmark;
+        $this->delivery_radius_km = $s->delivery_radius_km;
+        $this->delivery_base_fee = $s->delivery_base_fee;
+        $this->delivery_fee_per_km = $s->delivery_fee_per_km;
+        $this->pickup_available = $s->pickup_available;
+        $this->cold_chain_capable = $s->cold_chain_capable;
+        $this->vet_advice_on_site = $s->vet_advice_on_site;
+        $this->bio = (string) $s->bio;
+        $this->bio_sw = (string) $s->bio_sw;
 
         $this->hours = [];
         foreach (array_keys(Branch::DAYS) as $day) {
@@ -89,6 +125,15 @@ class Show extends Component
             'latitude' => ['nullable', 'required_with:longitude', 'numeric', 'between:-90,90'],
             'longitude' => ['nullable', 'required_with:latitude', 'numeric', 'between:-180,180'],
             'pickup_instructions' => ['nullable', 'string', 'max:1000'],
+            'whatsapp' => ['nullable', 'string', 'max:30'],
+            'manager_name' => ['nullable', 'string', 'max:255'],
+            'area' => ['nullable', 'string', 'max:255'],
+            'landmark' => ['nullable', 'string', 'max:255'],
+            'delivery_radius_km' => ['nullable', 'numeric', 'min:0', 'max:500'],
+            'delivery_base_fee' => ['nullable', 'numeric', 'min:0'],
+            'delivery_fee_per_km' => ['nullable', 'numeric', 'min:0'],
+            'bio' => ['nullable', 'string', 'max:2000'],
+            'bio_sw' => ['nullable', 'string', 'max:2000'],
             'hours.*.open' => ['required_if:hours.*.closed,false', 'nullable', 'date_format:H:i'],
             'hours.*.close' => ['required_if:hours.*.closed,false', 'nullable', 'date_format:H:i'],
         ], [], ['latitude' => 'map location', 'longitude' => 'map location']);
@@ -110,12 +155,29 @@ class Show extends Component
             'pickup_instructions' => $this->pickup_instructions ?: null,
             'opening_hours' => $openingHours,
             'is_marketplace_enabled' => $this->is_marketplace_enabled,
+            'whatsapp' => $this->whatsapp ?: null,
+            'manager_name' => $this->manager_name ?: null,
+            'area' => $this->area ?: null,
+            'landmark' => $this->landmark ?: null,
+            'delivery_radius_km' => $this->numberOrNull($this->delivery_radius_km),
+            'delivery_base_fee' => $this->numberOrNull($this->delivery_base_fee),
+            'delivery_fee_per_km' => $this->numberOrNull($this->delivery_fee_per_km),
+            'pickup_available' => $this->pickup_available,
+            'cold_chain_capable' => $this->cold_chain_capable,
+            'vet_advice_on_site' => $this->vet_advice_on_site,
+            'bio' => $this->bio ?: null,
+            'bio_sw' => $this->bio_sw ?: null,
         ]);
 
         $this->editing = false;
         session()->flash('status', $this->store->hasLocation()
             ? 'Store details saved.'
             : 'Store details saved. Set the map location so customers can find this store.');
+    }
+
+    private function numberOrNull(mixed $value): ?float
+    {
+        return $value !== null && $value !== '' ? (float) $value : null;
     }
 
     public function render()

@@ -22,10 +22,14 @@ class ProductShow extends Component
     #[Url]
     public string $sort = MarketplaceSearch::SORT_NEAREST;
 
+    /** Variant id: compare one pack size at a time. */
+    #[Url]
+    public ?int $pack = null;
+
     public function mount(Product $product): void
     {
         abort_unless($product->isApproved(), 404);
-        $this->product = $product->load(['animalType', 'category.parent', 'media', 'producer.media']);
+        $this->product = $product->load(['animalType', 'animalTypes', 'lifeStages', 'category.parent', 'media', 'producer.media']);
     }
 
     #[On('market-location-updated')]
@@ -41,17 +45,20 @@ class ProductShow extends Component
         if (! $from && $this->sort === MarketplaceSearch::SORT_NEAREST) {
             $this->sort = MarketplaceSearch::SORT_PRICE;
         }
-        $offers = $search->offersFor($this->product, $from, $this->sort);
+        $allOffers = $search->offersFor($this->product, $from, $this->sort);
+        $packs = $allOffers->pluck('variant')->filter()->unique('id')->sortBy('sort_order')->values();
+        $offers = $this->pack ? $allOffers->where('product_variant_id', $this->pack)->values() : $allOffers;
 
         return view('livewire.market.product-show', [
             'from' => $from,
             'photos' => $this->product->galleryUrls($offers),
             'offers' => $offers,
+            'packs' => $packs,
             'mapStores' => $offers->unique('branch_id')->map(fn ($o) => [
                 'lat' => $o->branch->latitude,
                 'lng' => $o->branch->longitude,
                 'name' => $o->branch->name,
-                'note' => $o->is_available ? 'TZS '.number_format($o->unit_price).' · '.rtrim(rtrim((string) $o->marketplace_quantity, '0'), '.').' '.$this->product->unit : 'Out of stock',
+                'note' => $o->is_available ? 'TZS '.number_format($o->unit_price).' · '.rtrim(rtrim((string) $o->marketplace_quantity, '0'), '.').' '.$o->sellingUnit() : 'Out of stock',
                 'url' => route('market.store', $o->branch_id),
             ])->values(),
         ])->title($this->product->displayName());

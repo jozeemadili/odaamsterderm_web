@@ -17,6 +17,8 @@ class Index extends Component
 
     public string $name = '';
 
+    public string $name_sw = '';
+
     public string $parent_id = '';
 
     public string $sort_order = '0';
@@ -28,7 +30,7 @@ class Index extends Component
 
     public function startCreating(?int $parentId = null): void
     {
-        $this->reset(['editingId', 'name', 'sort_order']);
+        $this->reset(['editingId', 'name', 'name_sw', 'sort_order']);
         $this->parent_id = $parentId ? (string) $parentId : '';
         $this->showForm = true;
     }
@@ -39,6 +41,7 @@ class Index extends Component
 
         $this->editingId = $type->id;
         $this->name = $type->name;
+        $this->name_sw = (string) $type->name_sw;
         $this->parent_id = (string) ($type->parent_id ?? '');
         $this->sort_order = (string) $type->sort_order;
         $this->showForm = true;
@@ -48,6 +51,7 @@ class Index extends Component
     {
         $this->validate([
             'name' => ['required', 'string', 'max:255'],
+            'name_sw' => ['nullable', 'string', 'max:255'],
             'parent_id' => ['nullable', Rule::exists('animal_types', 'id')->whereNull('parent_id'), Rule::notIn([$this->editingId])],
             'sort_order' => ['required', 'integer', 'min:0'],
         ], [
@@ -56,6 +60,7 @@ class Index extends Component
 
         $data = [
             'name' => $this->name,
+            'name_sw' => trim($this->name_sw) ?: null,
             'parent_id' => $this->parent_id ?: null,
             'sort_order' => (int) $this->sort_order,
         ];
@@ -76,7 +81,7 @@ class Index extends Component
             session()->flash('status', 'Animal type added.');
         }
 
-        $this->reset(['showForm', 'editingId', 'name', 'parent_id', 'sort_order']);
+        $this->reset(['showForm', 'editingId', 'name', 'name_sw', 'parent_id', 'sort_order']);
     }
 
     public function toggleActive(int $id): void
@@ -106,7 +111,7 @@ class Index extends Component
     {
         return view('livewire.admin.animal-types.index', [
             'groups' => AnimalType::whereNull('parent_id')
-                ->with(['children' => fn ($q) => $q->withCount('products')])
+                ->with(['lifeStages', 'children' => fn ($q) => $q->with('lifeStages')->withCount('products')])
                 ->withCount('products')
                 ->orderBy('sort_order')->orderBy('name')
                 ->get(),

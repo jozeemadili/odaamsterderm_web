@@ -20,6 +20,7 @@ class InventoryItemResource extends JsonResource
             'unit_cost' => $this->unit_cost !== null ? (float) $this->unit_cost : null,
             'unit_price' => $this->unit_price !== null ? (float) $this->unit_price : null,
             'expiry_date' => $this->expiry_date?->toDateString(),
+            'batch_no' => $this->batch_no,
             'is_low_stock' => $this->isLowStock(),
             'is_expiring_soon' => $this->isExpiringSoon(),
             'is_expired' => $this->isExpired(),
@@ -34,6 +35,8 @@ class InventoryItemResource extends JsonResource
                 'name' => $this->branch->name,
             ] : null),
             'product_id' => $this->product_id,
+            'product_variant_id' => $this->product_variant_id,
+            'variant' => $this->whenLoaded('variant', fn () => $this->variant?->summary()),
             'product' => $this->whenLoaded('product', fn () => $this->product ? new ProductResource($this->product) : null),
             'marketplace' => [
                 'is_visible' => (bool) $this->is_marketplace_visible,
