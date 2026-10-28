@@ -12,6 +12,8 @@ use App\Models\User;
 use App\Services\InventoryService;
 use App\Services\StockTransferService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\Sanctum;
 use Livewire\Livewire;
 use Tests\Concerns\CreatesSeller;
@@ -33,6 +35,9 @@ class StockTransferTest extends TestCase
         $this->second = Branch::create(['merchant_id' => $this->merchant->id, 'name' => 'Tegeta']);
         $this->feed = $this->createItem(['name' => 'Layers Mash', 'unit' => 'bag', 'unit_price' => 52000]);
         app(InventoryService::class)->stockIn($this->feed, 20);
+        Storage::fake('public');
+        $this->feed->addMedia(UploadedFile::fake()->image('front.jpg'))->toMediaCollection('image');
+        $this->feed->addMedia(UploadedFile::fake()->image('back.jpg'))->toMediaCollection(InventoryItem::BACK_PHOTO);
     }
 
     private function staff(array $stores, string $role = 'merchant_sales'): User
@@ -72,6 +77,8 @@ class StockTransferTest extends TestCase
         $this->assertSame('Layers Mash', $arrived->name);
         $this->assertEquals(5, $arrived->quantity_on_hand);
         $this->assertEquals(52000, $arrived->unit_price);
+        $this->assertNotNull($arrived->image());
+        $this->assertNotNull($arrived->backImage());
         $this->assertSame(StockTransfer::STATUS_RECEIVED, $transfer->fresh()->status);
 
         // A second transfer adds to the same product in the receiving store.

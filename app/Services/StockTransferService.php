@@ -201,8 +201,10 @@ class StockTransferService
         ]);
 
         try {
-            foreach ($source->getMedia('image') as $media) {
-                $media->copy($copy, 'image');
+            foreach (['image', InventoryItem::BACK_PHOTO] as $collection) {
+                foreach ($source->getMedia($collection) as $media) {
+                    $media->copy($copy, $collection);
+                }
             }
         } catch (Throwable) {
             // A missing photo file must not block receiving stock.
