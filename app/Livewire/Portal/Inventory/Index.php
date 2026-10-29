@@ -270,7 +270,7 @@ class Index extends Component
 
     public function downloadEmptyTemplate()
     {
-        return $this->streamSpreadsheet(InventoryExcelTemplate::empty(), 'inventory-import-template.xlsx');
+        return $this->streamSpreadsheet(InventoryExcelTemplate::empty(Auth::user()->merchant), 'inventory-import-template.xlsx');
     }
 
     public function downloadCurrentProducts()
@@ -294,14 +294,15 @@ class Index extends Component
         $this->validate(['importFile' => ['required', 'file', 'mimes:xlsx,xls']]);
 
         $merchant = Auth::user()->merchant;
-        ['rows' => $rows, 'errors' => $errors] = InventoryExcelImporter::parse($this->importFile->getRealPath());
+        ['rows' => $rows, 'errors' => $errors] = InventoryExcelImporter::parse($this->importFile->getRealPath(), $merchant);
+        $storeId = StoreAccess::defaultStoreId();
 
         $created = 0;
         $restocked = 0;
 
-        DB::transaction(function () use ($merchant, $rows, &$created, &$restocked) {
+        DB::transaction(function () use ($merchant, $rows, $storeId, &$created, &$restocked) {
             foreach ($rows as $row) {
-                $result = InventoryExcelImporter::resolveItem($merchant, $row);
+                $result = InventoryExcelImporter::resolveItem($merchant, $row, $storeId);
                 $result['created'] ? $created++ : $restocked++;
 
                 if ($row['quantity'] > 0) {

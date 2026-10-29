@@ -16,13 +16,17 @@
         <x-ui.card>
             <h2 class="text-[15px] text-ink-secondary mb-1">Import inventory from Excel</h2>
             <p class="text-[12px] text-ink-mute mb-4">
-                Barcode is how we tell products apart — a row with a barcode that already exists just adds to that product's stock, so you won't get duplicates. Leave Barcode blank on a new product and we'll generate one for you. Any existing product that doesn't have a barcode yet gets one assigned automatically when you download the current products file below.
+                Every row must be a product from our catalog: download the template and pick each product from the dropdown in the first column (the full list is on the "Catalog" sheet). The name, unit and photos come from the catalog — you only fill in your barcode, prices and quantity. A row whose barcode, or catalog product and pack size, you already stock just adds to that stock, so you won't get duplicates. Missing a product? Add it with "+ Add inventory item" and propose it to the catalog.
             </p>
 
             <div class="flex flex-wrap gap-3 mb-4">
                 <x-ui.button type="button" variant="secondary" size="sm" wire:click="downloadEmptyTemplate" target="downloadEmptyTemplate">Download empty template</x-ui.button>
                 <x-ui.button type="button" variant="secondary" size="sm" wire:click="downloadCurrentProducts" target="downloadCurrentProducts">Download current products (with barcodes)</x-ui.button>
             </div>
+
+            <p class="text-[12px] text-ink-mute mb-4">
+                <strong class="text-ink-secondary">Photos:</strong> imported products show the catalog's front and back photos automatically. To use your own, open the product after the import and upload them there.
+            </p>
 
             <form wire:submit="importExcel" class="space-y-2">
                 <label class="block text-[13px] text-ink-mute mb-1.5">Upload filled-in spreadsheet</label>

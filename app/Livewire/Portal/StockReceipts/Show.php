@@ -193,7 +193,7 @@ class Show extends Component
 
     public function downloadEmptyTemplate()
     {
-        return $this->streamSpreadsheet(InventoryExcelTemplate::empty(), 'stock-receipt-import-template.xlsx');
+        return $this->streamSpreadsheet(InventoryExcelTemplate::empty(Auth::user()->merchant), 'stock-receipt-import-template.xlsx');
     }
 
     public function downloadCurrentProducts()
@@ -219,7 +219,7 @@ class Show extends Component
         $this->validate(['importFile' => ['required', 'file', 'mimes:xlsx,xls']]);
 
         $merchant = Auth::user()->merchant;
-        ['rows' => $rows, 'errors' => $errors] = InventoryExcelImporter::parse($this->importFile->getRealPath());
+        ['rows' => $rows, 'errors' => $errors] = InventoryExcelImporter::parse($this->importFile->getRealPath(), $merchant);
 
         $count = 0;
 
@@ -229,7 +229,7 @@ class Show extends Component
                     continue;
                 }
 
-                $result = InventoryExcelImporter::resolveItem($merchant, $row);
+                $result = InventoryExcelImporter::resolveItem($merchant, $row, $this->receipt->branch_id);
                 $this->storeLine($result['item']->id, $row['quantity'], $row['unit_cost'] ?? 0);
                 $count++;
             }

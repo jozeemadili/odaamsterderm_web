@@ -105,7 +105,7 @@
 
             @if($showImportForm)
                 <p class="text-[12px] text-ink-mute mb-4 mt-2">
-                    Barcode is how we tell products apart — a row with a barcode that already exists on an existing product adds a line for that product, so you won't get duplicates. Leave Barcode blank on a new product and we'll generate one for you. Any existing product that doesn't have a barcode yet gets one assigned automatically when you download the current products file below. Inventory quantities only change once this receipt is approved.
+                    Every row must be a product from our catalog — pick it from the dropdown in the first column of the template. A row whose barcode, or catalog product and pack size, you already stock adds a line for that product, so you won't get duplicates. Inventory quantities only change once this receipt is approved.
                 </p>
 
                 <div class="flex flex-wrap gap-3 mb-4">
