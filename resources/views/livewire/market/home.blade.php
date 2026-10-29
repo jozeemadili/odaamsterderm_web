@@ -1,19 +1,45 @@
-<div class="space-y-5">
-    @unless($from)
-        <div class="rounded-xl bg-primary-subtle/40 border border-primary/20 px-4 py-3 text-[14px] text-ink flex flex-wrap items-center justify-between gap-3">
-            <span>Set your location to see the nearest stores and how far each one is.</span>
-            <button type="button" x-data x-on:click="document.querySelector('header [wire\\:click=openPicker]')?.click()" class="rounded-pill bg-primary text-ink font-medium px-3.5 py-1.5 text-[13px] hover:bg-primary-deep">Set location</button>
-        </div>
+<div class="space-y-6">
+    @unless($hasFilters)
+        <section class="relative overflow-hidden rounded-2xl bg-brand-dark text-white">
+            <div class="absolute inset-0 opacity-30" style="background: radial-gradient(60% 80% at 85% 10%, var(--color-primary) 0%, transparent 60%), radial-gradient(50% 60% at 0% 100%, var(--color-shadow-blue) 0%, transparent 70%);"></div>
+            <div class="relative px-6 py-8 sm:px-10 sm:py-12 grid gap-8 lg:grid-cols-[1.4fr_1fr] items-center">
+                <div>
+                    <p class="text-[12px] uppercase tracking-[0.18em] text-primary-soft font-medium">Animal products marketplace</p>
+                    <h1 class="mt-3 text-[28px] sm:text-[40px] leading-[1.1] font-light tracking-tight">Everything your animals need, from <span class="text-primary-soft font-normal">trusted sellers</span> near you.</h1>
+                    <p class="mt-3 text-[15px] text-white/70 max-w-xl">Compare prices on feeds, vaccines, medicines and equipment for poultry, cattle, goats, pigs and fish — from approved agrovets across Tanzania.</p>
+                    <div class="mt-6 flex flex-wrap gap-3">
+                        <a href="#products" class="rounded-pill bg-primary text-ink font-medium px-5 py-2.5 text-[14px] hover:bg-primary-soft transition">Browse products</a>
+                        @unless($from)
+                            <button type="button" x-data x-on:click="document.querySelector('header [wire\\:click=openPicker]')?.click()" class="rounded-pill border border-white/25 text-white px-5 py-2.5 text-[14px] hover:bg-white/10 transition">Find stores near me</button>
+                        @endunless
+                    </div>
+                </div>
+                <ul class="hidden sm:grid gap-3 text-[14px]">
+                    @foreach([
+                        ['Approved sellers only', 'Every store is checked before it can sell.'],
+                        ['Compare before you buy', 'See every store\'s price for the same product.'],
+                        ['Closest stores first', 'Set your location to see how far each one is.'],
+                    ] as [$title, $text])
+                        <li class="flex gap-3 rounded-xl bg-white/5 border border-white/10 px-4 py-3">
+                            <span class="mt-0.5 h-5 w-5 shrink-0 rounded-full bg-primary/20 text-primary-soft flex items-center justify-center">
+                                <svg viewBox="0 0 20 20" fill="currentColor" class="h-3.5 w-3.5"><path fill-rule="evenodd" d="M16.7 5.3a1 1 0 0 1 0 1.4l-7.5 7.5a1 1 0 0 1-1.4 0l-3.5-3.5a1 1 0 1 1 1.4-1.4l2.8 2.79 6.8-6.8a1 1 0 0 1 1.4 0Z" clip-rule="evenodd"/></svg>
+                            </span>
+                            <span><span class="block font-medium text-white">{{ $title }}</span><span class="text-white/60 text-[13px]">{{ $text }}</span></span>
+                        </li>
+                    @endforeach
+                </ul>
+            </div>
+        </section>
     @endunless
 
     {{-- Animal type chips --}}
-    <div class="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
-        <button wire:click="chooseAnimal(null)" class="shrink-0 text-[13px] px-3.5 py-1.5 rounded-pill border {{ $animal === '' ? 'bg-brand-dark text-white border-brand-dark' : 'bg-canvas border-hairline text-ink-secondary hover:border-primary/40' }}">All animals</button>
+    <div id="products" class="scroll-mt-4 flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 [scrollbar-width:none]">
+        <button wire:click="chooseAnimal(null)" class="shrink-0 text-[13px] px-4 py-2 rounded-pill border transition {{ $animal === '' ? 'bg-brand-dark text-white border-brand-dark' : 'bg-canvas border-hairline text-ink-secondary hover:border-primary/40' }}">All animals</button>
         @foreach($animalGroups as $group)
-            <button wire:click="chooseAnimal({{ $group->id }})" class="shrink-0 text-[13px] px-3.5 py-1.5 rounded-pill border {{ $animal === (string) $group->id ? 'bg-brand-dark text-white border-brand-dark' : 'bg-canvas border-hairline text-ink-secondary hover:border-primary/40' }}">{{ $group->name }}</button>
+            <button wire:click="chooseAnimal({{ $group->id }})" class="shrink-0 text-[13px] px-4 py-2 rounded-pill border transition {{ $animal === (string) $group->id ? 'bg-brand-dark text-white border-brand-dark' : 'bg-canvas border-hairline text-ink-secondary hover:border-primary/40' }}">{{ $group->name }}</button>
             @if($animal !== '' && ($animal === (string) $group->id || $group->children->contains('id', (int) $animal)))
                 @foreach($group->children as $child)
-                    <button wire:click="chooseAnimal({{ $child->id }})" class="shrink-0 text-[13px] px-3.5 py-1.5 rounded-pill border {{ $animal === (string) $child->id ? 'bg-primary text-ink border-primary' : 'bg-canvas border-hairline text-ink-secondary hover:border-primary/40' }}">{{ $child->name }}</button>
+                    <button wire:click="chooseAnimal({{ $child->id }})" class="shrink-0 text-[13px] px-4 py-2 rounded-pill border transition {{ $animal === (string) $child->id ? 'bg-primary text-ink border-primary' : 'bg-canvas border-hairline text-ink-secondary hover:border-primary/40' }}">{{ $child->name }}</button>
                 @endforeach
             @endif
         @endforeach
@@ -21,8 +47,12 @@
 
     <div class="grid grid-cols-1 lg:grid-cols-[240px_1fr] gap-5">
         {{-- Filters --}}
-        <aside class="space-y-3">
-            <x-ui.card padding="p-4">
+        <aside class="space-y-3" x-data="{ open: false }">
+            <button type="button" x-on:click="open = !open" class="lg:hidden w-full flex items-center justify-between rounded-xl border border-hairline bg-canvas px-4 py-2.5 text-[14px] text-ink">
+                <span>Filters &amp; sort @if($hasFilters)<span class="ml-1 rounded-pill bg-primary/20 text-primary-deep text-[11px] px-2 py-0.5">on</span>@endif</span>
+                <svg viewBox="0 0 20 20" fill="currentColor" class="h-4 w-4 transition" :class="open && 'rotate-180'"><path fill-rule="evenodd" d="M5.2 7.2a.75.75 0 0 1 1.06 0L10 10.94l3.74-3.74a.75.75 0 1 1 1.06 1.06l-4.27 4.27a.75.75 0 0 1-1.06 0L5.2 8.26a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"/></svg>
+            </button>
+            <x-ui.card padding="p-4" class="hidden lg:block lg:sticky lg:top-4" x-bind:class="open && '!block'">
                 <div class="space-y-3">
                     <x-ui.select wire:model.live="sort" label="Sort by" id="mk_sort">
                         @if($askAi)<option value="relevance">Best match (AI)</option>@endif
@@ -107,44 +137,36 @@
             @endif
 
             <div class="flex items-baseline justify-between">
-                <h1 class="text-[22px] font-light tracking-tight">{{ $askAi ? 'AI picks for you' : ($q !== '' ? 'Results for “'.$q.'”' : 'Animal products') }}</h1>
+                <h2 class="text-[22px] font-light tracking-tight">{{ $askAi ? 'AI picks for you' : ($q !== '' ? 'Results for “'.$q.'”' : 'All products') }}</h2>
                 <span class="text-[13px] text-ink-mute">{{ $products->total() }} {{ \Illuminate\Support\Str::plural('product', $products->total()) }}</span>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4" wire:loading.class="opacity-60">
+            <div class="grid grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4" wire:loading.class="opacity-60">
                 @forelse($products as $product)
-                    <a href="{{ route('market.product', $product->slug) }}" class="block group">
-                        <x-ui.card padding="p-0" class="h-full overflow-hidden group-hover:border-primary/40 transition">
-                            <div class="aspect-[16/9] bg-canvas-soft flex items-center justify-center overflow-hidden">
-                                @if($product->imageUrl())
-                                    <img src="{{ $product->imageUrl() }}" alt="{{ $product->displayName() }}" class="h-full w-full object-cover" loading="lazy">
-                                @else
-                                    <x-icon.inventory class="h-10 w-10 text-ink-mute/50" />
-                                @endif
-                            </div>
-                            <div class="p-4">
-                                <p class="text-[11px] uppercase tracking-wide text-ink-mute">{{ $product->animalType?->name }} · {{ $product->category?->fullName() }}</p>
-                                <h2 class="text-[15px] font-medium text-ink mt-1">{{ $product->displayName() }}</h2>
-                                <x-market.producer :product="$product" class="mt-1" />
-                                <div class="mt-3 flex items-end justify-between gap-2">
-                                    <div>
-                                        @if($product->min_price !== null)
-                                            <p class="text-[11px] text-ink-mute">from</p>
-                                            <p class="text-[18px] font-medium tnum">TZS {{ number_format($product->min_price) }}</p>
-                                        @else
-                                            <p class="text-[13px] text-ruby font-medium">Out of stock</p>
-                                        @endif
-                                    </div>
-                                    <div class="text-right text-[12px] text-ink-mute">
-                                        <p>{{ $product->sellers_count }} {{ \Illuminate\Support\Str::plural('seller', $product->sellers_count) }}</p>
-                                        @if($product->nearest_km !== null)
-                                            <x-market.distance :km="$product->nearest_km" prefix="Nearest" class="mt-1" />
-                                        @endif
-                                    </div>
+                    <article class="group relative flex flex-col overflow-hidden rounded-xl bg-canvas border border-hairline hover:border-primary/40 hover:shadow-[0_8px_24px_rgba(1,22,47,0.08)] transition">
+                        <x-market.photo-carousel :photos="$product->imageUrls()" :alt="$product->displayName()" :href="route('market.product', $product->slug)" class="aspect-square" />
+                        <a href="{{ route('market.product', $product->slug) }}" class="flex flex-1 flex-col p-4">
+                            <p class="text-[11px] uppercase tracking-wide text-ink-mute truncate">{{ collect([$product->animalType?->name, $product->category?->name])->filter()->join(' · ') }}</p>
+                            <h2 class="text-[15px] font-medium text-ink mt-1 leading-snug line-clamp-2 group-hover:text-primary-deep">{{ $product->displayName() }}</h2>
+                            <x-market.producer :product="$product" class="mt-1" />
+                            <div class="mt-auto pt-3 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-1 sm:gap-2">
+                                <div>
+                                    @if($product->min_price !== null)
+                                        <p class="text-[11px] text-ink-mute">from</p>
+                                        <p class="text-[16px] sm:text-[18px] font-semibold tnum text-ink whitespace-nowrap">TZS {{ number_format($product->min_price) }}</p>
+                                    @else
+                                        <p class="text-[13px] text-ruby font-medium">Out of stock</p>
+                                    @endif
+                                </div>
+                                <div class="sm:text-right text-[12px] text-ink-mute">
+                                    <p>{{ $product->sellers_count }} {{ \Illuminate\Support\Str::plural('seller', $product->sellers_count) }}</p>
+                                    @if($product->nearest_km !== null)
+                                        <x-market.distance :km="$product->nearest_km" prefix="Nearest" class="mt-1" />
+                                    @endif
                                 </div>
                             </div>
-                        </x-ui.card>
-                    </a>
+                        </a>
+                    </article>
                 @empty
                     @if($aiPending)
                         @foreach(range(1, 3) as $i)

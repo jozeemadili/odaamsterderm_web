@@ -11,7 +11,7 @@
     @livewireStyles
 </head>
 <body class="bg-canvas-soft text-ink font-sans antialiased min-h-screen flex flex-col">
-    <header class="bg-brand-dark text-white">
+    <header class="md:sticky md:top-0 z-30 bg-brand-dark/95 backdrop-blur text-white shadow-[0_1px_0_rgba(255,255,255,0.06),0_4px_16px_rgba(1,22,47,0.25)]">
         <div class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap items-center gap-3">
             <a href="{{ route('market.home') }}" class="flex items-center gap-2 shrink-0">
                 <img src="{{ asset('images/favicon-512.png') }}" alt="" class="h-8 w-8 rounded-md">
@@ -64,10 +64,39 @@
         {{ $slot }}
     </main>
 
-    <footer class="border-t border-hairline bg-canvas">
-        <div class="max-w-6xl mx-auto px-4 py-6 flex flex-wrap items-center justify-between gap-3 text-[13px] text-ink-mute">
-            <p>Odaamsterderm Hub — livestock, poultry and aquaculture products from approved sellers.</p>
-            <a href="{{ route('register') }}" class="text-primary hover:text-primary-deep">Sell on Odaamsterderm Hub &rarr;</a>
+    <footer class="mt-8 bg-brand-dark text-white/70">
+        <div class="max-w-6xl mx-auto px-4 py-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr] text-[14px]">
+            <div>
+                <a href="{{ route('market.home') }}" class="flex items-center gap-2">
+                    <img src="{{ asset('images/favicon-512.png') }}" alt="" class="h-8 w-8 rounded-md">
+                    <span class="text-[18px] font-light tracking-tight text-white">Odaamsterderm<span class="font-medium text-primary-soft"> Hub</span></span>
+                </a>
+                <p class="mt-3 max-w-sm text-[13px] leading-relaxed">Livestock, poultry and aquaculture products from approved sellers. Compare prices and buy from the stores closest to you.</p>
+            </div>
+            <div>
+                <p class="text-[12px] uppercase tracking-[0.14em] text-white/50 font-medium mb-3">Buy</p>
+                <ul class="space-y-2">
+                    <li><a href="{{ route('market.home') }}" class="hover:text-white">All products</a></li>
+                    @auth
+                        @if(auth()->user()->isCustomer())
+                            <li><a href="{{ route('market.account') }}" class="hover:text-white">My account</a></li>
+                        @endif
+                    @else
+                        <li><a href="{{ route('customer.register') }}" class="hover:text-white">Create an account</a></li>
+                        <li><a href="{{ route('login') }}" class="hover:text-white">Sign in</a></li>
+                    @endauth
+                </ul>
+            </div>
+            <div>
+                <p class="text-[12px] uppercase tracking-[0.14em] text-white/50 font-medium mb-3">Sell</p>
+                <ul class="space-y-2">
+                    <li><a href="{{ route('register') }}" class="text-primary-soft hover:text-primary">Sell on Odaamsterderm Hub &rarr;</a></li>
+                    <li><a href="{{ route('login') }}" class="hover:text-white">Seller sign in</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="border-t border-white/10">
+            <p class="max-w-6xl mx-auto px-4 py-4 text-[12px] text-white/40">&copy; {{ date('Y') }} Odaamsterderm Hub. All rights reserved.</p>
         </div>
     </footer>
 
