@@ -2,9 +2,11 @@
 
 namespace Tests\Feature;
 
+use App\Models\AnimalType;
 use App\Models\InventoryItem;
 use App\Models\Merchant;
 use App\Models\Product;
+use App\Models\ProductCategory;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -48,5 +50,25 @@ class FreshStartTest extends TestCase
         $this->assertNotNull($catalog->fresh()->image());
         $this->assertNull(Product::find($proposal->id));
         $this->assertSame(1, Media::count());
+    }
+
+    public function test_admin_only_also_clears_the_catalog(): void
+    {
+        Storage::fake('public');
+        $this->createSeller();
+        $admin = User::factory()->create(['user_type' => User::TYPE_INTERNAL]);
+        $admin->assignRole('super_admin');
+        $catalog = Product::where('status', Product::STATUS_APPROVED)->firstOrFail();
+        $catalog->addMedia(UploadedFile::fake()->image('cat.jpg'))->toMediaCollection('image');
+
+        $this->artisan('app:fresh-start --admin-only --force')->assertSuccessful();
+
+        $this->assertSame(0, Merchant::count());
+        $this->assertSame(0, Product::count());
+        $this->assertSame(0, AnimalType::count());
+        $this->assertSame(0, ProductCategory::count());
+        $this->assertSame(0, Media::count());
+        $this->assertSame([$admin->id], User::pluck('id')->all());
+        $this->assertTrue($admin->fresh()->hasRole('super_admin'));
     }
 }

@@ -16,10 +16,14 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * platform team and the shared catalog: admin users and roles, animal
  * types, product categories, approved catalog products (with photos),
  * producers, regions, business types and platform settings.
+ *
+ * With --admin-only the catalog goes too (products, variants, categories,
+ * animal types, life stages, producers and every photo), leaving only the
+ * admin users, roles, regions, business types and platform settings.
  */
 class FreshStart extends Command
 {
-    protected $signature = 'app:fresh-start {--dry-run : Only show what would be deleted} {--force : Skip the typed confirmation}';
+    protected $signature = 'app:fresh-start {--dry-run : Only show what would be deleted} {--force : Skip the typed confirmation} {--admin-only : Also delete the whole catalog, keep only admin users}';
 
     protected $description = 'Delete all sellers, stores, stock, sales, orders and customers; keep admins and the catalog';
 
@@ -36,22 +40,33 @@ class FreshStart extends Command
         'sessions', 'password_reset_tokens', 'jobs', 'job_batches', 'failed_jobs', 'cache', 'cache_locks',
     ];
 
+    /** The shared catalog, wiped only with --admin-only. */
+    private const CATALOG = [
+        'products', 'product_variants', 'product_attributes', 'product_attribute_values',
+        'animal_type_product', 'life_stage_product', 'animal_type_product_category',
+        'product_categories', 'animal_types', 'life_stages', 'producers', 'search_keywords',
+    ];
+
     public function handle(): int
     {
-        $tables = array_values(array_filter(self::WIPE, fn ($t) => Schema::hasTable($t)));
+        $adminOnly = (bool) $this->option('admin-only');
+        $wipe = $adminOnly ? [...self::WIPE, ...self::CATALOG] : self::WIPE;
+        $tables = array_values(array_filter($wipe, fn ($t) => Schema::hasTable($t)));
         $users = User::where('user_type', '!=', User::TYPE_INTERNAL);
         $products = Product::where('status', '!=', Product::STATUS_APPROVED);
-        $media = Media::whereNotIn('model_type', [(new Product)->getMorphClass(), (new Producer)->getMorphClass()]);
+        $media = $adminOnly ? Media::query() : Media::whereNotIn('model_type', [(new Product)->getMorphClass(), (new Producer)->getMorphClass()]);
 
         $this->table(['What', 'Rows to delete'], [
             ...array_map(fn ($t) => [$t, DB::table($t)->count()], $tables),
             ['users (sellers, staff, customers)', (clone $users)->count()],
-            ['catalog products not approved', (clone $products)->count()],
-            ['photos and files (not catalog/producer)', (clone $media)->count()],
+            ...($adminOnly ? [] : [['catalog products not approved', (clone $products)->count()]]),
+            ['photos and files'.($adminOnly ? '' : ' (not catalog/producer)'), (clone $media)->count()],
         ]);
-        $this->info('Kept: '.User::where('user_type', User::TYPE_INTERNAL)->count().' admin user(s), '
-            .Product::where('status', Product::STATUS_APPROVED)->count().' approved catalog products, '
-            .Producer::count().' producers, animal types, categories, regions, business types and settings.');
+        $this->info($adminOnly
+            ? 'Kept: '.User::where('user_type', User::TYPE_INTERNAL)->count().' admin user(s), roles, regions, business types and settings.'
+            : 'Kept: '.User::where('user_type', User::TYPE_INTERNAL)->count().' admin user(s), '
+                .Product::where('status', Product::STATUS_APPROVED)->count().' approved catalog products, '
+                .Producer::count().' producers, animal types, categories, regions, business types and settings.');
 
         if ($this->option('dry-run')) {
             $this->comment('Dry run: nothing was deleted.');
@@ -67,8 +82,10 @@ class FreshStart extends Command
 
         // Files first, through the media model, so they leave the disk too.
         (clone $media)->each(fn (Media $m) => $m->delete());
-        (clone $products)->get()->each(fn (Product $p) => $p->delete());
-        Product::query()->update(['proposed_by_merchant_id' => null]);
+        if (! $adminOnly) {
+            (clone $products)->get()->each(fn (Product $p) => $p->delete());
+            Product::query()->update(['proposed_by_merchant_id' => null]);
+        }
 
         Schema::disableForeignKeyConstraints();
         try {
