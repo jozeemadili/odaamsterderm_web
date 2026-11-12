@@ -36,6 +36,10 @@ class AiController extends Controller
         $data = $request->validate([
             'query' => ['required', 'string', 'max:'.AiProductSearch::MAX_QUERY_LENGTH],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:50'],
+            // Earlier turns of the same Ask AI chat, oldest first.
+            'history' => ['nullable', 'array', 'max:'.AiProductSearch::MAX_TURNS],
+            'history.*.question' => ['required', 'string', 'max:'.AiProductSearch::MAX_QUERY_LENGTH],
+            'history.*.answer' => ['required', 'string', 'max:1200'],
         ] + $this->locationRules());
 
         abort_unless(AiProductSearch::enabled(), 403, 'Ask AI is switched off.');
@@ -45,7 +49,7 @@ class AiController extends Controller
             return response()->json(['status' => 'sign_in', 'message' => 'Sign in to use Ask AI.'], 401);
         }
 
-        $result = $ai->search($data['query'], $user, $request->ip());
+        $result = $ai->search($data['query'], $user, $request->ip(), $data['history'] ?? []);
         $from = GeoPoint::tryFrom($request->input('lat'), $request->input('lng'));
         $fallback = in_array($result['status'], [AiProductSearch::STATUS_UNAVAILABLE, AiProductSearch::STATUS_LIMITED], true);
 

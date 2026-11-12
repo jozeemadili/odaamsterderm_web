@@ -138,6 +138,26 @@ class AiSearchTest extends TestCase
         $page->set('ask', 'dewormer for goats')->assertSet('aiThread', []);
     }
 
+    public function test_the_app_api_takes_earlier_turns_of_the_chat(): void
+    {
+        $this->enable();
+        $this->fakeAi($this->answer(['Layers Mash']));
+
+        $this->postJson('/api/v1/market/ai/search', [
+            'query' => 'and for layers?',
+            'history' => [['question' => 'feed for my chicks', 'answer' => 'Use Chicken Starter.']],
+        ])->assertOk()->assertJsonPath('ai.status', 'ok');
+
+        $this->assertSame([
+            ['role' => 'user', 'content' => 'feed for my chicks'],
+            ['role' => 'assistant', 'content' => 'Use Chicken Starter.'],
+            ['role' => 'user', 'content' => 'and for layers?'],
+        ], $this->ai->calls[0]['prompt']);
+
+        $this->postJson('/api/v1/market/ai/search', ['query' => 'x', 'history' => [['question' => 'only a question']]])
+            ->assertJsonValidationErrors('history.0.answer');
+    }
+
     public function test_ids_the_model_invents_are_dropped_and_answers_are_cached(): void
     {
         $this->enable();
