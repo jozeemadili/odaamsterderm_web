@@ -79,13 +79,30 @@ class MarketplaceSearchTest extends TestCase
         $this->assertEquals(3, $starter->sellers_count);
         $this->assertEquals(55, $starter->available_quantity);
         $this->assertEqualsWithDelta(1.2, $starter->nearest_km, 0.1);
-        $this->assertSame(3, $results->total());
+        // The whole catalogue is listed: the 3 stocked products first, then the other 11.
+        $this->assertSame(14, $results->total());
+        $this->assertSame(['Chicken Starter', 'Layers Mash', 'Tilapia Floating Feed'], $results->getCollection()->take(3)->pluck('name')->sort()->values()->all());
+    }
+
+    public function test_products_no_store_has_yet_are_listed_after_the_rest(): void
+    {
+        $names = $this->search->products([], $this->sinza)->getCollection();
+        $drinker = $names->firstWhere('name', 'Chick Drinker');
+
+        $this->assertNull($drinker->sellers_count);
+        $this->assertNull($drinker->min_price);
+        $this->assertGreaterThan($names->search(fn ($p) => $p->name === 'Tilapia Floating Feed'), $names->search(fn ($p) => $p->name === 'Chick Drinker'));
+        $this->get('/')->assertOk()->assertSee('Chick Drinker')->assertSee('Not in stores yet');
+
+        // Filters about offers only show products a store has.
+        $this->assertNotContains('Chick Drinker', $this->search->products(['in_stock' => true], $this->sinza)->getCollection()->pluck('name'));
     }
 
     public function test_filters_by_animal_group_search_price_and_availability(): void
     {
         $poultry = AnimalType::where('slug', 'poultry')->first();
-        $names = fn ($filters, $sort = MarketplaceSearch::SORT_NAME) => $this->search->products($filters, $this->sinza, $sort)->getCollection()->pluck('name')->all();
+        $names = fn ($filters, $sort = MarketplaceSearch::SORT_NAME) => $this->search->products($filters, $this->sinza, $sort)->getCollection()
+            ->filter(fn ($p) => $p->sellers_count)->pluck('name')->values()->all(); // products a store has
 
         // "Poultry" includes products tagged with its child type "Chicken".
         $this->assertSame(['Chicken Starter', 'Layers Mash'], $names(['animal_type_id' => $poultry->id]));
@@ -106,7 +123,7 @@ class MarketplaceSearchTest extends TestCase
     {
         InventoryItem::where('branch_id', $this->stores['C']->id)->update(['marketplace_status' => 'out_of_stock', 'marketplace_quantity' => 0]);
 
-        $all = $this->search->products([], $this->sinza, MarketplaceSearch::SORT_PRICE)->getCollection();
+        $all = $this->search->products([], $this->sinza, MarketplaceSearch::SORT_PRICE)->getCollection()->filter(fn ($p) => $p->sellers_count);
         $this->assertSame('Tilapia Floating Feed', $all->last()->name);
         $this->assertNull($all->last()->min_price);
 

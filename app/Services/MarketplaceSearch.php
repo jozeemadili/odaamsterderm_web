@@ -93,12 +93,27 @@ class MarketplaceSearch
             $query->havingRaw("MIN(CASE WHEN {$available} THEN inventory_items.unit_price END) <= (? + 0)", [(float) $filters['max_price']]);
         }
 
+        // The whole approved catalogue is listed, products no store has yet
+        // after the rest, unless a filter only makes sense for offers
+        // (a seller, a price, stock or a distance).
+        $wholeCatalog = empty($filters['merchant_id']) && empty($filters['in_stock'])
+            && ! is_numeric($filters['min_price'] ?? null) && ! is_numeric($filters['max_price'] ?? null)
+            && ! (is_numeric($filters['radius_km'] ?? null) && $filters['radius_km'] > 0);
+
         // Sort in the outer query: MySQL 5.7 can't use aggregate aliases inside
         // ORDER BY expressions (needed for "nulls last").
         $results = Product::query()
             ->select('products.*', 'agg.min_price', 'agg.max_price', 'agg.sellers_count', 'agg.available_quantity', 'agg.nearest_km')
-            ->joinSub($query->toBase(), 'agg', 'agg.product_id', '=', 'products.id')
             ->with(['animalType', 'animalTypes', 'lifeStages', 'variants', 'category.parent', 'media', 'producer.media']);
+
+        if ($wholeCatalog) {
+            $results->leftJoinSub($query->toBase(), 'agg', 'agg.product_id', '=', 'products.id')
+                ->where('products.status', Product::STATUS_APPROVED)
+                ->tap(fn (Builder $q) => $this->applyProductFilters($q, $filters))
+                ->orderByRaw('agg.sellers_count IS NULL');
+        } else {
+            $results->joinSub($query->toBase(), 'agg', 'agg.product_id', '=', 'products.id');
+        }
 
         $ids = array_values(array_map('intval', $filters['product_ids'] ?? []));
 

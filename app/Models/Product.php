@@ -179,14 +179,18 @@ class Product extends Model implements HasMedia
     /**
      * Subquery of product ids for an animal filter, for queries that join
      * products. The main animal counts too, for rows saved without model
-     * events (seeders) that never got their animal tag.
+     * events (seeders) that never got their animal tag. One plain subquery:
+     * older MySQL rejects a UNION inside IN (…).
      */
     public static function idsTaggedWith(AnimalType $animal): QueryBuilder
     {
         $ids = $animal->filterIds();
 
-        return DB::table('animal_type_product')->select('product_id')->whereIn('animal_type_id', $ids)
-            ->union(DB::table('products')->select('id')->whereIn('animal_type_id', $ids));
+        return DB::table('products as tagged')->select('tagged.id')
+            ->whereIn('tagged.animal_type_id', $ids)
+            ->orWhereExists(fn (QueryBuilder $q) => $q->from('animal_type_product')
+                ->whereColumn('animal_type_product.product_id', 'tagged.id')
+                ->whereIn('animal_type_product.animal_type_id', $ids));
     }
 
     public function scopeApproved(Builder $query): Builder

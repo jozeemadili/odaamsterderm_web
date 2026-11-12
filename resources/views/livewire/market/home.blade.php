@@ -168,12 +168,16 @@
                                     @if($product->min_price !== null)
                                         <p class="text-[11px] text-ink-mute">from</p>
                                         <p class="text-[16px] sm:text-[18px] font-semibold tnum text-ink whitespace-nowrap">TZS {{ number_format($product->min_price) }}</p>
-                                    @else
+                                    @elseif($product->sellers_count)
                                         <p class="text-[13px] text-ruby font-medium">Out of stock</p>
+                                    @else
+                                        <p class="text-[13px] text-ink-mute font-medium">Not in stores yet</p>
                                     @endif
                                 </div>
                                 <div class="sm:text-right text-[12px] text-ink-mute">
-                                    <p>{{ $product->sellers_count }} {{ \Illuminate\Support\Str::plural('seller', $product->sellers_count) }}</p>
+                                    @if($product->sellers_count)
+                                        <p>{{ $product->sellers_count }} {{ \Illuminate\Support\Str::plural('seller', $product->sellers_count) }}</p>
+                                    @endif
                                     @if($product->nearest_km !== null)
                                         <x-market.distance :km="$product->nearest_km" prefix="Nearest" class="mt-1" />
                                     @endif
