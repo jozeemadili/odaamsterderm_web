@@ -29,7 +29,7 @@
                 </div>
                 <p class="text-[13px] text-ink-mute mb-4">We use it only to show the nearest stores and distances.</p>
 
-                <button type="button" class="w-full rounded-pill bg-primary text-ink font-medium px-4 py-2 text-[14px] hover:bg-primary-deep"
+                <button type="button" class="w-full rounded-pill bg-primary text-white font-medium px-4 py-2 text-[14px] hover:bg-primary-deep"
                     x-on:click="if (!navigator.geolocation) { error = 'This browser cannot share its location — pick a point on the map.'; return; }
                         locating = true;
                         navigator.geolocation.getCurrentPosition(

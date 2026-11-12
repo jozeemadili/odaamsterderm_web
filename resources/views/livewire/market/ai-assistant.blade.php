@@ -26,7 +26,7 @@
                 <div class="flex-1 p-6 text-center flex flex-col items-center justify-center gap-3">
                     @if($state === 'guest')
                         <p class="text-[15px] text-ink-secondary">Sign in with your customer account to order with the AI assistant.</p>
-                        <a href="{{ route('login') }}" class="rounded-pill bg-primary text-ink font-medium px-4 py-2 text-[14px] hover:bg-primary-deep">Sign in</a>
+                        <a href="{{ route('login') }}" class="rounded-pill bg-primary text-white font-medium px-4 py-2 text-[14px] hover:bg-primary-deep">Sign in</a>
                         <a href="{{ route('customer.register') }}" class="text-[13px] text-primary-deep underline">Create an account</a>
                     @else
                         <p class="text-[15px] text-ink-secondary">Only customer accounts can place marketplace orders. Seller and staff accounts cannot.</p>
@@ -94,7 +94,7 @@
                             @error('basket')<p class="px-3.5 pb-2 text-[12px] text-ruby">{{ $message }}</p>@enderror
                             <div class="px-3.5 pb-3.5">
                                 <button type="button" wire:click="addToCart" wire:loading.attr="disabled" wire:target="addToCart"
-                                    class="w-full rounded-pill bg-primary text-ink font-medium px-4 py-2.5 text-[14px] hover:bg-primary-deep disabled:opacity-60">
+                                    class="w-full rounded-pill bg-primary text-white font-medium px-4 py-2.5 text-[14px] hover:bg-primary-deep disabled:opacity-60">
                                     Add to cart &amp; review order
                                 </button>
                                 <p class="mt-2 text-[11px] text-ink-mute text-center">Nothing is ordered until you confirm in your cart. AI suggestions can be wrong — check quantities first.</p>

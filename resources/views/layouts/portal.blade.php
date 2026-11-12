@@ -105,7 +105,7 @@
                             $incomingTransfers = \App\Models\StockTransfer::where('merchant_id', auth()->user()->merchant_id)->where('status', 'sent')->whereIn('to_branch_id', \App\Support\StoreAccess::scopeIds())->count();
                         @endphp
                         @if($incomingTransfers)
-                            <span class="ml-auto h-5 min-w-[20px] px-1.5 rounded-full bg-primary text-ink text-[11px] leading-5 text-center font-medium">{{ $incomingTransfers }}</span>
+                            <span class="ml-auto h-5 min-w-[20px] px-1.5 rounded-full bg-primary text-white text-[11px] leading-5 text-center font-medium">{{ $incomingTransfers }}</span>
                         @endif
                     </a>
                     <a href="{{ route('portal.inventory.index') }}" class="icon-dock-item {{ request()->routeIs('portal.inventory.*') ? 'is-active' : '' }}">
@@ -117,7 +117,7 @@
                     <a href="{{ route('portal.orders.index') }}" class="icon-dock-item {{ request()->routeIs('portal.orders.*') ? 'is-active' : '' }}">
                         <x-icon.receipt class="h-4 w-4 shrink-0" /> Orders
                         @if($pendingOrders)
-                            <span class="ml-auto h-5 min-w-[20px] px-1.5 rounded-full bg-primary text-ink text-[11px] leading-5 text-center font-medium">{{ $pendingOrders }}</span>
+                            <span class="ml-auto h-5 min-w-[20px] px-1.5 rounded-full bg-primary text-white text-[11px] leading-5 text-center font-medium">{{ $pendingOrders }}</span>
                         @endif
                     </a>
                     <a href="{{ route('portal.marketplace.index') }}" class="icon-dock-item {{ request()->routeIs('portal.marketplace.*') ? 'is-active' : '' }}">
@@ -282,7 +282,7 @@
             @endif
 
             @if(session('status'))
-                <div class="mb-4 rounded-lg bg-primary-subtle/30 border border-primary/20 text-primary-deep px-4 py-2.5 text-[14px]">
+                <div class="mb-4 rounded-lg bg-success-subtle border border-success/20 text-success px-4 py-2.5 text-[14px]">
                     {{ session('status') }}
                 </div>
             @endif

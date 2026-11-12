@@ -3,7 +3,7 @@
 @php
     $toneClasses = [
         'ink' => 'text-ink',
-        'primary' => 'text-primary',
+        'primary' => 'text-success',
         'ruby' => 'text-ruby',
         'lemon' => 'text-lemon',
     ];

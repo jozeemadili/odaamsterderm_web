@@ -3,15 +3,15 @@
 <head>
     <meta charset="utf-8">
     <style>
-        body { font-family: 'Helvetica', sans-serif; font-size: 11px; color: #01162f; }
-        h1 { font-size: 18px; color: #01162f; margin-bottom: 2px; }
+        body { font-family: 'Helvetica', sans-serif; font-size: 11px; color: #231416; }
+        h1 { font-size: 18px; color: #231416; margin-bottom: 2px; }
         .meta { color: #5c6b7a; font-size: 11px; margin-bottom: 16px; }
         table { width: 100%; border-collapse: collapse; margin-top: 12px; }
         th { background: #f6f9fc; text-align: left; padding: 6px 8px; font-size: 10px; text-transform: uppercase; color: #5c6b7a; border-bottom: 1px solid #e3e8ee; }
         td { padding: 6px 8px; border-bottom: 1px solid #e3e8ee; font-size: 11px; }
         .right { text-align: right; }
-        .total-row td { font-weight: bold; border-top: 2px solid #01162f; border-bottom: none; }
-        .badge { color: #c89a44; font-weight: bold; }
+        .total-row td { font-weight: bold; border-top: 2px solid #231416; border-bottom: none; }
+        .badge { color: #881824; font-weight: bold; }
     </style>
 </head>
 <body>

@@ -25,8 +25,8 @@
                 :labels="$report['daily']['labels']"
                 :height="220"
                 :datasets="[
-                    ['label' => 'Orders', 'data' => $report['daily']['orders'], 'backgroundColor' => '#c89a44', 'yAxisID' => 'y', 'borderRadius' => 4],
-                    ['label' => 'GMV (TZS)', 'data' => $report['daily']['gmv'], 'type' => 'line', 'borderColor' => '#01162f', 'backgroundColor' => 'rgba(1,22,47,0.06)', 'yAxisID' => 'y1', 'tension' => 0.35, 'pointRadius' => 0, 'borderWidth' => 2],
+                    ['label' => 'Orders', 'data' => $report['daily']['orders'], 'backgroundColor' => '#881824', 'yAxisID' => 'y', 'borderRadius' => 4],
+                    ['label' => 'GMV (TZS)', 'data' => $report['daily']['gmv'], 'type' => 'line', 'borderColor' => '#82c247', 'backgroundColor' => 'rgba(42,10,15,0.06)', 'yAxisID' => 'y1', 'tension' => 0.35, 'pointRadius' => 0, 'borderWidth' => 2],
                 ]"
                 :options="['scales' => ['y' => ['beginAtZero' => true, 'ticks' => ['precision' => 0]], 'y1' => ['beginAtZero' => true, 'position' => 'right', 'grid' => ['display' => false]]]]"
             />

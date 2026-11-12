@@ -11,32 +11,36 @@
     --font-sans: 'Inter', 'SF Pro Display', system-ui, -apple-system, sans-serif, 'Apple Color Emoji',
         'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 
-    /* Brand & accent — sampled from the Odaamsterderm Hub logo (navy + gold) */
-    --color-primary: #c89a44;
-    --color-primary-deep: #b3873a;
-    --color-primary-press: #96702f;
-    --color-primary-soft: #d9ae5e;
-    --color-primary-subtle: #f3e6c8;
-    --color-brand-dark: #01162f;
-    --color-success: #1f8a57;
-    --color-success-subtle: #dcf2e6;
-    --color-ruby: #ea2261;
+    /* Brand & accent — Amsterdam Group logo: maroon #881824 + green #82C247.
+       Maroon is the action colour on light surfaces; green is the accent on
+       dark surfaces (header, sidebar) and for good news. */
+    --color-primary: #881824;
+    --color-primary-deep: #6e131d;
+    --color-primary-press: #550e16;
+    --color-primary-soft: #82c247;
+    --color-primary-subtle: #f6e4e6;
+    --color-leaf: #82c247;
+    --color-leaf-deep: #6aa833;
+    --color-brand-dark: #2a0a0f;
+    --color-success: #3f7d1c;
+    --color-success-subtle: #e6f3d6;
+    --color-ruby: #d92d20;
     --color-magenta: #f96bee;
     --color-lemon: #9b6829;
-    --color-shadow-blue: #003770;
+    --color-shadow-blue: #5a1019;
 
     /* Surface */
     --color-canvas: #ffffff;
-    --color-canvas-soft: #f6f9fc;
-    --color-canvas-cream: #f5e9d4;
-    --color-hairline: #e3e8ee;
-    --color-hairline-input: #a8c3de;
+    --color-canvas-soft: #f7f8f3;
+    --color-canvas-cream: #eef6dc;
+    --color-hairline: #e7e6df;
+    --color-hairline-input: #c9c3b8;
 
-    /* Text — navy from the logo */
-    --color-ink: #01162f;
-    --color-ink-secondary: #1f3a57;
-    --color-ink-mute: #5c6b7a;
-    --color-ink-mute-2: #5a6b80;
+    /* Text — warm near-black, close to the logo's black */
+    --color-ink: #231416;
+    --color-ink-secondary: #4a3135;
+    --color-ink-mute: #6d5c5e;
+    --color-ink-mute-2: #6a5a5c;
 
     /* Radius scale (design system) */
     --radius-xs: 4px;
@@ -47,8 +51,8 @@
     --radius-pill: 9999px;
 
     /* Elevation */
-    --shadow-card: 0 1px 3px rgba(0, 55, 112, 0.08);
-    --shadow-float: 0 8px 24px rgba(0, 55, 112, 0.08), 0 2px 6px rgba(0, 55, 112, 0.04);
+    --shadow-card: 0 1px 3px rgba(90, 16, 25, 0.08);
+    --shadow-float: 0 8px 24px rgba(90, 16, 25, 0.08), 0 2px 6px rgba(90, 16, 25, 0.04);
 }
 
 html {
@@ -70,16 +74,16 @@ body {
     font-weight: 300;
 }
 
-/* Gradient mesh backdrop — cream / gold / navy wash, matching the Odaamsterderm Hub mark */
+/* Gradient mesh backdrop — white / green / maroon wash, matching the Amsterdam Group logo */
 .gradient-mesh {
     position: relative;
     background-color: var(--color-canvas);
     background-image:
-        radial-gradient(60% 55% at 8% 20%, rgba(245, 233, 212, 0.95) 0%, rgba(245, 233, 212, 0) 60%),
-        radial-gradient(50% 50% at 30% 10%, rgba(200, 154, 68, 0.4) 0%, rgba(200, 154, 68, 0) 60%),
-        radial-gradient(55% 60% at 55% 22%, rgba(217, 174, 94, 0.45) 0%, rgba(217, 174, 94, 0) 65%),
-        radial-gradient(45% 55% at 75% 12%, rgba(1, 22, 47, 0.18) 0%, rgba(1, 22, 47, 0) 65%),
-        radial-gradient(40% 45% at 92% 28%, rgba(155, 104, 41, 0.3) 0%, rgba(155, 104, 41, 0) 60%);
+        radial-gradient(60% 55% at 8% 20%, rgba(238, 246, 220, 0.95) 0%, rgba(238, 246, 220, 0) 60%),
+        radial-gradient(50% 50% at 30% 10%, rgba(130, 194, 71, 0.4) 0%, rgba(130, 194, 71, 0) 60%),
+        radial-gradient(55% 60% at 55% 22%, rgba(159, 205, 79, 0.45) 0%, rgba(159, 205, 79, 0) 65%),
+        radial-gradient(45% 55% at 75% 12%, rgba(136, 24, 36, 0.18) 0%, rgba(136, 24, 36, 0) 65%),
+        radial-gradient(40% 45% at 92% 28%, rgba(136, 24, 36, 0.22) 0%, rgba(136, 24, 36, 0) 60%);
     filter: saturate(1.05);
 }
 
@@ -102,7 +106,7 @@ body {
 }
 
 .icon-dock-item.is-active {
-    background-color: var(--color-primary);
+    background-color: var(--color-leaf);
     color: var(--color-ink);
 }
 

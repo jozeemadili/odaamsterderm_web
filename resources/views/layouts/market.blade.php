@@ -11,7 +11,7 @@
     @livewireStyles
 </head>
 <body class="bg-canvas-soft text-ink font-sans antialiased min-h-screen flex flex-col">
-    <header class="md:sticky md:top-0 z-30 bg-brand-dark/95 backdrop-blur text-white shadow-[0_1px_0_rgba(255,255,255,0.06),0_4px_16px_rgba(1,22,47,0.25)]">
+    <header class="md:sticky md:top-0 z-30 bg-brand-dark/95 backdrop-blur text-white shadow-[0_1px_0_rgba(255,255,255,0.06),0_4px_16px_rgba(42,10,15,0.25)]">
         <div class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap items-center gap-3">
             <a href="{{ route('market.home') }}" class="flex items-center gap-2 shrink-0">
                 <img src="{{ asset('images/favicon-512.png') }}" alt="" class="h-8 w-8 rounded-md">
@@ -33,7 +33,7 @@
                     <button type="button" x-on:click="ai = !ai; $nextTick(() => $refs.q.focus())" :aria-pressed="ai.toString()"
                         title="Ask AI: describe what you need in your own words (English or Kiswahili)"
                         class="shrink-0 rounded-pill px-3.5 py-2 text-[13px] font-medium border transition"
-                        :class="ai ? 'bg-primary text-ink border-primary' : 'bg-white/10 text-white border-white/15 hover:border-primary-soft'">
+                        :class="ai ? 'bg-leaf text-ink border-leaf' : 'bg-white/10 text-white border-white/15 hover:border-primary-soft'">
                         ✨ Ask AI
                     </button>
                 @endif
@@ -54,7 +54,7 @@
                     </form>
                 @else
                     <a href="{{ route('login') }}" class="text-white/80 hover:text-white">Sign in</a>
-                    <a href="{{ route('customer.register') }}" class="rounded-pill bg-primary text-ink font-medium px-3.5 py-1.5 hover:bg-primary-deep">Create account</a>
+                    <a href="{{ route('customer.register') }}" class="rounded-pill bg-leaf text-ink font-medium px-3.5 py-1.5 hover:bg-leaf-deep">Create account</a>
                 @endauth
             </div>
         </div>
@@ -90,7 +90,7 @@
             <div>
                 <p class="text-[12px] uppercase tracking-[0.14em] text-white/50 font-medium mb-3">Sell</p>
                 <ul class="space-y-2">
-                    <li><a href="{{ route('register') }}" class="text-primary-soft hover:text-primary">Sell on Odaamsterderm Hub &rarr;</a></li>
+                    <li><a href="{{ route('register') }}" class="text-leaf hover:text-white">Sell on Odaamsterderm Hub &rarr;</a></li>
                     <li><a href="{{ route('login') }}" class="hover:text-white">Seller sign in</a></li>
                 </ul>
             </div>

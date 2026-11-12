@@ -23,7 +23,7 @@
                 <div class="text-center mb-6">
                     <p class="text-[13px] uppercase tracking-wide text-ink-mute">Animal products marketplace &amp; store management</p>
                 </div>
-                <div class="bg-canvas/95 backdrop-blur rounded-xl border border-hairline shadow-[0_8px_24px_rgba(0,55,112,0.08),0_2px_6px_rgba(0,55,112,0.04)] p-8">
+                <div class="bg-canvas/95 backdrop-blur rounded-xl border border-hairline shadow-[0_8px_24px_rgba(90,16,25,0.08),0_2px_6px_rgba(90,16,25,0.04)] p-8">
                     {{ $slot }}
                 </div>
             </div>

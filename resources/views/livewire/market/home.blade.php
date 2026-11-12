@@ -1,16 +1,19 @@
 <div class="space-y-6">
     @unless($hasFilters)
-        <section class="relative overflow-hidden rounded-2xl bg-brand-dark text-white">
-            <div class="absolute inset-0 opacity-30" style="background: radial-gradient(60% 80% at 85% 10%, var(--color-primary) 0%, transparent 60%), radial-gradient(50% 60% at 0% 100%, var(--color-shadow-blue) 0%, transparent 70%);"></div>
-            <div class="relative px-6 py-8 sm:px-10 sm:py-12 grid gap-8 lg:grid-cols-[1.4fr_1fr] items-center">
+                <section class="relative overflow-hidden rounded-2xl border border-leaf/40 text-ink"
+            style="background: radial-gradient(ellipse 65% 95% at 50% 25%, #ffffff 0%, #f7fbe9 35%, #d9ec9c 68%, #9fcd4f 100%);">
+            {{-- Red and green wave along the bottom, cut from the banner artwork --}}
+            <div aria-hidden="true" class="absolute inset-x-0 bottom-0 h-14 sm:h-20 lg:h-24 [mask-image:linear-gradient(to_bottom,transparent,black_35%)]"
+                style="background: url('{{ asset('images/hero-wave.webp') }}') center 65% / 100% 250% no-repeat;"></div>
+            <div class="relative px-6 pt-8 pb-20 sm:px-10 sm:pt-10 sm:pb-28 lg:pb-32 grid gap-8 lg:grid-cols-[1.4fr_1fr] items-center">
                 <div>
-                    <p class="text-[12px] uppercase tracking-[0.18em] text-primary-soft font-medium">Animal products marketplace</p>
-                    <h1 class="mt-3 text-[28px] sm:text-[40px] leading-[1.1] font-light tracking-tight">Everything your animals need, from <span class="text-primary-soft font-normal">trusted sellers</span> near you.</h1>
-                    <p class="mt-3 text-[15px] text-white/70 max-w-xl">Compare prices on feeds, vaccines, medicines and equipment for poultry, cattle, goats, pigs and fish — from approved agrovets across Tanzania.</p>
+                    <p class="text-[12px] uppercase tracking-[0.18em] text-primary font-semibold">Animal products marketplace</p>
+                    <h1 class="mt-3 text-[28px] sm:text-[40px] leading-[1.1] font-light tracking-tight text-primary">Everything your animals need, from <span class="font-bold">trusted sellers</span> near you.</h1>
+                    <p class="mt-3 text-[15px] text-ink/80 max-w-xl">Compare prices on feeds, vaccines, medicines and equipment for poultry, cattle, goats, pigs and fish — from approved agrovets across Tanzania.</p>
                     <div class="mt-6 flex flex-wrap gap-3">
-                        <a href="#products" class="rounded-pill bg-primary text-ink font-medium px-5 py-2.5 text-[14px] hover:bg-primary-soft transition">Browse products</a>
+                        <a href="#products" class="rounded-pill bg-primary text-white font-medium px-5 py-2.5 text-[14px] shadow-sm hover:bg-primary-deep transition">Browse products</a>
                         @unless($from)
-                            <button type="button" x-data x-on:click="document.querySelector('header [wire\\:click=openPicker]')?.click()" class="rounded-pill border border-white/25 text-white px-5 py-2.5 text-[14px] hover:bg-white/10 transition">Find stores near me</button>
+                            <button type="button" x-data x-on:click="document.querySelector('header [wire\\:click=openPicker]')?.click()" class="rounded-pill border border-primary/40 bg-white/60 text-primary px-5 py-2.5 text-[14px] hover:bg-white transition">Find stores near me</button>
                         @endunless
                     </div>
                 </div>
@@ -20,11 +23,11 @@
                         ['Compare before you buy', 'See every store\'s price for the same product.'],
                         ['Closest stores first', 'Set your location to see how far each one is.'],
                     ] as [$title, $text])
-                        <li class="flex gap-3 rounded-xl bg-white/5 border border-white/10 px-4 py-3">
-                            <span class="mt-0.5 h-5 w-5 shrink-0 rounded-full bg-primary/20 text-primary-soft flex items-center justify-center">
+                        <li class="flex gap-3 rounded-xl bg-white/85 border border-primary/35 px-4 py-3 shadow-sm">
+                            <span class="mt-0.5 h-5 w-5 shrink-0 rounded-full bg-leaf text-white flex items-center justify-center">
                                 <svg viewBox="0 0 20 20" fill="currentColor" class="h-3.5 w-3.5"><path fill-rule="evenodd" d="M16.7 5.3a1 1 0 0 1 0 1.4l-7.5 7.5a1 1 0 0 1-1.4 0l-3.5-3.5a1 1 0 1 1 1.4-1.4l2.8 2.79 6.8-6.8a1 1 0 0 1 1.4 0Z" clip-rule="evenodd"/></svg>
                             </span>
-                            <span><span class="block font-medium text-white">{{ $title }}</span><span class="text-white/60 text-[13px]">{{ $text }}</span></span>
+                            <span><span class="block font-semibold text-ink">{{ $title }}</span><span class="text-ink/70 text-[13px]">{{ $text }}</span></span>
                         </li>
                     @endforeach
                 </ul>
@@ -39,7 +42,7 @@
             <button wire:click="chooseAnimal({{ $group->id }})" class="shrink-0 text-[13px] px-4 py-2 rounded-pill border transition {{ $animal === (string) $group->id ? 'bg-brand-dark text-white border-brand-dark' : 'bg-canvas border-hairline text-ink-secondary hover:border-primary/40' }}">{{ $group->name }}</button>
             @if($animal !== '' && ($animal === (string) $group->id || $group->children->contains('id', (int) $animal)))
                 @foreach($group->children as $child)
-                    <button wire:click="chooseAnimal({{ $child->id }})" class="shrink-0 text-[13px] px-4 py-2 rounded-pill border transition {{ $animal === (string) $child->id ? 'bg-primary text-ink border-primary' : 'bg-canvas border-hairline text-ink-secondary hover:border-primary/40' }}">{{ $child->name }}</button>
+                    <button wire:click="chooseAnimal({{ $child->id }})" class="shrink-0 text-[13px] px-4 py-2 rounded-pill border transition {{ $animal === (string) $child->id ? 'bg-primary text-white border-primary' : 'bg-canvas border-hairline text-ink-secondary hover:border-primary/40' }}">{{ $child->name }}</button>
                 @endforeach
             @endif
         @endforeach
@@ -143,7 +146,7 @@
 
             <div class="grid grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4" wire:loading.class="opacity-60">
                 @forelse($products as $product)
-                    <article class="group relative flex flex-col overflow-hidden rounded-xl bg-canvas border border-hairline hover:border-primary/40 hover:shadow-[0_8px_24px_rgba(1,22,47,0.08)] transition">
+                    <article class="group relative flex flex-col overflow-hidden rounded-xl bg-canvas border border-hairline hover:border-primary/40 hover:shadow-[0_8px_24px_rgba(42,10,15,0.08)] transition">
                         <x-market.photo-carousel :photos="$product->imageUrls()" :alt="$product->displayName()" :href="route('market.product', $product->slug)" class="aspect-square" />
                         <a href="{{ route('market.product', $product->slug) }}" class="flex flex-1 flex-col p-4">
                             <p class="text-[11px] uppercase tracking-wide text-ink-mute truncate">{{ collect([$product->animalType?->name, $product->category?->name])->filter()->join(' · ') }}</p>

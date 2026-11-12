@@ -156,7 +156,7 @@
             </header>
 
             @if(session('status'))
-                <div class="mb-4 rounded-lg bg-primary-subtle/30 border border-primary/20 text-primary-deep px-4 py-2.5 text-[14px]">
+                <div class="mb-4 rounded-lg bg-success-subtle border border-success/20 text-success px-4 py-2.5 text-[14px]">
                     {{ session('status') }}
                 </div>
             @endif

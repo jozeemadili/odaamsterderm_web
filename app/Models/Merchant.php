@@ -25,7 +25,7 @@ class Merchant extends Model implements HasMedia
 {
     use HasFactory, InteractsWithMedia, LogsActivity;
 
-    public const DEFAULT_BRAND_COLOR = '#01162F';
+    public const DEFAULT_BRAND_COLOR = '#881824';
 
     public function registerMediaCollections(): void
     {
@@ -37,7 +37,7 @@ class Merchant extends Model implements HasMedia
         return $this->getFirstMedia('logo');
     }
 
-    public const DEFAULT_ACCENT_COLOR = '#C9972E';
+    public const DEFAULT_ACCENT_COLOR = '#82C247';
 
     public function brandColor(): string
     {
@@ -58,7 +58,7 @@ class Merchant extends Model implements HasMedia
         $lin = fn ($c) => $c <= 0.03928 ? $c / 12.92 : (($c + 0.055) / 1.055) ** 2.4;
         $luminance = 0.2126 * $lin($r) + 0.7152 * $lin($g) + 0.0722 * $lin($b);
 
-        return $luminance > 0.45 ? '#01162F' : '#FFFFFF';
+        return $luminance > 0.45 ? '#231416' : '#FFFFFF';
     }
 
     /** CSS custom properties for this seller's colours (portal, receipts, store page). */

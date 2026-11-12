@@ -17,7 +17,7 @@
     <div class="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-4 items-start">
     <div class="space-y-4">
         @if($lastReceiptTotal)
-            <div class="rounded-lg bg-primary-subtle/30 border border-primary/20 text-primary-deep px-4 py-2.5 text-[14px] flex items-center justify-between">
+            <div class="rounded-lg bg-success-subtle border border-success/20 text-success px-4 py-2.5 text-[14px] flex items-center justify-between">
                 <span>Sale completed — <span class="tnum font-medium">TZS {{ $lastReceiptTotal }}</span> collected.</span>
                 <button wire:click="$set('lastReceiptTotal', null)" class="text-primary-deep/60 hover:text-primary-deep">&times;</button>
             </div>
@@ -86,10 +86,10 @@
                     wire:loading.attr="disabled"
                     wire:target="addToCart({{ $item->id }})"
                     @disabled($outOfStock)
-                    class="text-left bg-canvas border border-hairline rounded-lg p-3.5 hover:border-primary/50 hover:shadow-[0_1px_3px_rgba(0,55,112,0.08)] transition disabled:opacity-40 disabled:cursor-not-allowed relative"
+                    class="text-left bg-canvas border border-hairline rounded-lg p-3.5 hover:border-primary/50 hover:shadow-[0_1px_3px_rgba(90,16,25,0.08)] transition disabled:opacity-40 disabled:cursor-not-allowed relative"
                 >
                     @if($inCart > 0)
-                        <span class="absolute -top-2 -right-2 h-5 min-w-5 px-1 rounded-full bg-primary text-ink text-[11px] font-medium flex items-center justify-center tnum">{{ rtrim(rtrim(number_format($inCart, 2, '.', ''), '0'), '.') }}</span>
+                        <span class="absolute -top-2 -right-2 h-5 min-w-5 px-1 rounded-full bg-primary text-white text-[11px] font-medium flex items-center justify-center tnum">{{ rtrim(rtrim(number_format($inCart, 2, '.', ''), '0'), '.') }}</span>
                     @endif
                     @if($item->image())
                         <img src="{{ $item->image()->getUrl() }}" alt="" class="h-16 w-full object-cover rounded mb-2 border border-hairline">

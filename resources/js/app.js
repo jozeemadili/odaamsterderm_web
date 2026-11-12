@@ -165,7 +165,7 @@ document.addEventListener('alpine:init', () => {
             });
 
             if (me) {
-                L.circleMarker([me.lat, me.lng], { radius: 8, color: '#01162f', fillColor: '#c89a44', fillOpacity: 1, weight: 3 })
+                L.circleMarker([me.lat, me.lng], { radius: 8, color: '#881824', fillColor: '#82c247', fillOpacity: 1, weight: 3 })
                     .addTo(map)
                     .bindPopup('You are here');
                 bounds.push([me.lat, me.lng]);

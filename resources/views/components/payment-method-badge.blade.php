@@ -7,11 +7,11 @@
         'mixx_yas' => ['bg' => '#FDE9D9', 'text' => '#C24E00', 'label' => 'Mx'],
         'halopesa' => ['bg' => '#FBE3E8', 'text' => '#C21E4A', 'label' => 'H'],
         'tpesa' => ['bg' => '#E1ECFB', 'text' => '#1A56B0', 'label' => 'T'],
-        'bank' => ['bg' => '#E9EDF3', 'text' => '#01162F', 'label' => 'Bk'],
-        'card' => ['bg' => '#F3E6C8', 'text' => '#96702F', 'label' => 'Cd'],
+        'bank' => ['bg' => '#F1EFEA', 'text' => '#231416', 'label' => 'Bk'],
+        'card' => ['bg' => '#F6E4E6', 'text' => '#881824', 'label' => 'Cd'],
     ];
 
-    $colors = $palette[$method->slug] ?? ['bg' => '#E9EDF3', 'text' => '#01162F', 'label' => mb_substr($method->name, 0, 2)];
+    $colors = $palette[$method->slug] ?? ['bg' => '#F1EFEA', 'text' => '#231416', 'label' => mb_substr($method->name, 0, 2)];
 @endphp
 
 <span

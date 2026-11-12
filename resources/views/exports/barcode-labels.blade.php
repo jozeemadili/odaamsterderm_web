@@ -12,7 +12,7 @@
         .label .shop-logo { height: 16px; max-width: 90%; margin-bottom: 2px; }
         .label .biz { font-size: 8px; color: #9ca3af; text-transform: uppercase; letter-spacing: .3px; margin: 0 0 2px 0; }
         .label .name { font-size: 11px; font-weight: bold; color: #1a1a1a; margin: 0 0 2px 0; }
-        .label .price { font-size: 12px; font-weight: bold; color: #01162F; margin: 0 0 4px 0; }
+        .label .price { font-size: 12px; font-weight: bold; color: #231416; margin: 0 0 4px 0; }
         .label .barcode-img { height: 34px; }
         .label .code { font-size: 9px; letter-spacing: 1px; color: #333; margin-top: 2px; }
     </style>

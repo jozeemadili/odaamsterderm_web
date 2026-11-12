@@ -47,7 +47,7 @@
                         :height="160"
                         :datasets="[[
                             'data' => $kycValues,
-                            'backgroundColor' => ['#c89a44', '#01162f', '#1f8a57', '#ea2261', '#f3e6c8'],
+                            'backgroundColor' => ['#881824', '#82c247', '#231416', '#d9a441', '#c9c3b8'],
                             'borderWidth' => 0,
                         ]]"
                         :options="['cutout' => '72%']"
@@ -55,7 +55,7 @@
                     />
                     <div class="space-y-2.5 flex-1">
                         @foreach($kycLabels as $i => $label)
-                            @php $colors = ['#c89a44', '#01162f', '#1f8a57', '#ea2261', '#f3e6c8']; @endphp
+                            @php $colors = ['#881824', '#82c247', '#231416', '#d9a441', '#c9c3b8']; @endphp
                             <div class="flex items-center justify-between text-[13px]">
                                 <span class="flex items-center gap-2 text-ink-secondary">
                                     <span class="h-2 w-2 rounded-full" style="background-color: {{ $colors[$i % 5] }}"></span>
@@ -82,8 +82,8 @@
                 :height="200"
                 :datasets="[[
                     'data' => $paymentTrendValues,
-                    'borderColor' => '#c89a44',
-                    'backgroundColor' => 'rgba(200,154,68,0.12)',
+                    'borderColor' => '#881824',
+                    'backgroundColor' => 'rgba(136,24,36,0.10)',
                     'fill' => true,
                     'tension' => 0.4,
                     'pointRadius' => 0,

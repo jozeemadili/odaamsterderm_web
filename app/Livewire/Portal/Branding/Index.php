@@ -19,6 +19,7 @@ class Index extends Component
 
     /** Ready-made pairs [main, accent] sellers can start from. */
     public const PALETTES = [
+        'Maroon & green' => ['#881824', '#82C247'],
         'Navy & gold' => ['#01162F', '#C9972E'],
         'Forest & lime' => ['#14532D', '#84CC16'],
         'Ocean & coral' => ['#0C4A6E', '#F97316'],

@@ -51,7 +51,7 @@
                 <label class="block text-[13px] text-ink-mute mb-1.5" for="brand_color_hex">Main colour</label>
                 <div class="flex items-center gap-3">
                     <input type="color" wire:model.live="brand_color" class="h-10 w-14 rounded border border-hairline-input cursor-pointer" aria-label="Main colour picker">
-                    <x-ui.input wire:model.live.debounce.400ms="brand_color" placeholder="#01162F" id="brand_color_hex" class="w-32" />
+                    <x-ui.input wire:model.live.debounce.400ms="brand_color" placeholder="#881824" id="brand_color_hex" class="w-32" />
                 </div>
                 @error('brand_color') <p class="text-ruby text-[12px] mt-1">{{ $message }}</p> @enderror
             </div>
@@ -59,7 +59,7 @@
                 <label class="block text-[13px] text-ink-mute mb-1.5" for="brand_accent_hex">Accent colour</label>
                 <div class="flex items-center gap-3">
                     <input type="color" wire:model.live="brand_accent_color" class="h-10 w-14 rounded border border-hairline-input cursor-pointer" aria-label="Accent colour picker">
-                    <x-ui.input wire:model.live.debounce.400ms="brand_accent_color" placeholder="#C9972E" id="brand_accent_hex" class="w-32" />
+                    <x-ui.input wire:model.live.debounce.400ms="brand_accent_color" placeholder="#82C247" id="brand_accent_hex" class="w-32" />
                 </div>
                 @error('brand_accent_color') <p class="text-ruby text-[12px] mt-1">{{ $message }}</p> @enderror
             </div>

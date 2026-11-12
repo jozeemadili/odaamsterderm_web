@@ -47,7 +47,7 @@ class SellerBrandingTest extends TestCase
         $this->assertSame('#84CC16', $this->merchant->accentColor());
 
         $this->actingAs($this->seller)->get(route('portal.dashboard'))->assertOk()
-            ->assertSee('--brand:#14532D;--brand-ink:#FFFFFF;--brand-accent:#84CC16;--brand-accent-ink:#01162F;', false);
+            ->assertSee('--brand:#14532D;--brand-ink:#FFFFFF;--brand-accent:#84CC16;--brand-accent-ink:#231416;', false);
 
         // Store cards on the marketplace home and the stores API carry the branding.
         $this->get('/')->assertOk()->assertSee('background: #14532D', false)->assertSee('background: #84CC16', false);

@@ -8,7 +8,7 @@
     <style>
         :root { {{ $merchant->brandCssVars() }} }
         * { box-sizing: border-box; }
-        body { margin: 0; background: #f3f4f6; font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif; color: #01162F; font-size: 14px; }
+        body { margin: 0; background: #f3f4f6; font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif; color: #231416; font-size: 14px; }
         .receipt { max-width: 420px; margin: 16px auto; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,.08); }
         .head { background: var(--brand); color: var(--brand-ink); padding: 18px 20px; display: flex; align-items: center; gap: 14px; }
         .head img { height: 52px; width: 52px; object-fit: contain; background: #fff; border-radius: 8px; padding: 4px; }
@@ -17,7 +17,7 @@
         .band { height: 5px; background: var(--brand-accent); }
         .body { padding: 18px 20px; }
         .meta { display: flex; justify-content: space-between; font-size: 12px; color: #6b7280; margin-bottom: 12px; gap: 8px; }
-        .meta strong { display: block; color: #01162F; font-size: 15px; }
+        .meta strong { display: block; color: #231416; font-size: 15px; }
         .tag { display: inline-block; background: var(--brand-accent); color: var(--brand-accent-ink); border-radius: 999px; padding: 2px 10px; font-size: 11px; font-weight: 600; }
         table { width: 100%; border-collapse: collapse; margin-top: 8px; }
         td { padding: 7px 0; border-bottom: 1px dashed #e5e7eb; vertical-align: top; }

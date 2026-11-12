@@ -8,7 +8,7 @@
     <style>
         :root { {{ $merchant->brandCssVars() }} }
         * { box-sizing: border-box; }
-        body { margin: 0; background: #f3f4f6; font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif; color: #01162F; font-size: 14px; }
+        body { margin: 0; background: #f3f4f6; font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif; color: #231416; font-size: 14px; }
         .note { max-width: 720px; margin: 16px auto; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,.08); }
         .head { background: var(--brand); color: var(--brand-ink); padding: 18px 22px; display: flex; align-items: center; gap: 14px; }
         .head img { height: 52px; width: 52px; object-fit: contain; background: #fff; border-radius: 8px; padding: 4px; }
@@ -29,7 +29,7 @@
         td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
         .small { font-size: 12px; color: #6b7280; }
         .signs { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 32px; }
-        .signs div { border-top: 1px solid #01162F; padding-top: 6px; font-size: 12px; }
+        .signs div { border-top: 1px solid #231416; padding-top: 6px; font-size: 12px; }
         .foot { text-align: center; font-size: 11px; color: #9ca3af; padding: 12px 22px 18px; }
         .actions { max-width: 720px; margin: 0 auto 24px; padding: 0 16px; }
         .actions button { width: 100%; border: 0; border-radius: 999px; padding: 11px; font-size: 14px; font-weight: 600; cursor: pointer; background: var(--brand); color: var(--brand-ink); }
