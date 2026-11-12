@@ -37,23 +37,21 @@
 
     {{-- Animal type chips --}}
     @php
-        $chip = 'shrink-0 inline-flex items-center gap-2 rounded-pill border-2 pl-2.5 pr-4 py-1.5 text-[14px] font-semibold transition';
+        $chip = 'shrink-0 inline-flex items-center rounded-pill border-2 px-4 py-1.5 text-[14px] font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40';
         $chipOn = 'border-primary bg-primary-subtle text-primary';
         $chipOff = 'border-hairline bg-canvas text-ink hover:border-primary/40';
     @endphp
     <div id="products" class="scroll-mt-4 flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 [scrollbar-width:none]">
         <button wire:click="chooseAnimal(null)" class="{{ $chip }} {{ $animal === '' ? $chipOn : $chipOff }}">
-            <span class="text-[22px] leading-none" aria-hidden="true">🐾</span> All animals
+            All animals
         </button>
         @foreach($animalGroups as $group)
             <button wire:click="chooseAnimal({{ $group->id }})" title="{{ $group->name }}" class="{{ $chip }} {{ $animal === (string) $group->id ? $chipOn : $chipOff }}">
-                @if($group->icon())<span class="text-[22px] leading-none" aria-hidden="true">{{ $group->icon() }}</span>@endif
                 {{ $group->shortName() }}
             </button>
             @if($animal !== '' && ($animal === (string) $group->id || $group->children->contains('id', (int) $animal)))
                 @foreach($group->children as $child)
                     <button wire:click="chooseAnimal({{ $child->id }})" title="{{ $child->name }}" class="{{ $chip }} text-[13px] {{ $animal === (string) $child->id ? $chipOn : $chipOff }}">
-                        @if($child->icon())<span class="text-[18px] leading-none" aria-hidden="true">{{ $child->icon() }}</span>@endif
                         {{ $child->shortName() }}
                     </button>
                 @endforeach

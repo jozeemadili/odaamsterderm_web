@@ -147,10 +147,16 @@ class Product extends Model implements HasMedia
         return array_values(array_filter([$this->getAttribute('seller_image_url')]));
     }
 
-    /** Front first, then back: the photos customers can swipe through. */
+    /**
+     * Front first, then back: the photos customers can swipe through. When
+     * the catalog has no photo, the seller's front and back photos (set by
+     * MarketplaceSearch::attachSellerPhotos).
+     */
     public function imageUrls(): array
     {
-        return array_values(array_filter([$this->imageUrl(), $this->backImage()?->getUrl()]));
+        $back = $this->image() ? $this->backImage()?->getUrl() : $this->getAttribute('seller_back_image_url');
+
+        return array_values(array_filter([$this->imageUrl(), $back]));
     }
 
     /**

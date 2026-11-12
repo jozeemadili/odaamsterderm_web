@@ -23,21 +23,6 @@ class AnimalType extends Model
         ];
     }
 
-    /** Picture for the marketplace filter chips, by workbook code. */
-    public const ICONS = [
-        'AN-POU' => '🐔', 'AN-CHK' => '🐥', 'AN-OPO' => '🦃',
-        'AN-CAT' => '🐄', 'AN-DCT' => '🐄', 'AN-BCT' => '🐂',
-        'AN-GTS' => '🐐🐑', 'AN-GOT' => '🐐', 'AN-SHP' => '🐑',
-        'AN-PIG' => '🐖',
-        'AN-FSH' => '🐟', 'AN-TIL' => '🐟', 'AN-CAF' => '🐟',
-        'AN-OTH' => '🐇',
-    ];
-
-    public function icon(): ?string
-    {
-        return self::ICONS[$this->code] ?? $this->parent?->icon();
-    }
-
     /** "Other livestock / animals (rabbits, dogs, bees)" → "Other livestock / animals" */
     public function shortName(): string
     {

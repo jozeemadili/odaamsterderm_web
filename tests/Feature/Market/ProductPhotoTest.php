@@ -77,6 +77,16 @@ class ProductPhotoTest extends TestCase
         $this->assertSame($url, $offers->firstWhere('id', $this->offerB->id)['image_url']);
     }
 
+    public function test_product_cards_show_the_sellers_back_photo_too(): void
+    {
+        $this->offerB->addMedia($this->photo())->toMediaCollection('image');
+        $this->offerB->addMedia(UploadedFile::fake()->image('starter-back.jpg', 600, 600))->toMediaCollection(InventoryItem::BACK_PHOTO);
+        $back = $this->offerB->fresh()->backImage()->getUrl();
+
+        // The card slides to the back photo on hover, so it needs both.
+        $this->get('/')->assertOk()->assertSee($back, false)->assertSee('1/2');
+    }
+
     public function test_app_can_upload_and_remove_a_stock_photo(): void
     {
         Sanctum::actingAs($this->sellerB);

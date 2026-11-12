@@ -139,7 +139,8 @@ class MarketplaceSearch
             ->orderByDesc('inventory_items.updated_at')
             ->get()
             ->unique('product_id')
-            ->each(fn (InventoryItem $item) => $missing[$item->product_id]->setAttribute('seller_image_url', $item->image()?->getUrl()));
+            ->each(fn (InventoryItem $item) => $missing[$item->product_id]->setAttribute('seller_image_url', $item->image()?->getUrl())
+                ->setAttribute('seller_back_image_url', $item->backImage()?->getUrl()));
     }
 
     /**
