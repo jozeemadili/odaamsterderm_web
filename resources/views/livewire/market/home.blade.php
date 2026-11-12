@@ -198,30 +198,49 @@
             @endif
 
             @if($askAi)
-                <div class="rounded-xl border border-primary/30 bg-primary-subtle/30 p-4 space-y-2" @if($aiPending) wire:init="runAi" @endif>
+                {{-- Ask AI as a chat: earlier turns stay above, follow-ups go below. --}}
+                <div class="rounded-xl border border-primary/30 bg-primary-subtle/30 p-4 space-y-3" @if($aiPending) wire:init="runAi" @endif>
                     <div class="flex items-center justify-between gap-3">
                         <p class="text-[12px] uppercase tracking-wide font-medium text-primary-deep">✨ Ask AI</p>
-                        <button type="button" wire:click="clearAi" class="text-[12px] text-ink-mute hover:text-ruby">Clear AI search</button>
+                        <button type="button" wire:click="clearAi" class="text-[12px] text-ink-mute hover:text-ruby">{{ $aiThread ? 'End chat' : 'Clear AI search' }}</button>
                     </div>
-                    <p class="text-[15px] text-ink">“{{ $ask }}”</p>
-                    @if($aiPending)
-                        <p class="text-[14px] text-ink-secondary flex items-center gap-2">
-                            <span class="inline-block h-3 w-3 rounded-full border-2 border-primary border-t-transparent animate-spin"></span>
-                            Finding the right products in live stock…
-                        </p>
-                    @elseif($aiStatus === 'sign_in')
-                        <p class="text-[14px] text-ink-secondary"><a href="{{ route('login') }}" class="text-primary-deep font-medium underline">Sign in</a> to use Ask AI, or use the normal search.</p>
-                    @elseif($aiStatus === 'limited')
-                        <p class="text-[14px] text-ink-secondary">Ask AI is busy right now. Showing normal search results instead — please try again in a minute.</p>
-                    @elseif($aiStatus === 'unavailable')
-                        <p class="text-[14px] text-ink-secondary">Ask AI is not available right now. Showing normal search results instead.</p>
-                    @elseif($aiStatus === 'refused')
-                        <p class="text-[14px] text-ink-secondary">Ask AI can't help with that request. Try describing the animal product you need.</p>
-                    @else
-                        <p class="text-[14px] text-ink-secondary whitespace-pre-line">{{ $ai['summary'] }}</p>
-                    @endif
-                    @if(! $aiPending && in_array($aiStatus, ['ok', 'off_topic'], true))
-                        <p class="text-[11px] text-ink-mute">AI suggestions can be wrong — check each product before you buy. Prices, stock and distances are live from the stores.</p>
+
+                    @foreach($aiThread as $turn)
+                        <div class="flex justify-end"><p class="max-w-[85%] rounded-2xl rounded-br-sm bg-primary text-white px-3.5 py-2 text-[14px]">{{ $turn['question'] }}</p></div>
+                        <p class="max-w-[90%] rounded-2xl rounded-bl-sm bg-canvas border border-hairline px-3.5 py-2 text-[14px] text-ink-secondary whitespace-pre-line">{{ $turn['answer'] }}</p>
+                    @endforeach
+
+                    <div class="flex justify-end"><p class="max-w-[85%] rounded-2xl rounded-br-sm bg-primary text-white px-3.5 py-2 text-[14px]">{{ $ask }}</p></div>
+                    <div class="max-w-[90%] rounded-2xl rounded-bl-sm bg-canvas border border-hairline px-3.5 py-2 text-[14px] text-ink-secondary">
+                        @if($aiPending)
+                            <span class="flex items-center gap-2">
+                                <span class="inline-block h-3 w-3 rounded-full border-2 border-primary border-t-transparent animate-spin"></span>
+                                Thinking and checking live stock…
+                            </span>
+                        @elseif($aiStatus === 'sign_in')
+                            <a href="{{ route('login') }}" class="text-primary-deep font-medium underline">Sign in</a> to use Ask AI, or use the normal search.
+                        @elseif($aiStatus === 'limited')
+                            Ask AI is busy right now. Showing normal search results instead — please try again in a minute.
+                        @elseif($aiStatus === 'unavailable')
+                            Ask AI is not available right now. Showing normal search results instead.
+                        @elseif($aiStatus === 'refused')
+                            Ask AI can only help with animals, farming and products here. Try asking about what your animals need.
+                        @else
+                            <span class="whitespace-pre-line">{{ $ai['summary'] }}</span>
+                        @endif
+                    </div>
+
+                    @if(! $aiPending && in_array($aiStatus, ['ok', 'off_topic', 'refused'], true))
+                        <form wire:submit="askFollowUp" class="flex items-end gap-2 pt-1">
+                            <label for="ai_follow_up" class="sr-only">Ask a follow-up question</label>
+                            <textarea id="ai_follow_up" wire:model="followUp" rows="1" maxlength="{{ \App\Services\Ai\AiProductSearch::MAX_QUERY_LENGTH }}"
+                                x-data x-on:keydown.enter.prevent="if (! $event.shiftKey) $el.form.requestSubmit()"
+                                placeholder="Ask a follow-up, e.g. How much do I need for 300 chicks?"
+                                class="flex-1 min-w-0 resize-none rounded-xl border border-hairline-input bg-canvas px-3.5 py-2.5 text-[14px] focus:outline-none focus:border-primary"></textarea>
+                            <button type="submit" class="shrink-0 rounded-pill bg-primary text-white font-medium px-5 py-2.5 text-[14px] hover:bg-primary-deep" wire:loading.attr="disabled" wire:target="askFollowUp">Send</button>
+                        </form>
+                        @error('followUp')<p class="text-[12px] text-ruby">{{ $message }}</p>@enderror
+                        <p class="text-[11px] text-ink-mute">AI suggestions can be wrong — check each product before you buy. Prices, stock and distances are live from the stores. The products below match your latest question.</p>
                     @endif
                 </div>
             @endif

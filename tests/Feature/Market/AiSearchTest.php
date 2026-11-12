@@ -95,7 +95,7 @@ class AiSearchTest extends TestCase
 
         Livewire::withQueryParams(['ask' => 'feed for my chicks and fish'])
             ->test(Home::class)
-            ->assertSee('Finding the right products')
+            ->assertSee('Thinking and checking live stock')
             ->call('runAi')
             ->assertSee('200 chicks need about 2 bags')
             ->assertSeeInOrder(['Tilapia Floating Feed', 'Chicken Starter 25KG'])
@@ -107,6 +107,35 @@ class AiSearchTest extends TestCase
         $this->assertStringContainsString('Chicken Starter', $system);
         $this->assertStringContainsString('from TZS 43,500', $system);
         $this->assertSame(1, AiRequest::where('status', 'ok')->where('input_tokens', 1200)->where('results_count', 2)->count());
+    }
+
+    public function test_customers_keep_chatting_with_follow_up_questions(): void
+    {
+        $this->enable();
+        $this->fakeAi($this->answer(['Chicken Starter']))->then($this->answer(['Layers Mash'], ['summary' => 'For laying hens use Layers Mash.']));
+
+        $page = Livewire::withQueryParams(['ask' => 'feed for my chicks'])
+            ->test(Home::class)
+            ->call('runAi')
+            ->set('followUp', 'and for layers?')
+            ->call('askFollowUp')
+            ->assertSet('ask', 'and for layers?')
+            ->call('runAi')
+            ->assertSee('feed for my chicks')                   // the earlier turn stays on screen
+            ->assertSee('200 chicks need about 2 bags')
+            ->assertSee('For laying hens use Layers Mash.')
+            ->assertSee('Layers Mash 50KG')                     // picks follow the latest question
+            ->assertSee('End chat');
+
+        // The follow-up goes to the model with the earlier question and answer.
+        $this->assertSame([
+            ['role' => 'user', 'content' => 'feed for my chicks'],
+            ['role' => 'assistant', 'content' => 'Starter feed suits chicks for the first weeks; 200 chicks need about 2 bags.'],
+            ['role' => 'user', 'content' => 'and for layers?'],
+        ], $this->ai->calls[1]['prompt']);
+
+        // A new question from the search bar starts a new chat.
+        $page->set('ask', 'dewormer for goats')->assertSet('aiThread', []);
     }
 
     public function test_ids_the_model_invents_are_dropped_and_answers_are_cached(): void
@@ -173,7 +202,7 @@ class AiSearchTest extends TestCase
 
         Livewire::withQueryParams(['ask' => 'Tilapia'])->test(Home::class)
             ->call('runAi')
-            ->assertDontSee('Finding the right products')
+            ->assertDontSee('Thinking and checking live stock')
             ->assertSee('Tilapia Floating Feed');
         $this->assertCount(0, $this->ai->calls);
     }

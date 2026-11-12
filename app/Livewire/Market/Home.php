@@ -36,6 +36,17 @@ class Home extends Component
     #[Locked]
     public string $aiFor = '';
 
+    /**
+     * Earlier turns of the Ask AI conversation, oldest first; the current
+     * question is $ask and its answer $ai.
+     *
+     * @var list<array{question:string, answer:string}>
+     */
+    public array $aiThread = [];
+
+    /** The follow-up question being typed under the AI answer. */
+    public string $followUp = '';
+
     #[Url]
     public string $animal = '';
 
@@ -69,8 +80,30 @@ class Home extends Component
 
     public function updatedAsk(): void
     {
+        // A new question from the search bar starts a new conversation.
         $this->ai = null;
         $this->aiFor = '';
+        $this->aiThread = [];
+    }
+
+    /** Continues the Ask AI conversation with a follow-up question. */
+    public function askFollowUp(): void
+    {
+        $this->validate(['followUp' => 'required|string|max:'.AiProductSearch::MAX_QUERY_LENGTH], [], ['followUp' => 'question']);
+
+        if ($this->ai && trim((string) ($this->ai['summary'] ?? '')) !== '') {
+            $this->aiThread[] = ['question' => trim($this->ask), 'answer' => $this->ai['summary']];
+            $this->aiThread = array_slice($this->aiThread, -AiProductSearch::MAX_TURNS);
+        }
+
+        $this->ask = trim($this->followUp);
+        $this->followUp = '';
+        $this->ai = null;
+        $this->aiFor = '';
+        $this->resetPage();
+
+        // Show the question at once; the answer follows.
+        $this->js('$wire.runAi()');
     }
 
     /** Runs the AI search for the current question (called by wire:init so the page shows at once). */
@@ -84,7 +117,7 @@ class Home extends Component
         if (! AiProductSearch::availableTo(Auth::user())) {
             $this->ai = ['status' => 'sign_in', 'summary' => '', 'product_ids' => [], 'in_stock' => false, 'sort' => MarketplaceSearch::SORT_RELEVANCE];
         } else {
-            $this->ai = $aiSearch->search($ask, Auth::user(), request()->ip());
+            $this->ai = $aiSearch->search($ask, Auth::user(), request()->ip(), $this->aiThread);
             $this->sort = $this->ai['sort'];
             $this->inStock = $this->inStock || $this->ai['in_stock'];
         }
@@ -95,7 +128,7 @@ class Home extends Component
 
     public function clearAi(): void
     {
-        $this->reset(['ask', 'ai', 'aiFor']);
+        $this->reset(['ask', 'ai', 'aiFor', 'aiThread', 'followUp']);
         $this->sort = MarketLocation::current() ? MarketplaceSearch::SORT_NEAREST : MarketplaceSearch::SORT_PRICE;
         $this->resetPage();
     }
