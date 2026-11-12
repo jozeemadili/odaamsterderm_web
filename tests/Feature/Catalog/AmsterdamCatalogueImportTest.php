@@ -49,7 +49,8 @@ class AmsterdamCatalogueImportTest extends TestCase
         $counts = app(AmsterdamCatalogueImporter::class)->import();
 
         // A front for each of the 14 products plus the backs of Vitamix Chick/Plus, Clear Heat and the pig concentrate.
-        $this->assertSame(['producers' => 3, 'products' => 14, 'product_variants' => 27, 'photos_added' => 18], $counts);
+        // Amsterdam: 14 products, 27 packs, 18 photos. Silverlands: 8 products, 12 packs, 6 photos.
+        $this->assertSame(['producers' => 3, 'products' => 22, 'product_variants' => 39, 'photos_added' => 24], $counts);
 
         $chick->refresh();
         $this->assertSame(['P034-30G', 'P034-100G', 'P034-250G', 'P034-1KG'], $chick->variants()->orderBy('sort_order')->pluck('sku')->all());
@@ -75,11 +76,21 @@ class AmsterdamCatalogueImportTest extends TestCase
         $this->assertSame('50 kg bag', Product::where('code', 'P125')->value('pack_size'));
         $this->assertFalse(Producer::where('code', 'BR-OCP')->value('is_demo'));
 
+        // Silverlands' range keeps its maker; its workbook duplicates are updated, not repeated.
+        $starter = Product::where('code', 'P001')->sole();
+        $this->assertSame('Broiler Starter Crumble', $starter->name);
+        $this->assertSame('Silverlands', $starter->brand);
+        $this->assertSame('silverlands-broiler-starter-crumble.jpg', $starter->image()->getCustomProperty('catalogue_file'));
+        $this->assertSame(['P001-25KG', 'P001-50KG'], $starter->variants()->orderBy('sort_order')->pluck('sku')->all());
+        $this->assertSame(1, Product::where('name', 'Complete Layer Mash')->count());
+        $this->assertSame('Silverlands', Product::where('code', 'P129')->value('brand'));
+        $this->assertNull(Product::where('code', 'P126')->sole()->image()); // no photo on their site
+
         // Re-running changes nothing and adds no second photo.
         $again = app(AmsterdamCatalogueImporter::class)->import();
         $this->assertSame(0, $again['photos_added']);
-        $this->assertSame(125, Product::count());
-        $this->assertSame(166, ProductVariant::count());
+        $this->assertSame(129, Product::count());
+        $this->assertSame(170, ProductVariant::count());
 
         $this->get(route('market.product', $alpha->slug))->assertOk();
     }

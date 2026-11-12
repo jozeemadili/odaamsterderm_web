@@ -13,51 +13,74 @@ use Illuminate\Support\Str;
 use RuntimeException;
 
 /**
- * Loads Amsterdam Group's own product catalogue (database/data/
- * amsterdam-catalogue.json, typed in from their PDF catalogue) on top of
- * the taxonomy workbook: full descriptions, use rates, extra pack sizes and
- * the products the workbook lacks (Selko, Trouw Nutrition, OCP…).
+ * Loads the product catalogues in database/data on top of the taxonomy
+ * workbook: Amsterdam Group's own catalogue (amsterdam-catalogue.json, typed
+ * in from their PDF catalogues) and suppliers' ranges such as Silverlands
+ * (silverlands-catalogue.json, from their website). They add full
+ * descriptions, use rates, extra pack sizes, pack photos and the products
+ * the workbook lacks.
  *
  * Rows are matched on their product code (P034 is the workbook's Vitamix
  * Chick, P116+ are new) and variants on their SKU, so re-running updates in
- * place and never touches stock. The catalogue's front and back pack photos
- * are the products' own photos, so customers see them on every card.
+ * place and never touches stock. A catalogue marked show_under_owner lists
+ * its products under the catalogue owner (hub.catalogue_producer); others
+ * keep their maker. Catalogue pack photos are the products' own photos, so
+ * customers see them on every card.
  */
 class AmsterdamCatalogueImporter
 {
-    public const DATA_PATH = 'database/data/amsterdam-catalogue.json';
+    /** Catalogue files, loaded in this order. */
+    public const DATA_PATHS = [
+        'database/data/amsterdam-catalogue.json',
+        'database/data/silverlands-catalogue.json',
+    ];
 
+    /** Pack photos of every catalogue file. */
     public const PHOTO_DIR = 'database/data/amsterdam-catalogue';
 
     /**
+     * @param  string|null  $path  one catalogue file; all of DATA_PATHS when null
      * @return array{producers: int, products: int, product_variants: int, photos_added: int}
      */
     public function import(?string $path = null): array
     {
-        $path ??= base_path(self::DATA_PATH);
+        if (! ProductCategory::whereNotNull('code')->exists()) {
+            throw new RuntimeException('Import the taxonomy workbook first (php artisan catalog:import-taxonomy).');
+        }
+
+        $totals = ['producers' => 0, 'products' => 0, 'product_variants' => 0, 'photos_added' => 0];
+
+        foreach ($path ? [$path] : array_map(base_path(...), self::DATA_PATHS) as $file) {
+            foreach ($this->importFile($file) as $what => $n) {
+                $totals[$what] += $n;
+            }
+        }
+
+        return $totals;
+    }
+
+    /** @return array{producers: int, products: int, product_variants: int, photos_added: int} */
+    private function importFile(string $path): array
+    {
         if (! is_file($path)) {
             throw new RuntimeException("Catalogue file not found: {$path}");
         }
 
         $data = json_decode(file_get_contents($path), true, flags: JSON_THROW_ON_ERROR);
+        $underOwner = $data['show_under_owner'] ?? true;
 
-        if (! ProductCategory::whereNotNull('code')->exists()) {
-            throw new RuntimeException('Import the taxonomy workbook first (php artisan catalog:import-taxonomy).');
-        }
-
-        return DB::transaction(function () use ($data, $path) {
+        return DB::transaction(function () use ($data, $path, $underOwner) {
             foreach ($data['producers'] as $row) {
                 $this->importProducer($row);
             }
 
             $variants = $photos = 0;
-
             $photoDir = dirname($path).'/'.basename(self::PHOTO_DIR).'/';
 
             foreach ($data['products'] as $row) {
-                $product = $this->importProduct($row);
+                $product = $this->importProduct($row, $underOwner);
                 $variants += count($row['variants']);
-                $photos += (int) $this->setPhoto($product, 'image', $photoDir.$row['photo']);
+                $photos += (int) (isset($row['photo']) && $this->setPhoto($product, 'image', $photoDir.$row['photo']));
                 $photos += (int) (isset($row['photo_back']) && $this->setPhoto($product, Product::BACK_PHOTO, $photoDir.$row['photo_back']));
             }
 
@@ -88,14 +111,14 @@ class AmsterdamCatalogueImporter
     }
 
     /** @param  array<string, mixed>  $row */
-    private function importProduct(array $row): Product
+    private function importProduct(array $row, bool $underOwner): Product
     {
         $code = $row['code'];
         // The maker on the pack, and who the product is shown under (the
         // catalogue owner, when one is configured).
         $maker = Producer::where('code', $row['producer'])->first()
             ?? throw new RuntimeException("Product {$code} uses unknown producer '{$row['producer']}'.");
-        $producer = config('hub.catalogue_producer')
+        $producer = $underOwner && config('hub.catalogue_producer')
             ? Producer::where('code', config('hub.catalogue_producer'))->first() ?? $maker
             : $maker;
         $category = ProductCategory::where('code', $row['category'])->value('id')

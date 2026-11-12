@@ -76,10 +76,10 @@ class TaxonomyImportTest extends TestCase
     {
         $this->artisan('catalog:import-taxonomy')->assertSuccessful();
 
-        // The workbook's 24 brands and 115 products, plus Amsterdam's catalogue (3 brands, 10 products).
+        // The workbook's 24 brands and 115 products, plus Amsterdam's catalogue (3 brands, 10 new products) and Silverlands' (4 new products).
         $this->assertSame(27, Producer::count());
-        $this->assertSame(125, Product::count());
-        $this->assertSame(125, Product::approved()->count());
+        $this->assertSame(129, Product::count());
+        $this->assertSame(129, Product::approved()->count());
 
         $afya = Producer::where('code', 'BR-AFM')->first();
         $this->assertSame('India', $afya->country);
@@ -108,7 +108,7 @@ class TaxonomyImportTest extends TestCase
         $this->assertSame('L', $oneLitre->pack_size_unit);
         $this->assertSame('bottle', $oneLitre->selling_unit);
         $this->assertNotNull($oneLitre->reference_price);
-        $this->assertSame(166, ProductVariant::count()); // 150 workbook SKUs + 16 from the catalogue
+        $this->assertSame(170, ProductVariant::count()); // 150 workbook SKUs + 16 from Amsterdam's catalogue + 4 from Silverlands'
         $this->assertSame(50, ProductVariant::where('selling_unit', 'bird')->value('min_order_qty'));
 
         $newcastle = Product::where('code', 'P063')->first();
