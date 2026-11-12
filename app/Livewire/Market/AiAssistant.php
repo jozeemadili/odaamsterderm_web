@@ -72,7 +72,7 @@ class AiAssistant extends Component
         if ($result['status'] !== AiOrderAssistant::STATUS_OK) {
             $this->messages[] = ['role' => 'notice', 'content' => match ($result['status']) {
                 AiOrderAssistant::STATUS_LIMITED => 'The assistant is busy right now. Please try again in a minute.',
-                AiOrderAssistant::STATUS_REFUSED => 'The assistant can\'t help with that. Tell it which animal products you need.',
+                AiOrderAssistant::STATUS_REFUSED => 'The assistant can only help with animal products, farming and our stores. Try asking about feeds, medicines or what your animals need.',
                 default => 'The assistant is not available right now. You can still search and add products to your cart yourself.',
             }];
 

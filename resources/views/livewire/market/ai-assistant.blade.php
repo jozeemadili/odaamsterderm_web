@@ -38,9 +38,9 @@
                     x-on:ai-scroll.window="$nextTick(() => $el.scrollTop = $el.scrollHeight)">
                     @if(! $messages)
                         <div class="rounded-xl bg-canvas-soft p-4 text-[14px] text-ink-secondary space-y-3">
-                            <p>Describe what you need and I'll put together a basket from stores near you. You check it, then confirm the order in your cart.</p>
+                            <p>Ask me anything about animal feeds, medicines, our products and stores, or tell me what you need and I'll put together a basket from stores near you. You check it, then confirm the order in your cart.</p>
                             <div class="flex flex-wrap gap-2">
-                                @foreach(['Feed for 200 broiler chicks for the first 2 weeks', 'Layers mash for 500 hens, the cheapest', 'Nahitaji chakula cha samaki tilapia'] as $example)
+                                @foreach(['Feed for 200 broiler chicks for the first 2 weeks', 'How much Vitamix Chick do I mix in water?', 'Kuku wangu wanapata joto sana, nifanye nini?', 'Which store is open on Sunday?'] as $example)
                                     <button type="button" wire:click="ask(@js($example))" class="text-left text-[13px] rounded-pill border border-hairline bg-canvas px-3 py-1.5 hover:border-primary/50">{{ $example }}</button>
                                 @endforeach
                             </div>
@@ -106,7 +106,7 @@
                 <form wire:submit="ask" class="border-t border-hairline p-3 flex items-end gap-2">
                     <label for="ai_input" class="sr-only">Message to the AI assistant</label>
                     <textarea id="ai_input" wire:model="input" rows="2" maxlength="{{ \App\Services\Ai\AiOrderAssistant::MAX_MESSAGE_LENGTH }}"
-                        placeholder="e.g. I have 200 broiler chicks, 1 week old…"
+                        placeholder="Ask a question or say what you need, e.g. I have 200 broiler chicks, 1 week old…"
                         x-on:keydown.enter="if (! $event.shiftKey) { $event.preventDefault(); $el.form.requestSubmit(); }"
                         class="flex-1 resize-none rounded-lg border border-hairline-input px-3 py-2 text-[14px] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
                         @disabled($waiting)></textarea>

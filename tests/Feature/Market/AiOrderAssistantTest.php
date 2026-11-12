@@ -9,6 +9,7 @@ use App\Models\Cart;
 use App\Models\InventoryItem;
 use App\Models\Order;
 use App\Models\PlatformSetting;
+use App\Models\Product;
 use App\Models\User;
 use App\Services\Ai\AiClient;
 use App\Services\Ai\AiOrderAssistant;
@@ -108,6 +109,33 @@ class AiOrderAssistantTest extends TestCase
         $this->assertStringContainsString("{$b->id} | Chicken Starter 25KG", $ai->calls[0]['system']);
         $this->assertStringNotContainsString($this->offer('C', 'Chicken Starter')->id.' | Chicken Starter', $ai->calls[0]['system']);
         $this->assertSame(2, AiRequest::where('feature', 'order')->where('status', 'ok')->count());
+    }
+
+    public function test_the_assistant_knows_the_catalogue_and_stores_and_stays_on_business(): void
+    {
+        $this->enable();
+        Product::where('name', 'Chick Drinker')->update(['inclusion_or_dosage' => 'One drinker per 50 chicks.']);
+        $this->stores['A']->update(['phone' => '+255700111222', 'opening_hours' => ['sun' => ['open' => '09:00', 'close' => '13:00']]]);
+        $ai = $this->fakeAi(['reply' => 'Seller A Store is open on Sunday 09:00–13:00.', 'basket' => []]);
+
+        Livewire::actingAs($this->customer)->test(AiAssistant::class)
+            ->set('input', str_repeat('Which store is open on Sunday? ', 25)) // longer than the old 500 limit
+            ->call('ask')
+            ->assertHasNoErrors()
+            ->call('respond')
+            ->assertSee('open on Sunday')
+            ->assertDontSee('Proposed basket');
+
+        $system = $ai->calls[0]['system'];
+        // A catalogue product with no stock online, with its use rate.
+        $this->assertStringContainsString('Chick Drinker', $system);
+        $this->assertStringContainsString('One drinker per 50 chicks.', $system);
+        // The stores, with their contact and hours.
+        $this->assertStringContainsString('Seller A Store (Seller A)', $system);
+        $this->assertStringContainsString('Phone +255700111222', $system);
+        $this->assertStringContainsString('Sun 09:00–13:00', $system);
+        // Anything unrelated is steered back to the business.
+        $this->assertStringContainsString('Stay on this business', $system);
     }
 
     public function test_adding_the_basket_fills_the_cart_without_ordering(): void
