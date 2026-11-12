@@ -64,7 +64,7 @@ class Index extends Component
         Auth::user()->merchant->update(['brand_color' => null, 'brand_accent_color' => null]);
         $this->brand_color = Merchant::DEFAULT_BRAND_COLOR;
         $this->brand_accent_color = Merchant::DEFAULT_ACCENT_COLOR;
-        session()->flash('status', 'Reverted to the Odaamsterderm Hub colours.');
+        session()->flash('status', 'Reverted to the Amsterdam Digital colours.');
 
         $this->redirectRoute('portal.branding.index', navigate: false);
     }

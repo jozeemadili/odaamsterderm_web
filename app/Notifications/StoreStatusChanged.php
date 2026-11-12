@@ -25,7 +25,7 @@ class StoreStatusChanged extends Notification
             'status' => $this->store->status,
             'title' => $suspended ? "{$this->store->name} was suspended" : "{$this->store->name} is active again",
             'message' => $suspended
-                ? 'Its products are hidden from the marketplace'.($this->store->suspension_reason ? ": {$this->store->suspension_reason}" : '.').' Contact Odaamsterderm Hub support to resolve this.'
+                ? 'Its products are hidden from the marketplace'.($this->store->suspension_reason ? ": {$this->store->suspension_reason}" : '.').' Contact Amsterdam Digital support to resolve this.'
                 : 'Its listings are visible on the marketplace again.',
         ];
     }

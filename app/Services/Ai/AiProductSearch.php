@@ -145,7 +145,7 @@ class AiProductSearch
         ]))->implode("\n");
 
         return <<<PROMPT
-        You are the shopping assistant of Odaamsterderm Hub, a Tanzanian marketplace for animal products: feeds, veterinary medicines, vaccines, supplements and farm equipment for poultry, cattle, goats, pigs, pets and other animals.
+        You are the shopping assistant of Amsterdam Digital, a Tanzanian marketplace for animal products: feeds, veterinary medicines, vaccines, supplements and farm equipment for poultry, cattle, goats, pigs, pets and other animals.
 
         A customer describes what they need, in English or Kiswahili. Pick the products from the catalog below that best meet the need, most relevant first, at most 12. Only use ids from the catalog. If nothing in the catalog fits, return an empty list and say so in the summary, suggesting what kind of product to look for instead.
 

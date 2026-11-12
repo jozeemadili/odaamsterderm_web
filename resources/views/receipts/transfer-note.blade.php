@@ -79,7 +79,7 @@
                 <div>Received by (name &amp; signature)</div>
             </div>
         </div>
-        <div class="foot">Powered by Odaamsterderm Hub</div>
+        <div class="foot">Powered by Amsterdam Digital</div>
     </div>
     <div class="actions"><button type="button" onclick="window.print()">Print</button></div>
 </body>

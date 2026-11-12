@@ -226,7 +226,7 @@
                         <p class="qr-caption">Scan to get this PDF</p>
                     </td>
                     <td class="powered-cell">
-                        <p class="powered">Powered by Odaamsterderm Hub</p>
+                        <p class="powered">Powered by Amsterdam Digital</p>
                         <p class="contacts">
                             {{ config('hub.support_email') }}
                             @if(config('hub.support_phone')) &middot; {{ config('hub.support_phone') }} @endif

@@ -36,13 +36,26 @@
     @endunless
 
     {{-- Animal type chips --}}
+    @php
+        $chip = 'shrink-0 inline-flex items-center gap-2 rounded-pill border-2 pl-2.5 pr-4 py-1.5 text-[14px] font-semibold transition';
+        $chipOn = 'border-primary bg-primary-subtle text-primary';
+        $chipOff = 'border-hairline bg-canvas text-ink hover:border-primary/40';
+    @endphp
     <div id="products" class="scroll-mt-4 flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 [scrollbar-width:none]">
-        <button wire:click="chooseAnimal(null)" class="shrink-0 text-[13px] px-4 py-2 rounded-pill border transition {{ $animal === '' ? 'bg-brand-dark text-white border-brand-dark' : 'bg-canvas border-hairline text-ink-secondary hover:border-primary/40' }}">All animals</button>
+        <button wire:click="chooseAnimal(null)" class="{{ $chip }} {{ $animal === '' ? $chipOn : $chipOff }}">
+            <span class="text-[22px] leading-none" aria-hidden="true">🐾</span> All animals
+        </button>
         @foreach($animalGroups as $group)
-            <button wire:click="chooseAnimal({{ $group->id }})" class="shrink-0 text-[13px] px-4 py-2 rounded-pill border transition {{ $animal === (string) $group->id ? 'bg-brand-dark text-white border-brand-dark' : 'bg-canvas border-hairline text-ink-secondary hover:border-primary/40' }}">{{ $group->name }}</button>
+            <button wire:click="chooseAnimal({{ $group->id }})" title="{{ $group->name }}" class="{{ $chip }} {{ $animal === (string) $group->id ? $chipOn : $chipOff }}">
+                @if($group->icon())<span class="text-[22px] leading-none" aria-hidden="true">{{ $group->icon() }}</span>@endif
+                {{ $group->shortName() }}
+            </button>
             @if($animal !== '' && ($animal === (string) $group->id || $group->children->contains('id', (int) $animal)))
                 @foreach($group->children as $child)
-                    <button wire:click="chooseAnimal({{ $child->id }})" class="shrink-0 text-[13px] px-4 py-2 rounded-pill border transition {{ $animal === (string) $child->id ? 'bg-primary text-white border-primary' : 'bg-canvas border-hairline text-ink-secondary hover:border-primary/40' }}">{{ $child->name }}</button>
+                    <button wire:click="chooseAnimal({{ $child->id }})" title="{{ $child->name }}" class="{{ $chip }} text-[13px] {{ $animal === (string) $child->id ? $chipOn : $chipOff }}">
+                        @if($child->icon())<span class="text-[18px] leading-none" aria-hidden="true">{{ $child->icon() }}</span>@endif
+                        {{ $child->shortName() }}
+                    </button>
                 @endforeach
             @endif
         @endforeach
@@ -147,7 +160,7 @@
             <div class="grid grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4" wire:loading.class="opacity-60">
                 @forelse($products as $product)
                     <article class="group relative flex flex-col overflow-hidden rounded-xl bg-canvas border border-hairline hover:border-primary/40 hover:shadow-[0_8px_24px_rgba(42,10,15,0.08)] transition">
-                        <x-market.photo-carousel :photos="$product->imageUrls()" :alt="$product->displayName()" :href="route('market.product', $product->slug)" class="aspect-square" />
+                        <x-market.photo-carousel :photos="$product->imageUrls()" :alt="$product->displayName()" :href="route('market.product', $product->slug)" hover-flip class="aspect-square" />
                         <a href="{{ route('market.product', $product->slug) }}" class="flex flex-1 flex-col p-4">
                             <p class="text-[11px] uppercase tracking-wide text-ink-mute truncate">{{ collect([$product->animalType?->name, $product->category?->name])->filter()->join(' · ') }}</p>
                             <h2 class="text-[15px] font-medium text-ink mt-1 leading-snug line-clamp-2 group-hover:text-primary-deep">{{ $product->displayName() }}</h2>

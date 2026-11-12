@@ -73,7 +73,7 @@
 
             @if($note)<div class="note">{{ $note }}</div>@endif
         </div>
-        <div class="foot">Thank you for shopping with {{ $merchant->business_name }}<br>Powered by Odaamsterderm Hub</div>
+        <div class="foot">Thank you for shopping with {{ $merchant->business_name }}<br>Powered by Amsterdam Digital</div>
     </div>
     <div class="actions">
         <button type="button" onclick="window.print()">Print</button>

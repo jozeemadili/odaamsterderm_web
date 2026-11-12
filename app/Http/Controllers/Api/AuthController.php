@@ -149,7 +149,7 @@ class AuthController extends Controller
         }
 
         if ($user->isMerchantUser() && (! $user->merchant || ! $user->merchant->isActive())) {
-            throw ValidationException::withMessages(['email' => 'This shop account has been deactivated. Contact Odaamsterderm Hub support.']);
+            throw ValidationException::withMessages(['email' => 'This shop account has been deactivated. Contact Amsterdam Digital support.']);
         }
 
         return $this->issueSession($user);

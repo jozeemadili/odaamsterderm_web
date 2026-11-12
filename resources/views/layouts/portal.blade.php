@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ $title ?? 'Portal' }} · Odaamsterderm Hub</title>
+    <title>{{ $title ?? 'Portal' }} · Amsterdam Digital</title>
     <link rel="icon" type="image/png" href="{{ asset('images/favicon-32.png') }}">
     <link rel="apple-touch-icon" href="{{ asset('images/favicon-180.png') }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -32,8 +32,8 @@
                 <img src="{{ $brandMerchant->logo()->getUrl() }}" alt="{{ $brandMerchant->business_name }}" class="h-7 w-7 rounded-md shrink-0 bg-white object-contain p-0.5">
                 <span class="text-[16px] font-medium tracking-tight text-white truncate max-w-[200px]">{{ $brandMerchant->business_name }}</span>
             @else
-            <img src="{{ asset('images/favicon-512.png') }}" alt="Odaamsterderm Hub" class="h-7 w-7 rounded-md shrink-0">
-            <span class="text-[16px] font-light tracking-tight text-white">Odaamsterderm<span class="font-medium text-primary-soft"> Hub</span></span>
+            <img src="{{ asset('images/amsterdam-mark.png') }}" alt="Amsterdam Digital" class="h-7 w-auto rounded-md bg-white px-1.5 py-1 shrink-0">
+            <span class="text-[16px] font-light tracking-tight text-white"><span class="font-semibold text-leaf">Amsterdam</span><span class="font-medium"> Digital</span></span>
             @endif
         </div>
         <button type="button" @click="sidebarOpen = true" class="p-1.5 text-white/80 hover:text-white" aria-label="Open menu">
@@ -63,12 +63,12 @@
                             <img src="{{ $brandMerchant->logo()->getUrl() }}" alt="{{ $brandMerchant->business_name }}" class="h-10 w-10 rounded-lg shrink-0 bg-white object-contain p-0.5">
                             <div class="min-w-0">
                                 <span class="block text-[15px] font-semibold tracking-tight text-white truncate">{{ $brandMerchant->business_name }}</span>
-                                <p class="text-[10px] text-white/40 mt-0.5 uppercase tracking-wide">on Odaamsterderm Hub</p>
+                                <p class="text-[10px] text-white/40 mt-0.5 uppercase tracking-wide">on Amsterdam Digital</p>
                             </div>
                         @else
-                        <img src="{{ asset('images/favicon-512.png') }}" alt="Odaamsterderm Hub" class="h-7 w-7 rounded-md shrink-0">
+                        <img src="{{ asset('images/amsterdam-mark.png') }}" alt="Amsterdam Digital" class="h-7 w-auto rounded-md bg-white px-1.5 py-1 shrink-0">
                         <div class="min-w-0">
-                            <span class="text-[17px] font-light tracking-tight text-white">Odaamsterderm<span class="font-medium text-primary-soft"> Hub</span></span>
+                            <span class="text-[17px] font-light tracking-tight text-white"><span class="font-semibold text-leaf">Amsterdam</span><span class="font-medium"> Digital</span></span>
                             <p class="text-[11px] text-white/40 mt-0.5 uppercase tracking-wide truncate">{{ auth()->user()->merchant?->business_name }}</p>
                         </div>
                         @endif

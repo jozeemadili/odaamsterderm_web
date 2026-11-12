@@ -7,7 +7,7 @@ return [
     | Platform contact details
     |--------------------------------------------------------------------------
     |
-    | Shown on the "Powered by Odaamsterderm Hub" footer of generated documents
+    | Shown on the "Powered by Amsterdam Digital" footer of generated documents
     | (invoices, proformas). Phone and address are optional — the footer
     | only prints the ones that are actually set.
     |

@@ -17,7 +17,7 @@ class EnsureUserIsCustomer
         }
 
         if ($user->status === 'suspended') {
-            abort(403, 'This account has been suspended. Contact Odaamsterderm Hub support.');
+            abort(403, 'This account has been suspended. Contact Amsterdam Digital support.');
         }
 
         return $next($request);

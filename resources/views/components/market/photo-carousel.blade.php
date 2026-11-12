@@ -1,6 +1,7 @@
-@props(['photos' => [], 'alt' => '', 'labels' => ['Front', 'Back'], 'href' => null])
+@props(['photos' => [], 'alt' => '', 'labels' => ['Front', 'Back'], 'href' => null, 'hoverFlip' => false])
 
-{{-- Instagram-style photo slider: swipe on phones, arrows on hover, dots below. --}}
+{{-- Instagram-style photo slider: swipe on phones, arrows on hover, dots below.
+     With hoverFlip, pointing at it with a mouse shows the second (back) photo. --}}
 @php($photos = array_values($photos))
 <div {{ $attributes->merge(['class' => 'relative overflow-hidden bg-canvas-soft group/carousel']) }}
     x-data="{
@@ -8,7 +9,12 @@
         count: {{ count($photos) }},
         go(i) { this.$refs.track.scrollTo({ left: i * this.$refs.track.clientWidth, behavior: 'smooth' }) },
         sync() { this.shown = Math.round(this.$refs.track.scrollLeft / this.$refs.track.clientWidth) },
-    }">
+        canHover: window.matchMedia('(hover: hover)').matches,
+    }"
+    @if($hoverFlip && count($photos) > 1)
+        x-on:mouseenter="canHover && go(1)"
+        x-on:mouseleave="canHover && go(0)"
+    @endif>
     @if(count($photos))
         <div x-ref="track" x-on:scroll.debounce.50ms="sync()"
             class="flex h-full w-full overflow-x-auto snap-x snap-mandatory [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">

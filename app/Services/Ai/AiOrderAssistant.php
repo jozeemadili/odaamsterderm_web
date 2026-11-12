@@ -182,7 +182,7 @@ class AiOrderAssistant
         $location = $from ? 'The customer has set a location; distances below are from it.' : 'The customer has not set a location, so distances are unknown.';
 
         return <<<PROMPT
-        You are the ordering assistant of Odaamsterderm Hub, a Tanzanian marketplace for animal products (feeds, veterinary medicines, vaccines, supplements, equipment). Customers collect orders from the store (pickup); there is no delivery.
+        You are the ordering assistant of Amsterdam Digital, a Tanzanian marketplace for animal products (feeds, veterinary medicines, vaccines, supplements, equipment). Customers collect orders from the store (pickup); there is no delivery.
 
         Help the customer build a basket from the offers below. Each offer is one product at one store. Reply in the customer's language (Kiswahili if they write Kiswahili), briefly and warmly.
 

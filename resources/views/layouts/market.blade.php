@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ isset($title) ? $title.' · ' : '' }}Odaamsterderm Hub — Animal products marketplace</title>
+    <title>{{ isset($title) ? $title.' · ' : '' }}Amsterdam Digital — Animal products marketplace</title>
     <meta name="description" content="Compare prices for animal feeds, vaccines, medicines and equipment from approved sellers near you.">
     <link rel="icon" type="image/png" href="{{ asset('images/favicon-32.png') }}">
     <link rel="apple-touch-icon" href="{{ asset('images/favicon-180.png') }}">
@@ -14,8 +14,8 @@
     <header class="md:sticky md:top-0 z-30 bg-brand-dark/95 backdrop-blur text-white shadow-[0_1px_0_rgba(255,255,255,0.06),0_4px_16px_rgba(42,10,15,0.25)]">
         <div class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap items-center gap-3">
             <a href="{{ route('market.home') }}" class="flex items-center gap-2 shrink-0">
-                <img src="{{ asset('images/favicon-512.png') }}" alt="" class="h-8 w-8 rounded-md">
-                <span class="text-[18px] font-light tracking-tight">Odaamsterderm<span class="font-medium text-primary-soft"> Hub</span></span>
+                <img src="{{ asset('images/amsterdam-mark.png') }}" alt="Amsterdam Digital" class="h-8 w-auto rounded-md bg-white px-1.5 py-1">
+                <span class="text-[18px] font-light tracking-tight"><span class="font-semibold text-leaf">Amsterdam</span><span class="font-medium"> Digital</span></span>
             </a>
 
             @php($askAiOn = \App\Services\Ai\AiProductSearch::enabled())
@@ -68,8 +68,8 @@
         <div class="max-w-6xl mx-auto px-4 py-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr] text-[14px]">
             <div>
                 <a href="{{ route('market.home') }}" class="flex items-center gap-2">
-                    <img src="{{ asset('images/favicon-512.png') }}" alt="" class="h-8 w-8 rounded-md">
-                    <span class="text-[18px] font-light tracking-tight text-white">Odaamsterderm<span class="font-medium text-primary-soft"> Hub</span></span>
+                    <img src="{{ asset('images/amsterdam-mark.png') }}" alt="Amsterdam Digital" class="h-8 w-auto rounded-md bg-white px-1.5 py-1">
+                    <span class="text-[18px] font-light tracking-tight text-white"><span class="font-semibold text-leaf">Amsterdam</span><span class="font-medium"> Digital</span></span>
                 </a>
                 <p class="mt-3 max-w-sm text-[13px] leading-relaxed">Livestock, poultry and aquaculture products from approved sellers. Compare prices and buy from the stores closest to you.</p>
             </div>
@@ -90,13 +90,13 @@
             <div>
                 <p class="text-[12px] uppercase tracking-[0.14em] text-white/50 font-medium mb-3">Sell</p>
                 <ul class="space-y-2">
-                    <li><a href="{{ route('register') }}" class="text-leaf hover:text-white">Sell on Odaamsterderm Hub &rarr;</a></li>
+                    <li><a href="{{ route('register') }}" class="text-leaf hover:text-white">Sell on Amsterdam Digital &rarr;</a></li>
                     <li><a href="{{ route('login') }}" class="hover:text-white">Seller sign in</a></li>
                 </ul>
             </div>
         </div>
         <div class="border-t border-white/10">
-            <p class="max-w-6xl mx-auto px-4 py-4 text-[12px] text-white/40">&copy; {{ date('Y') }} Odaamsterderm Hub. All rights reserved.</p>
+            <p class="max-w-6xl mx-auto px-4 py-4 text-[12px] text-white/40">&copy; {{ date('Y') }} Amsterdam Digital. All rights reserved.</p>
         </div>
     </footer>
 

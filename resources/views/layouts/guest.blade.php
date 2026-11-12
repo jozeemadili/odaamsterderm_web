@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ $title ?? 'Odaamsterderm Hub' }}</title>
+    <title>{{ $title ?? 'Amsterdam Digital' }}</title>
     <link rel="icon" type="image/png" href="{{ asset('images/favicon-32.png') }}">
     <link rel="apple-touch-icon" href="{{ asset('images/favicon-180.png') }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -13,8 +13,8 @@
     <div class="gradient-mesh min-h-screen flex flex-col">
         <header class="px-8 py-6 flex items-center gap-2.5">
             <a href="{{ route('market.home') }}" class="flex items-center gap-2.5">
-            <img src="{{ asset('images/favicon-512.png') }}" alt="Odaamsterderm Hub" class="h-8 w-8 rounded-md">
-            <span class="text-[20px] font-light tracking-tight text-ink">Odaamsterderm<span class="font-medium text-primary"> Hub</span></span>
+            <img src="{{ asset('images/amsterdam-mark.png') }}" alt="Amsterdam Digital" class="h-8 w-auto rounded-md bg-white px-1.5 py-1">
+            <span class="text-[20px] font-light tracking-tight text-ink"><span class="font-semibold text-leaf-deep">Amsterdam</span><span class="font-semibold text-primary"> Digital</span></span>
             </a>
         </header>
 

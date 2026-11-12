@@ -66,7 +66,7 @@
             <div class="sm:col-span-2 flex flex-wrap gap-2">
                 <x-ui.button type="submit" size="sm" target="saveColor">Save colours</x-ui.button>
                 @if($merchant->brand_color || $merchant->brand_accent_color)
-                    <x-ui.button type="button" variant="secondary" size="sm" wire:click="resetColor" target="resetColor">Use Odaamsterderm Hub colours</x-ui.button>
+                    <x-ui.button type="button" variant="secondary" size="sm" wire:click="resetColor" target="resetColor">Use Amsterdam Digital colours</x-ui.button>
                 @endif
             </div>
         </form>
