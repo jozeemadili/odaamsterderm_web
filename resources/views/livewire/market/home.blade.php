@@ -110,7 +110,7 @@
             </x-ui.card>
         </aside>
 
-        <section class="space-y-5">
+        <section class="min-w-0 space-y-5">
             @if(\App\Services\Ai\AiOrderAssistant::enabled())
                 <div class="rounded-xl bg-brand-dark/5 border border-brand-dark/10 px-4 py-3 flex flex-wrap items-center justify-between gap-3">
                     <div>
@@ -150,6 +150,28 @@
                 </div>
             @endif
 
+            @if($featured->isNotEmpty())
+                {{-- Amsterdam Group's own range, first thing customers see. --}}
+                <div class="rounded-2xl border border-primary/15 bg-primary-subtle/40 p-4 sm:p-5">
+                    <div class="flex flex-wrap items-baseline justify-between gap-2 mb-3">
+                        <div>
+                            <p class="text-[11px] uppercase tracking-[0.16em] font-semibold text-primary">Featured</p>
+                            <h2 class="text-[20px] font-light tracking-tight text-ink">Amsterdam Group products</h2>
+                        </div>
+                        <button type="button" wire:click="$set('brand', @js($featuredBrand))" class="text-[13px] font-medium text-primary hover:text-primary-deep">
+                            See all {{ $featuredTotal }} &rarr;
+                        </button>
+                    </div>
+                    <div class="flex gap-3 sm:gap-4 overflow-x-auto snap-x snap-mandatory pb-1 -mx-1 px-1 [scrollbar-width:thin]">
+                        @foreach($featured as $product)
+                            <div class="snap-start shrink-0 w-[46%] sm:w-[31%] xl:w-[23%] flex">
+                                @include('livewire.market.product-card', ['product' => $product])
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+
             <div class="flex items-baseline justify-between">
                 <h2 class="text-[22px] font-light tracking-tight">{{ $askAi ? 'AI picks for you' : ($q !== '' ? 'Results for “'.$q.'”' : 'All products') }}</h2>
                 <span class="text-[13px] text-ink-mute">{{ $products->total() }} {{ \Illuminate\Support\Str::plural('product', $products->total()) }}</span>
@@ -157,34 +179,7 @@
 
             <div class="grid grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4" wire:loading.class="opacity-60">
                 @forelse($products as $product)
-                    <article class="group relative flex flex-col overflow-hidden rounded-xl bg-canvas border border-hairline hover:border-primary/40 hover:shadow-[0_8px_24px_rgba(42,10,15,0.08)] transition">
-                        <x-market.photo-carousel :photos="$product->imageUrls()" :alt="$product->displayName()" :href="route('market.product', $product->slug)" hover-flip class="aspect-square" />
-                        <a href="{{ route('market.product', $product->slug) }}" class="flex flex-1 flex-col p-4">
-                            <p class="text-[11px] uppercase tracking-wide text-ink-mute truncate">{{ collect([$product->animalType?->name, $product->category?->name])->filter()->join(' · ') }}</p>
-                            <h2 class="text-[15px] font-medium text-ink mt-1 leading-snug line-clamp-2 group-hover:text-primary-deep">{{ $product->displayName() }}</h2>
-                            <x-market.producer :product="$product" class="mt-1" />
-                            <div class="mt-auto pt-3 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-1 sm:gap-2">
-                                <div>
-                                    @if($product->min_price !== null)
-                                        <p class="text-[11px] text-ink-mute">from</p>
-                                        <p class="text-[16px] sm:text-[18px] font-semibold tnum text-ink whitespace-nowrap">TZS {{ number_format($product->min_price) }}</p>
-                                    @elseif($product->sellers_count)
-                                        <p class="text-[13px] text-ruby font-medium">Out of stock</p>
-                                    @else
-                                        <p class="text-[13px] text-ink-mute font-medium">Not in stores yet</p>
-                                    @endif
-                                </div>
-                                <div class="sm:text-right text-[12px] text-ink-mute">
-                                    @if($product->sellers_count)
-                                        <p>{{ $product->sellers_count }} {{ \Illuminate\Support\Str::plural('seller', $product->sellers_count) }}</p>
-                                    @endif
-                                    @if($product->nearest_km !== null)
-                                        <x-market.distance :km="$product->nearest_km" prefix="Nearest" class="mt-1" />
-                                    @endif
-                                </div>
-                            </div>
-                        </a>
-                    </article>
+                    @include('livewire.market.product-card', ['product' => $product])
                 @empty
                     @if($aiPending)
                         @foreach(range(1, 3) as $i)

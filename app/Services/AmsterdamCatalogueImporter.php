@@ -20,8 +20,8 @@ use RuntimeException;
  *
  * Rows are matched on their product code (P034 is the workbook's Vitamix
  * Chick, P116+ are new) and variants on their SKU, so re-running updates in
- * place and never touches stock. A pack photo from the catalogue is added
- * only to products that have no photo yet, neither their own nor a seller's.
+ * place and never touches stock. The catalogue's front and back pack photos
+ * are the products' own photos, so customers see them on every card.
  */
 class AmsterdamCatalogueImporter
 {
@@ -52,10 +52,13 @@ class AmsterdamCatalogueImporter
 
             $variants = $photos = 0;
 
+            $photoDir = dirname($path).'/'.basename(self::PHOTO_DIR).'/';
+
             foreach ($data['products'] as $row) {
                 $product = $this->importProduct($row);
                 $variants += count($row['variants']);
-                $photos += (int) $this->addPhoto($product, dirname($path).'/'.basename(self::PHOTO_DIR).'/'.$row['photo']);
+                $photos += (int) $this->setPhoto($product, 'image', $photoDir.$row['photo']);
+                $photos += (int) (isset($row['photo_back']) && $this->setPhoto($product, Product::BACK_PHOTO, $photoDir.$row['photo_back']));
             }
 
             return [
@@ -109,7 +112,7 @@ class AmsterdamCatalogueImporter
         $product->fill(array_filter([
             'code' => $code,
             'name' => $row['name'],
-            'description' => $row['description'],
+            'description' => isset($row['tagline']) ? $row['tagline']."\n\n".$row['description'] : $row['description'],
             'product_category_id' => $category,
             'producer_id' => $producer->id,
             'brand' => $producer->name,
@@ -158,16 +161,23 @@ class AmsterdamCatalogueImporter
         ])->save();
     }
 
-    /** The catalogue's pack photo, for products customers would otherwise see without one. */
-    private function addPhoto(Product $product, string $file): bool
+    /**
+     * The catalogue's pack photo is the product's photo, in front of any
+     * seller's. Replaced only when the catalogue's file changes, so a photo
+     * an admin uploaded for a product the catalogue has no photo for stays.
+     */
+    private function setPhoto(Product $product, string $collection, string $file): bool
     {
-        $hasSellerPhoto = $product->inventoryItems()->whereHas('media', fn ($q) => $q->where('collection_name', 'image'))->exists();
+        $current = $product->getFirstMedia($collection);
+        $name = basename($file);
 
-        if ($product->image() || $hasSellerPhoto || ! is_file($file)) {
+        if (! is_file($file) || $current?->getCustomProperty('catalogue_file') === $name) {
             return false;
         }
 
-        $product->addMedia($file)->preservingOriginal()->toMediaCollection('image');
+        $product->addMedia($file)->preservingOriginal()
+            ->withCustomProperties(['catalogue_file' => $name])
+            ->toMediaCollection($collection);
 
         return true;
     }

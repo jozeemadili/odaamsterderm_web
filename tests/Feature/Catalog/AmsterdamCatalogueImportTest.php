@@ -48,12 +48,17 @@ class AmsterdamCatalogueImportTest extends TestCase
 
         $counts = app(AmsterdamCatalogueImporter::class)->import();
 
-        $this->assertSame(['producers' => 3, 'products' => 14, 'product_variants' => 27, 'photos_added' => 13], $counts);
+        // A front for each of the 14 products plus the backs of Vitamix Chick/Plus, Clear Heat and the pig concentrate.
+        $this->assertSame(['producers' => 3, 'products' => 14, 'product_variants' => 27, 'photos_added' => 18], $counts);
 
         $chick->refresh();
         $this->assertSame(['P034-30G', 'P034-100G', 'P034-250G', 'P034-1KG'], $chick->variants()->orderBy('sort_order')->pluck('sku')->all());
         $this->assertSame('Drinking water: 5 g per 20 L. Feed: 300 g per tonne.', $chick->inclusion_or_dosage);
-        $this->assertNull($chick->image()); // the seller's photos stay what customers see
+        // The catalogue's front and back are what customers see, ahead of the seller's photo.
+        $this->assertSame('vitamix-chick.png', $chick->image()->getCustomProperty('catalogue_file'));
+        $this->assertSame('vitamix-chick-back.png', $chick->backImage()->getCustomProperty('catalogue_file'));
+        $this->assertCount(2, $chick->imageUrls());
+        $this->assertStringStartsWith('Essential chick starter premix', $chick->description);
         $this->assertSame('P034-100G', $stock->fresh()->variant->sku);
 
         $alpha = Product::where('code', 'P121')->sole();

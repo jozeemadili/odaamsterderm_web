@@ -53,7 +53,7 @@ class MarketplaceSearch
      *
      * @param  array{search?:?string, animal_type_id?:int|string|null, category_id?:int|string|null, brand?:?string, merchant_id?:int|string|null, min_price?:mixed, max_price?:mixed, in_stock?:bool, radius_km?:mixed, product_ids?:list<int>, any_words?:list<string>}  $filters
      */
-    public function products(array $filters = [], ?GeoPoint $from = null, string $sort = self::SORT_NEAREST, int $perPage = 20): LengthAwarePaginator
+    public function products(array $filters = [], ?GeoPoint $from = null, string $sort = self::SORT_NEAREST, int $perPage = 20, string $pageName = 'page'): LengthAwarePaginator
     {
         $available = self::AVAILABLE_SQL;
 
@@ -127,7 +127,13 @@ class MarketplaceSearch
             default => $results->orderBy('products.name'),
         };
 
-        $page = $results->orderBy('products.name')->orderBy('products.id')->paginate($perPage)->withQueryString();
+        // Then products customers can see a photo of, before placeholders.
+        $results->orderByRaw(
+            "NOT EXISTS (SELECT 1 FROM media WHERE media.model_type = ? AND media.model_id = products.id AND media.collection_name = 'image')",
+            [(new Product)->getMorphClass()],
+        );
+
+        $page = $results->orderBy('products.name')->orderBy('products.id')->paginate($perPage, ['*'], $pageName)->withQueryString();
         $this->attachSellerPhotos($page->getCollection());
 
         return $page;

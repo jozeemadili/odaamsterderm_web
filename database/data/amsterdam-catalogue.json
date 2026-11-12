@@ -1,9 +1,24 @@
 {
-    "source": "Amsterdam Products Catalogue (PDF, 9 pages), supplied by Amsterdam Group",
+    "source": "Amsterdam Products Catalogue (PDF, 9 pages) and Amsterdam Products Catalog (PDF, 2 pages: front and back pack photos), supplied by Amsterdam Group",
     "producers": [
-        {"code": "BR-SELKO", "name": "Selko", "role": "Manufacturer (feed additives)", "country": "Netherlands"},
-        {"code": "BR-TROUW", "name": "Trouw Nutrition", "role": "Manufacturer (premixes, milk replacers)", "country": "Netherlands"},
-        {"code": "BR-OCP", "name": "OCP", "role": "Manufacturer (feed phosphates)", "country": "Morocco"}
+        {
+            "code": "BR-SELKO",
+            "name": "Selko",
+            "role": "Manufacturer (feed additives)",
+            "country": "Netherlands"
+        },
+        {
+            "code": "BR-TROUW",
+            "name": "Trouw Nutrition",
+            "role": "Manufacturer (premixes, milk replacers)",
+            "country": "Netherlands"
+        },
+        {
+            "code": "BR-OCP",
+            "name": "OCP",
+            "role": "Manufacturer (feed phosphates)",
+            "country": "Morocco"
+        }
     ],
     "products": [
         {
@@ -11,86 +26,214 @@
             "name": "Vitamix Chick",
             "producer": "BR-AMS",
             "category": "C2010",
-            "animals": ["AN-CHK", "AN-OPO"],
-            "life_stages": ["LS-POU-STR"],
+            "animals": [
+                "AN-CHK",
+                "AN-OPO"
+            ],
+            "life_stages": [
+                "LS-POU-STR"
+            ],
             "form": "powder",
-            "description": "Vitamix Chick is a comprehensive nutritional supplement designed to support early chick development, gut health, immunity and optimal growth. It combines essential nutrients for improved chick vitality and performance, particularly during early-life stress and recovery after disease challenges.\n\nVitamix Chick ni kirutubisho cha vifaranga chenye glukosi, amino asidi, probiotiki, vitamini na madini muhimu.",
+            "description": "Vitamix Chick is a comprehensive nutritional supplement designed to support early chick development, gut health, immunity and optimal growth. It combines essential nutrients for improved chick vitality and performance, particularly during early-life stress and recovery after disease challenges.",
             "dosage": "Drinking water: 5 g per 20 L. Feed: 300 g per tonne.",
             "photo": "vitamix-chick.png",
             "variants": [
-                {"sku": "P034-30G", "name": "30 g sachet", "value": 30, "unit": "g", "selling_unit": "sachet"},
-                {"sku": "P034-100G", "name": "100 g sachet", "value": 100, "unit": "g", "selling_unit": "sachet"},
-                {"sku": "P034-250G", "name": "250 g sachet", "value": 250, "unit": "g", "selling_unit": "sachet"},
-                {"sku": "P034-1KG", "name": "1 kg sachet", "value": 1, "unit": "kg", "selling_unit": "sachet"}
-            ]
+                {
+                    "sku": "P034-30G",
+                    "name": "30 g sachet",
+                    "value": 30,
+                    "unit": "g",
+                    "selling_unit": "sachet"
+                },
+                {
+                    "sku": "P034-100G",
+                    "name": "100 g sachet",
+                    "value": 100,
+                    "unit": "g",
+                    "selling_unit": "sachet"
+                },
+                {
+                    "sku": "P034-250G",
+                    "name": "250 g sachet",
+                    "value": 250,
+                    "unit": "g",
+                    "selling_unit": "sachet"
+                },
+                {
+                    "sku": "P034-1KG",
+                    "name": "1 kg sachet",
+                    "value": 1,
+                    "unit": "kg",
+                    "selling_unit": "sachet"
+                }
+            ],
+            "tagline": "Essential chick starter premix formulated with vitamins, probiotics and glucose for strong early-life growth.",
+            "photo_back": "vitamix-chick-back.png"
         },
         {
             "code": "P035",
             "name": "Vitamix Plus",
             "producer": "BR-AMS",
             "category": "C2010",
-            "animals": ["AN-CHK", "AN-OPO"],
-            "life_stages": ["LS-POU-GRW", "LS-POU-FIN", "LS-POU-LAY", "LS-POU-BRD"],
+            "animals": [
+                "AN-CHK",
+                "AN-OPO"
+            ],
+            "life_stages": [
+                "LS-POU-GRW",
+                "LS-POU-FIN",
+                "LS-POU-LAY",
+                "LS-POU-BRD"
+            ],
             "form": "powder",
             "description": "Vitamix Plus+ is a comprehensive vitamin supplement enriched with amino acids, probiotics and trace elements.\n\nBenefits:\n• Supports healthy growth and development.\n• Promotes egg production and eggshell quality.\n• Supports immunity and overall flock health.\n• Enhances digestion and nutrient utilization.\n• Supports reproductive performance and hatchability.\n• Helps maintain optimal nutritional balance.",
             "dosage": "Drinking water: 5 g per 20 L. Feed: 300 g per tonne.",
             "photo": "vitamix-plus.png",
             "variants": [
-                {"sku": "P035-30G", "name": "30 g sachet", "value": 30, "unit": "g", "selling_unit": "sachet"},
-                {"sku": "P035-100G", "name": "100 g sachet", "value": 100, "unit": "g", "selling_unit": "sachet"},
-                {"sku": "P035-250G", "name": "250 g sachet", "value": 250, "unit": "g", "selling_unit": "sachet"},
-                {"sku": "P035-1KG", "name": "1 kg sachet", "value": 1, "unit": "kg", "selling_unit": "sachet"}
-            ]
+                {
+                    "sku": "P035-30G",
+                    "name": "30 g sachet",
+                    "value": 30,
+                    "unit": "g",
+                    "selling_unit": "sachet"
+                },
+                {
+                    "sku": "P035-100G",
+                    "name": "100 g sachet",
+                    "value": 100,
+                    "unit": "g",
+                    "selling_unit": "sachet"
+                },
+                {
+                    "sku": "P035-250G",
+                    "name": "250 g sachet",
+                    "value": 250,
+                    "unit": "g",
+                    "selling_unit": "sachet"
+                },
+                {
+                    "sku": "P035-1KG",
+                    "name": "1 kg sachet",
+                    "value": 1,
+                    "unit": "kg",
+                    "selling_unit": "sachet"
+                }
+            ],
+            "tagline": "Comprehensive feed-grade vitamin supplement packed with essential amino acids and trace elements for peak animal performance.",
+            "photo_back": "vitamix-plus-back.png"
         },
         {
             "code": "P039",
             "name": "Clear Heat Electrolyte",
             "producer": "BR-AMS",
             "category": "C2020",
-            "animals": ["AN-CHK", "AN-OPO"],
-            "life_stages": ["LS-ALL"],
+            "animals": [
+                "AN-CHK",
+                "AN-OPO"
+            ],
+            "life_stages": [
+                "LS-ALL"
+            ],
             "form": "powder",
             "description": "A water-soluble electrolyte supplement enriched with Vitamin C and dextrose, formulated for poultry under high-temperature and stressful environmental conditions.\n\nBenefits:\n• Relieves heat stress.\n• Restores essential electrolyte balance.\n• Helps prevent dehydration.\n• Supports faster recovery during stressful conditions.\n• Promotes appetite and energy.\n• Supports normal muscle and nerve function.",
             "dosage": "2.5 g per 10 litres of drinking water.",
             "photo": "clear-heat-electrolyte.png",
             "variants": [
-                {"sku": "P039-30G", "name": "30 g sachet", "value": 30, "unit": "g", "selling_unit": "sachet"},
-                {"sku": "P039-100G", "name": "100 g sachet", "value": 100, "unit": "g", "selling_unit": "sachet"},
-                {"sku": "P039-250G", "name": "250 g sachet", "value": 250, "unit": "g", "selling_unit": "sachet"},
-                {"sku": "P039-500G", "name": "500 g sachet", "value": 500, "unit": "g", "selling_unit": "sachet"}
-            ]
+                {
+                    "sku": "P039-30G",
+                    "name": "30 g sachet",
+                    "value": 30,
+                    "unit": "g",
+                    "selling_unit": "sachet"
+                },
+                {
+                    "sku": "P039-100G",
+                    "name": "100 g sachet",
+                    "value": 100,
+                    "unit": "g",
+                    "selling_unit": "sachet"
+                },
+                {
+                    "sku": "P039-250G",
+                    "name": "250 g sachet",
+                    "value": 250,
+                    "unit": "g",
+                    "selling_unit": "sachet"
+                },
+                {
+                    "sku": "P039-500G",
+                    "name": "500 g sachet",
+                    "value": 500,
+                    "unit": "g",
+                    "selling_unit": "sachet"
+                }
+            ],
+            "tagline": "Scientifically formulated electrolyte supplement designed to combat heat stress, dehydration and fluid imbalance in poultry.",
+            "photo_back": "clear-heat-electrolyte-back.png"
         },
         {
             "code": "P018",
             "name": "High Performance Protein Concentrate 20% (Pig)",
             "producer": "BR-AMS",
             "category": "C1020",
-            "animals": ["AN-PIG"],
-            "life_stages": ["LS-PIG-GRW", "LS-PIG-FIN", "LS-PIG-SOW", "LS-PIG-BOR"],
+            "animals": [
+                "AN-PIG"
+            ],
+            "life_stages": [
+                "LS-PIG-GRW",
+                "LS-PIG-FIN",
+                "LS-PIG-SOW",
+                "LS-PIG-BOR"
+            ],
             "form": "mash",
             "description": "This concentrate is enriched with all necessary vitamins, minerals, amino acids, probiotics, enzymes, toxin binder and acidifier, for cost-effective, high-quality animal feed production.\n\nBenefits:\n• Promotes faster growth and weight gain.\n• Supports healthy digestion and immunity.\n• Improves feed utilization.\n• Enhances overall pig performance.",
             "dosage": "Growers, fatteners and boars: mix 50 kg concentrate with 200 kg maize bran. Pregnant and lactating sows: mix 50 kg concentrate with 180 kg maize bran.",
             "keywords": "nguruwe|kontsentreti|concentrate|amsterdam feed|pig concentrate",
             "photo": "pig-protein-concentrate.png",
             "variants": [
-                {"sku": "P018-25KG", "name": "25 kg bag", "value": 25, "unit": "kg", "selling_unit": "bag"},
-                {"sku": "P018-50KG", "name": "50 kg bag", "value": 50, "unit": "kg", "selling_unit": "bag"}
-            ]
+                {
+                    "sku": "P018-25KG",
+                    "name": "25 kg bag",
+                    "value": 25,
+                    "unit": "kg",
+                    "selling_unit": "bag"
+                },
+                {
+                    "sku": "P018-50KG",
+                    "name": "50 kg bag",
+                    "value": 50,
+                    "unit": "kg",
+                    "selling_unit": "bag"
+                }
+            ],
+            "tagline": "High-performance 20% pig protein concentrate enriched with essential nutrients for optimal swine growth.",
+            "photo_back": "pig-protein-concentrate-back.png"
         },
         {
             "code": "P116",
             "name": "Fysal SP",
             "producer": "BR-SELKO",
             "category": "C2040",
-            "animals": ["AN-POU", "AN-PIG"],
-            "life_stages": ["LS-ALL"],
+            "animals": [
+                "AN-POU",
+                "AN-PIG"
+            ],
+            "life_stages": [
+                "LS-ALL"
+            ],
             "form": "powder",
             "description": "Fysal is a product designed to improve feed hygiene, control harmful microbes, and support animal and pet health.\n\nBenefits:\n• Eliminates Salmonella in raw materials.\n• Reduces the use of antibiotics.\n• Keeps animals healthy.",
             "dosage": "1–8 kg per tonne of feed.",
             "keywords": "fysal|selko|salmonella|feed hygiene|acidifier",
             "photo": "fysal-sp.png",
             "variants": [
-                {"sku": "P116-25KG", "name": "25 kg bag", "value": 25, "unit": "kg", "selling_unit": "bag"}
+                {
+                    "sku": "P116-25KG",
+                    "name": "25 kg bag",
+                    "value": 25,
+                    "unit": "kg",
+                    "selling_unit": "bag"
+                }
             ]
         },
         {
@@ -98,15 +241,27 @@
             "name": "Maxcare Poultry",
             "producer": "BR-TROUW",
             "category": "C1030",
-            "animals": ["AN-CHK"],
-            "life_stages": ["LS-POU-STR", "LS-POU-GRW", "LS-POU-FIN"],
+            "animals": [
+                "AN-CHK"
+            ],
+            "life_stages": [
+                "LS-POU-STR",
+                "LS-POU-GRW",
+                "LS-POU-FIN"
+            ],
             "form": "powder",
             "description": "Premix of vitamins, micro and macro minerals, amino acids, enzymes, yolk colorant and coccidiostats, for broilers.\n\nBenefits:\n• Convenience: packs all essential micro-ingredients into a single, well-balanced and homogeneously mixed solution.\n• Cost efficiency: helps formulate balanced diets that lower feed production costs.\n• Consistency and quality: standardized, high-quality nutrition with full traceability for reliable animal health, uniform growth and predictable productivity.",
             "dosage": "Broilers: 1.5% of the feed (15 kg per tonne).",
             "keywords": "maxcare|premix|broiler premix|trouw nutrition|kuku wa nyama",
             "photo": "maxcare.png",
             "variants": [
-                {"sku": "P117-15KG", "name": "15 kg bag", "value": 15, "unit": "kg", "selling_unit": "bag"}
+                {
+                    "sku": "P117-15KG",
+                    "name": "15 kg bag",
+                    "value": 15,
+                    "unit": "kg",
+                    "selling_unit": "bag"
+                }
             ]
         },
         {
@@ -114,15 +269,25 @@
             "name": "Maxcare Layers",
             "producer": "BR-TROUW",
             "category": "C1030",
-            "animals": ["AN-CHK"],
-            "life_stages": ["LS-POU-LAY"],
+            "animals": [
+                "AN-CHK"
+            ],
+            "life_stages": [
+                "LS-POU-LAY"
+            ],
             "form": "powder",
             "description": "Premix of vitamins, micro and macro minerals, amino acids, enzymes, yolk colorant and coccidiostats, for laying hens.\n\nBenefits:\n• Convenience: packs all essential micro-ingredients into a single, well-balanced and homogeneously mixed solution.\n• Cost efficiency: helps formulate balanced diets that lower feed production costs.\n• Consistency and quality: standardized, high-quality nutrition with full traceability for reliable animal health, uniform growth and predictable productivity.",
             "dosage": "Layers: 1% of the feed (10 kg per tonne).",
             "keywords": "maxcare|premix|layers premix|trouw nutrition|kuku wa mayai",
             "photo": "maxcare.png",
             "variants": [
-                {"sku": "P118-20KG", "name": "20 kg bag", "value": 20, "unit": "kg", "selling_unit": "bag"}
+                {
+                    "sku": "P118-20KG",
+                    "name": "20 kg bag",
+                    "value": 20,
+                    "unit": "kg",
+                    "selling_unit": "bag"
+                }
             ]
         },
         {
@@ -130,15 +295,25 @@
             "name": "TOXO XL",
             "producer": "BR-SELKO",
             "category": "C2050",
-            "animals": ["AN-POU"],
-            "life_stages": ["LS-ALL"],
+            "animals": [
+                "AN-POU"
+            ],
+            "life_stages": [
+                "LS-ALL"
+            ],
             "form": "powder",
             "description": "TOXO XL reduces the negative effects of a broad spectrum of mycotoxins on poultry health, mortality and technical performance.\n\nMycotoxins can harm the immune system and gut wall of animals, and contamination hurts profitability across the production chain. TOXO helps maintain animal performance when there is a risk of mycotoxin contamination.",
             "dosage": "1–2 kg per tonne of feed.",
             "keywords": "toxo|toxin binder|mycotoxin|selko|sumu ya kuvu",
             "photo": "toxo.png",
             "variants": [
-                {"sku": "P119-25KG", "name": "25 kg bag", "value": 25, "unit": "kg", "selling_unit": "bag"}
+                {
+                    "sku": "P119-25KG",
+                    "name": "25 kg bag",
+                    "value": 25,
+                    "unit": "kg",
+                    "selling_unit": "bag"
+                }
             ]
         },
         {
@@ -146,15 +321,25 @@
             "name": "TOXO MX",
             "producer": "BR-SELKO",
             "category": "C2050",
-            "animals": ["AN-POU"],
-            "life_stages": ["LS-ALL"],
+            "animals": [
+                "AN-POU"
+            ],
+            "life_stages": [
+                "LS-ALL"
+            ],
             "form": "powder",
             "description": "TOXO MX reduces the negative effects of aflatoxin contamination on poultry health, mortality and technical performance.\n\nMycotoxins can harm the immune system and gut wall of animals, and contamination hurts profitability across the production chain. TOXO helps maintain animal performance when there is a risk of mycotoxin contamination.",
             "dosage": "1–5 kg per tonne of feed.",
             "keywords": "toxo|toxin binder|aflatoxin|mycotoxin|selko|sumu ya kuvu",
             "photo": "toxo.png",
             "variants": [
-                {"sku": "P120-25KG", "name": "25 kg bag", "value": 25, "unit": "kg", "selling_unit": "bag"}
+                {
+                    "sku": "P120-25KG",
+                    "name": "25 kg bag",
+                    "value": 25,
+                    "unit": "kg",
+                    "selling_unit": "bag"
+                }
             ]
         },
         {
@@ -162,18 +347,47 @@
             "name": "Selko Alpha",
             "producer": "BR-SELKO",
             "category": "C2040",
-            "animals": ["AN-POU", "AN-PIG"],
-            "life_stages": ["LS-ALL"],
+            "animals": [
+                "AN-POU",
+                "AN-PIG"
+            ],
+            "life_stages": [
+                "LS-ALL"
+            ],
             "form": "liquid",
             "description": "Selko Alpha is a blend of organic acids (free and buffered). It rapidly reduces the pH of livestock drinking water and of the animal's gastrointestinal tract after feeding, helping to improve the microbial balance in the digestive system.\n\nBenefits:\n• Reduces unnecessary use of medications.\n• Improves digestion and feed utilization, supporting better growth and performance.\n• Helps keep poultry litter dry, reducing conditions that encourage disease-causing organisms.\n• Promotes uniformity in flock growth and development.\n• Helps control unpleasant odours from poultry droppings.\n• Supports improved egg and meat production.\n• Supports poultry health and helps reduce the risk of sudden deaths.\n• Keeps drinking water systems clean and stops nipple drinkers from clogging.\n• Reduces production costs and helps improve farmers' profitability.",
             "dosage": "Nguruwe: mara 3 kwa wiki (Jumatatu, Jumatano, Ijumaa). Kuku wa nyama: siku ya 1 hadi siku ya mwisho. Kuku wa mayai, kuku wazazi, chotara na kienyeji: siku ya 1 – wiki ya 6 kila siku; wiki ya 7 – 15 mara 3 kwa wiki; wiki ya 16 – 30 kila siku; wiki ya 31 – mwisho mara 3 kwa wiki.",
             "keywords": "selko alpha|acidifier|organic acids|water acidifier|maji ya kunywa",
             "photo": "selko-alpha.png",
             "variants": [
-                {"sku": "P121-1KG", "name": "1 kg bottle", "value": 1, "unit": "kg", "selling_unit": "bottle"},
-                {"sku": "P121-5KG", "name": "5 kg jerrycan", "value": 5, "unit": "kg", "selling_unit": "jerrycan"},
-                {"sku": "P121-25KG", "name": "25 kg jerrycan", "value": 25, "unit": "kg", "selling_unit": "jerrycan"},
-                {"sku": "P121-200KG", "name": "200 kg drum", "value": 200, "unit": "kg", "selling_unit": "drum"}
+                {
+                    "sku": "P121-1KG",
+                    "name": "1 kg bottle",
+                    "value": 1,
+                    "unit": "kg",
+                    "selling_unit": "bottle"
+                },
+                {
+                    "sku": "P121-5KG",
+                    "name": "5 kg jerrycan",
+                    "value": 5,
+                    "unit": "kg",
+                    "selling_unit": "jerrycan"
+                },
+                {
+                    "sku": "P121-25KG",
+                    "name": "25 kg jerrycan",
+                    "value": 25,
+                    "unit": "kg",
+                    "selling_unit": "jerrycan"
+                },
+                {
+                    "sku": "P121-200KG",
+                    "name": "200 kg drum",
+                    "value": 200,
+                    "unit": "kg",
+                    "selling_unit": "drum"
+                }
             ]
         },
         {
@@ -181,8 +395,15 @@
             "name": "Phosfeed 22 (MCP 22)",
             "producer": "BR-OCP",
             "category": "C1040",
-            "animals": ["AN-POU", "AN-PIG", "AN-CAT", "AN-GTS"],
-            "life_stages": ["LS-ALL"],
+            "animals": [
+                "AN-POU",
+                "AN-PIG",
+                "AN-CAT",
+                "AN-GTS"
+            ],
+            "life_stages": [
+                "LS-ALL"
+            ],
             "form": "granules",
             "description": "A highly digestible feed-grade Monocalcium Phosphate (MCP), formulated to provide essential phosphorus and calcium for livestock and poultry nutrition. Phosphorus (P): 22% ± 1%, Calcium (Ca): 15.1% minimum, Fluorine (F): 0.2% maximum, Moisture: 3% maximum.\n\nBenefits:\n• Supports strong bones and skeletal development.\n• Promotes healthy growth and development.\n• Supports eggshell formation and bone strength in poultry.\n• Improves phosphorus availability and utilization.\n• Supports overall livestock productivity.",
             "dosage": "Use the inclusion rate recommended by your animal nutritionist or feed formulation specialist.",
@@ -190,7 +411,13 @@
             "keywords": "phosfeed|mcp|monocalcium phosphate|phosphate|madini",
             "photo": "phosfeed-22.png",
             "variants": [
-                {"sku": "P122-25KG", "name": "25 kg bag", "value": 25, "unit": "kg", "selling_unit": "bag"}
+                {
+                    "sku": "P122-25KG",
+                    "name": "25 kg bag",
+                    "value": 25,
+                    "unit": "kg",
+                    "selling_unit": "bag"
+                }
             ]
         },
         {
@@ -198,8 +425,13 @@
             "name": "Meat-Bone Meal (MBM)",
             "producer": "BR-AMS",
             "category": "C1040",
-            "animals": ["AN-POU", "AN-PIG"],
-            "life_stages": ["LS-ALL"],
+            "animals": [
+                "AN-POU",
+                "AN-PIG"
+            ],
+            "life_stages": [
+                "LS-ALL"
+            ],
             "form": "mash",
             "description": "Meat and Bone Meal (MBM) is a high-protein animal feed ingredient containing a minimum of 50% crude protein. It is a valuable source of protein, calcium and phosphorus for livestock feed formulation.\n\nBenefits:\n• Provides concentrated protein for animal growth and development.\n• Supplies essential minerals, including calcium and phosphorus.\n• Supports balanced nutritional formulation.\n• Helps reduce reliance on other protein and mineral sources.",
             "dosage": "Per tonne of poultry feed: broiler starter 20–30 kg, broiler grower 30–40 kg, broiler finisher 30–50 kg, layer feed 20–30 kg. Adjust to nutritional requirements, MBM quality, amino acid profile and the calcium and phosphorus levels of the complete feed.",
@@ -207,7 +439,13 @@
             "keywords": "mbm|meat bone meal|unga wa nyama na mifupa|protein",
             "photo": "meat-bone-meal.png",
             "variants": [
-                {"sku": "P123-50KG", "name": "50 kg bag", "value": 50, "unit": "kg", "selling_unit": "bag"}
+                {
+                    "sku": "P123-50KG",
+                    "name": "50 kg bag",
+                    "value": 50,
+                    "unit": "kg",
+                    "selling_unit": "bag"
+                }
             ]
         },
         {
@@ -215,15 +453,27 @@
             "name": "Sprayfo Blue Calf Milk Replacer",
             "producer": "BR-TROUW",
             "category": "C1010",
-            "animals": ["AN-DCT", "AN-PIG"],
-            "life_stages": ["LS-CAT-CLF", "LS-PIG-CRP"],
+            "animals": [
+                "AN-DCT",
+                "AN-PIG"
+            ],
+            "life_stages": [
+                "LS-CAT-CLF",
+                "LS-PIG-CRP"
+            ],
             "form": "powder",
             "description": "A high-quality milk replacer formulated for calves and piglets. It serves as a 100% milk substitute, providing all the essential nutrients needed to support healthy growth, strengthen immunity and promote overall animal health. It offers a cost-effective feeding solution without compromising on nutritional quality.",
             "dosage": "1 kg to 7 L of water.",
             "keywords": "sprayfo|milk replacer|maziwa ya ndama|ndama|calf",
             "photo": "sprayfo-blue.png",
             "variants": [
-                {"sku": "P124-20KG", "name": "20 kg bag", "value": 20, "unit": "kg", "selling_unit": "bag"}
+                {
+                    "sku": "P124-20KG",
+                    "name": "20 kg bag",
+                    "value": 20,
+                    "unit": "kg",
+                    "selling_unit": "bag"
+                }
             ]
         },
         {
@@ -231,8 +481,12 @@
             "name": "Amsterdam Layers Mash",
             "producer": "BR-AMS",
             "category": "C1010",
-            "animals": ["AN-CHK"],
-            "life_stages": ["LS-POU-LAY"],
+            "animals": [
+                "AN-CHK"
+            ],
+            "life_stages": [
+                "LS-POU-LAY"
+            ],
             "form": "mash",
             "description": "A balanced, nutritious poultry feed formulated to support healthy growth, consistent egg production and strong eggshell quality in laying hens, enriched with enzyme, probiotics, vitamins, amino acids, toxin binder and acidifier.\n\nBenefits:\n• Supports consistent egg production.\n• Promotes strong eggshell formation.\n• Supports immunity and overall bird health.\n• Provides essential nutrients for laying hens.",
             "dosage": "For laying hens from 18 weeks of age onwards, throughout the egg-laying period.",
@@ -240,7 +494,13 @@
             "keywords": "layers mash|chakula cha kuku wa mayai|amsterdam feed",
             "photo": "amsterdam-layers-mash.png",
             "variants": [
-                {"sku": "P125-50KG", "name": "50 kg bag", "value": 50, "unit": "kg", "selling_unit": "bag"}
+                {
+                    "sku": "P125-50KG",
+                    "name": "50 kg bag",
+                    "value": 50,
+                    "unit": "kg",
+                    "selling_unit": "bag"
+                }
             ]
         }
     ]

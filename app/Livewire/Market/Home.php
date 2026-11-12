@@ -3,6 +3,7 @@
 namespace App\Livewire\Market;
 
 use App\Models\AnimalType;
+use App\Models\Producer;
 use App\Models\ProductCategory;
 use App\Services\Ai\AiProductSearch;
 use App\Services\MarketplaceSearch;
@@ -161,8 +162,17 @@ class Home extends Component
 
         $hasFilters = $this->ask !== '' || $this->q !== '' || array_filter([$this->animal, $this->category, $this->brand, $this->seller, $this->minPrice, $this->maxPrice]) || $this->inStock;
 
+        // Amsterdam Group's own catalogue, featured above everything else.
+        $featuredBrand = Producer::where('code', config('hub.catalogue_producer'))->value('name');
+        $featured = $featuredBrand && ! $hasFilters
+            ? $search->products(['brand' => $featuredBrand], $from, MarketplaceSearch::SORT_NAME, 12, 'featured_page')
+            : null;
+
         return view('livewire.market.home', [
             'from' => $from,
+            'featured' => $featured?->getCollection() ?? collect(),
+            'featuredTotal' => $featured?->total() ?? 0,
+            'featuredBrand' => $featuredBrand,
             'products' => $search->products($filters, $from, $this->sort, 24),
             'stores' => $hasFilters ? collect() : $search->stores($from, 6),
             'animalGroups' => AnimalType::active()->whereNull('parent_id')->with(['children' => fn ($q) => $q->active()])->orderBy('sort_order')->get(),

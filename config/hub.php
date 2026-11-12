@@ -21,9 +21,10 @@ return [
     | Catalogue owner
     |--------------------------------------------------------------------------
     |
-    | Producer code every imported catalogue product is shown under ("by
-    | Amsterdam Group"), whatever brand the workbook gives it. Empty keeps
-    | each product's own brand.
+    | Producer code the products of Amsterdam's own catalogue
+    | (database/data/amsterdam-catalogue.json) are shown under ("by
+    | Amsterdam Group"), whoever makes them. Workbook products keep their
+    | own brand. Empty keeps each catalogue product's maker.
     |
     */
     'catalogue_producer' => env('HUB_CATALOGUE_PRODUCER', 'BR-AMS'),
