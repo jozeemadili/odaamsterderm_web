@@ -162,15 +162,26 @@ class Home extends Component
 
         $hasFilters = $this->ask !== '' || $this->q !== '' || array_filter([$this->animal, $this->category, $this->brand, $this->seller, $this->minPrice, $this->maxPrice]) || $this->inStock;
 
-        // Amsterdam Group's own catalogue, featured above everything else.
+        // Amsterdam Group's own catalogue, featured above everything else,
+        // then a partner range (Silverlands) in a block of its own.
         $featuredBrand = Producer::where('code', config('hub.catalogue_producer'))->value('name');
         $featured = $featuredBrand && ! $hasFilters
-            ? $search->products(['brand' => $featuredBrand], $from, MarketplaceSearch::SORT_NAME, 12, 'featured_page')
+            ? $search->products(['brand' => $featuredBrand], $from, MarketplaceSearch::SORT_NAME, 8, 'featured_page')
             : null;
+        $partnerBrand = Producer::where('code', config('hub.partner_producer'))->where('on_marketplace', true)->value('name');
+        $partner = $partnerBrand && ! $hasFilters
+            ? $search->products(['brand' => $partnerBrand], $from, MarketplaceSearch::SORT_NAME, 4, 'partner_page')
+            : null;
+        $featuredItems = $featured?->getCollection() ?? collect();
 
         return view('livewire.market.home', [
             'from' => $from,
-            'featured' => $featured?->getCollection() ?? collect(),
+            'featured' => $featuredItems,
+            // The hero's product: a featured one customers can see and buy.
+            'spotlight' => $featuredItems->first(fn ($p) => $p->image() && $p->min_price !== null),
+            'partner' => $partner?->getCollection() ?? collect(),
+            'partnerTotal' => $partner?->total() ?? 0,
+            'partnerBrand' => $partnerBrand,
             'featuredTotal' => $featured?->total() ?? 0,
             'featuredBrand' => $featuredBrand,
             'products' => $search->products($filters, $from, $this->sort, 24),

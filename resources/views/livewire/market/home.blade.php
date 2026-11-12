@@ -8,8 +8,8 @@
             <div class="relative px-6 pt-8 pb-20 sm:px-10 sm:pt-10 sm:pb-28 lg:pb-32 grid gap-8 lg:grid-cols-[1.4fr_1fr] items-center">
                 <div>
                     <p class="text-[12px] uppercase tracking-[0.18em] text-primary font-semibold">Animal products marketplace</p>
-                    <h1 class="mt-3 text-[28px] sm:text-[40px] leading-[1.1] font-light tracking-tight text-primary">Everything your animals need, from <span class="font-bold">trusted sellers</span> near you.</h1>
-                    <p class="mt-3 text-[15px] text-ink/80 max-w-xl">Compare prices on feeds, vaccines, medicines and equipment for poultry, cattle, goats, pigs and fish — from approved agrovets across Tanzania.</p>
+                    <h1 class="mt-3 font-display text-[28px] sm:text-[44px] leading-[1.08] font-bold tracking-tight text-primary">Everything your animals need, from trusted sellers near you.</h1>
+                    <p class="mt-3 text-[16px] leading-relaxed text-ink/80 max-w-xl">Compare prices on feeds, vaccines, medicines and equipment for poultry, cattle, goats, pigs and fish — from approved agrovets across Tanzania.</p>
                     <div class="mt-6 flex flex-wrap gap-3">
                         <a href="#products" class="rounded-pill bg-primary text-white font-medium px-5 py-2.5 text-[14px] shadow-sm hover:bg-primary-deep transition">Browse products</a>
                         @unless($from)
@@ -17,31 +17,106 @@
                         @endunless
                     </div>
                 </div>
-                <ul class="hidden sm:grid gap-3 text-[14px]">
-                    @foreach([
-                        ['Approved sellers only', 'Every store is checked before it can sell.'],
-                        ['Compare before you buy', 'See every store\'s price for the same product.'],
-                        ['Closest stores first', 'Set your location to see how far each one is.'],
-                    ] as [$title, $text])
-                        <li class="flex gap-3 rounded-xl bg-white/85 border border-primary/35 px-4 py-3 shadow-sm">
-                            <span class="mt-0.5 h-5 w-5 shrink-0 rounded-full bg-leaf text-white flex items-center justify-center">
-                                <svg viewBox="0 0 20 20" fill="currentColor" class="h-3.5 w-3.5"><path fill-rule="evenodd" d="M16.7 5.3a1 1 0 0 1 0 1.4l-7.5 7.5a1 1 0 0 1-1.4 0l-3.5-3.5a1 1 0 1 1 1.4-1.4l2.8 2.79 6.8-6.8a1 1 0 0 1 1.4 0Z" clip-rule="evenodd"/></svg>
+                @if($spotlight)
+                    <a href="{{ route('market.product', $spotlight->slug) }}" class="hidden sm:flex flex-col gap-3 rounded-2xl bg-white p-5 shadow-[0_20px_40px_rgba(90,16,25,0.12)] hover:-translate-y-0.5 transition">
+                        <span class="self-start rounded-pill bg-success-subtle text-success text-[12px] font-semibold px-2.5 py-1">From {{ $spotlight->brand }}</span>
+                        <img src="{{ $spotlight->imageUrl() }}" alt="{{ $spotlight->displayName() }}" class="h-56 w-full object-contain">
+                        <span class="flex items-end justify-between gap-3">
+                            <span>
+                                <span class="block text-[17px] font-semibold text-ink">{{ $spotlight->name }}</span>
+                                <span class="block text-[13px] text-ink-mute">{{ $spotlight->variants->pluck('name')->join(' · ') }}</span>
                             </span>
-                            <span><span class="block font-semibold text-ink">{{ $title }}</span><span class="text-ink/70 text-[13px]">{{ $text }}</span></span>
-                        </li>
-                    @endforeach
-                </ul>
+                            <span class="text-right">
+                                <span class="block text-[11px] text-ink-mute">from</span>
+                                <span class="block font-display text-[20px] font-bold text-ink tnum whitespace-nowrap">TZS {{ number_format($spotlight->min_price) }}</span>
+                            </span>
+                        </span>
+                    </a>
+                @endif
             </div>
         </section>
     @endunless
 
+    @unless($hasFilters)
+        @if(\App\Services\Ai\AiOrderAssistant::enabled())
+            {{-- Ask the AI assistant: it builds the order from stores near you. --}}
+            <section class="rounded-2xl bg-brand-dark text-white px-5 py-4 sm:px-7 sm:py-5 flex flex-wrap items-center justify-between gap-4">
+                <div class="flex items-center gap-4">
+                    <span aria-hidden="true" class="h-11 w-11 shrink-0 rounded-full bg-leaf/20 text-leaf flex items-center justify-center">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5"><path d="M12 3l1.9 4.6L18.5 9.5l-4.6 1.9L12 16l-1.9-4.6L5.5 9.5l4.6-1.9z"/><path d="M19 15l.8 1.9 1.9.8-1.9.8L19 20.4l-.8-1.9-1.9-.8 1.9-.8z"/></svg>
+                    </span>
+                    <div>
+                        <p class="font-display text-[17px] font-bold">Not sure what to buy?</p>
+                        <p class="text-[14px] text-white/75">Tell our AI what your animals need. It builds the order from stores near you, or use <span class="text-leaf font-medium">Ask AI</span> in the search bar.</p>
+                    </div>
+                </div>
+                <livewire:market.ai-assistant />
+            </section>
+        @endif
+
+        {{-- Shop by animal --}}
+        <section aria-label="Shop by animal" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            @foreach($animalGroups as $group)
+                <button type="button" wire:click="chooseAnimal({{ $group->id }})" class="text-left rounded-2xl bg-canvas border border-hairline p-4 hover:border-primary/50 hover:shadow-[0_8px_24px_rgba(42,10,15,0.06)] transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40">
+                    <span class="block font-display text-[16px] font-bold text-ink">{{ $group->shortName() }}</span>
+                    <span class="block mt-1 text-[13px] text-ink-mute line-clamp-2">{{ $group->children->isNotEmpty() ? $group->children->map->shortName()->join(', ') : 'All products' }}</span>
+                </button>
+            @endforeach
+        </section>
+
+        @if($featured->isNotEmpty())
+            {{-- Amsterdam Group's own range, first thing customers see. --}}
+            <section class="space-y-4">
+                <div class="flex flex-wrap items-end justify-between gap-2">
+                    <div>
+                        <p class="text-[12px] uppercase tracking-[0.16em] font-semibold text-primary">Featured</p>
+                        <h2 class="font-display text-[24px] sm:text-[28px] font-bold tracking-tight text-ink">{{ $featuredBrand }} products</h2>
+                    </div>
+                    <button type="button" wire:click="$set('brand', @js($featuredBrand))" class="text-[14px] font-semibold text-primary hover:text-primary-deep">See all {{ $featuredTotal }} &rarr;</button>
+                </div>
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                    @foreach($featured as $product)
+                        @include('livewire.market.product-card', ['product' => $product])
+                    @endforeach
+                </div>
+            </section>
+        @endif
+
+        @if($partner->isNotEmpty())
+            {{-- A partner's range in a block of its own. --}}
+            <section class="flex flex-wrap gap-4">
+                <div class="flex-[1_1_300px] rounded-2xl bg-primary text-white p-6 sm:p-7 flex flex-col gap-3">
+                    <h2 class="font-display text-[24px] font-bold">{{ $partnerBrand }} feeds</h2>
+                    <p class="text-[15px] text-primary-subtle leading-relaxed">Broiler and layer feeding programmes, from the first day to sale.</p>
+                    <button type="button" wire:click="$set('brand', @js($partnerBrand))" class="self-start mt-auto rounded-pill bg-leaf text-ink font-semibold px-5 py-2.5 text-[14px] hover:bg-leaf-deep">Shop {{ $partnerBrand }} ({{ $partnerTotal }}) &rarr;</button>
+                </div>
+                <div class="flex-[2_1_480px] grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    @foreach($partner as $product)
+                        <a href="{{ route('market.product', $product->slug) }}" class="rounded-2xl bg-canvas border border-hairline p-3 flex items-center gap-4 hover:border-primary/40 transition">
+                            @if($product->imageUrl())
+                                <img src="{{ $product->imageUrl() }}" alt="{{ $product->displayName() }}" class="h-24 w-20 object-contain shrink-0" loading="lazy">
+                            @else
+                                <span class="h-24 w-20 shrink-0 rounded-lg bg-canvas-soft"></span>
+                            @endif
+                            <span class="min-w-0">
+                                <span class="block text-[15px] font-semibold text-ink leading-snug">{{ $product->name }}</span>
+                                <span class="block mt-1 font-display text-[16px] font-bold text-ink tnum">{{ $product->min_price !== null ? 'TZS '.number_format($product->min_price) : 'Not in stores yet' }}</span>
+                            </span>
+                        </a>
+                    @endforeach
+                </div>
+            </section>
+        @endif
+    @endunless
+
     {{-- Animal type chips --}}
+    @if($hasFilters)
     @php
         $chip = 'shrink-0 inline-flex items-center rounded-pill border-2 px-4 py-1.5 text-[14px] font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40';
         $chipOn = 'border-primary bg-primary-subtle text-primary';
         $chipOff = 'border-hairline bg-canvas text-ink hover:border-primary/40';
     @endphp
-    <div id="products" class="scroll-mt-4 flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 [scrollbar-width:none]">
+    <div class="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 [scrollbar-width:none]">
         <button wire:click="chooseAnimal(null)" class="{{ $chip }} {{ $animal === '' ? $chipOn : $chipOff }}">
             All animals
         </button>
@@ -58,8 +133,9 @@
             @endif
         @endforeach
     </div>
+    @endif
 
-    <div class="grid grid-cols-1 lg:grid-cols-[240px_1fr] gap-5">
+    <div id="products" class="scroll-mt-4 grid grid-cols-1 lg:grid-cols-[240px_1fr] gap-5">
         {{-- Filters --}}
         <aside class="space-y-3" x-data="{ open: false }">
             <button type="button" x-on:click="open = !open" class="lg:hidden w-full flex items-center justify-between rounded-xl border border-hairline bg-canvas px-4 py-2.5 text-[14px] text-ink">
@@ -111,7 +187,7 @@
         </aside>
 
         <section class="min-w-0 space-y-5">
-            @if(\App\Services\Ai\AiOrderAssistant::enabled())
+            @if($hasFilters && \App\Services\Ai\AiOrderAssistant::enabled())
                 <div class="rounded-xl bg-brand-dark/5 border border-brand-dark/10 px-4 py-3 flex flex-wrap items-center justify-between gap-3">
                     <div>
                         <p class="text-[15px] font-medium text-ink">Not sure what to buy?</p>
@@ -150,27 +226,6 @@
                 </div>
             @endif
 
-            @if($featured->isNotEmpty())
-                {{-- Amsterdam Group's own range, first thing customers see. --}}
-                <div class="rounded-2xl border border-primary/15 bg-primary-subtle/40 p-4 sm:p-5">
-                    <div class="flex flex-wrap items-baseline justify-between gap-2 mb-3">
-                        <div>
-                            <p class="text-[11px] uppercase tracking-[0.16em] font-semibold text-primary">Featured</p>
-                            <h2 class="text-[20px] font-light tracking-tight text-ink">Amsterdam Group products</h2>
-                        </div>
-                        <button type="button" wire:click="$set('brand', @js($featuredBrand))" class="text-[13px] font-medium text-primary hover:text-primary-deep">
-                            See all {{ $featuredTotal }} &rarr;
-                        </button>
-                    </div>
-                    <div class="flex gap-3 sm:gap-4 overflow-x-auto snap-x snap-mandatory pb-1 -mx-1 px-1 [scrollbar-width:thin]">
-                        @foreach($featured as $product)
-                            <div class="snap-start shrink-0 w-[46%] sm:w-[31%] xl:w-[23%] flex">
-                                @include('livewire.market.product-card', ['product' => $product])
-                            </div>
-                        @endforeach
-                    </div>
-                </div>
-            @endif
 
             <div class="flex items-baseline justify-between">
                 <h2 class="text-[22px] font-light tracking-tight">{{ $askAi ? 'AI picks for you' : ($q !== '' ? 'Results for “'.$q.'”' : 'All products') }}</h2>
@@ -239,4 +294,21 @@
             @endif
         </section>
     </div>
+
+    @unless($hasFilters)
+        <section class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            @foreach([
+                ['Approved sellers only', 'Every store is checked before it can sell.'],
+                ['Compare before you buy', 'See every store\'s price for the same product.'],
+                ['Closest stores first', 'Set your location to see how far each one is.'],
+            ] as [$title, $text])
+                <div class="flex gap-3 rounded-2xl bg-canvas border border-hairline px-4 py-4">
+                    <span aria-hidden="true" class="mt-0.5 h-6 w-6 shrink-0 rounded-full bg-leaf text-white flex items-center justify-center">
+                        <svg viewBox="0 0 20 20" fill="currentColor" class="h-3.5 w-3.5"><path fill-rule="evenodd" d="M16.7 5.3a1 1 0 0 1 0 1.4l-7.5 7.5a1 1 0 0 1-1.4 0l-3.5-3.5a1 1 0 1 1 1.4-1.4l2.8 2.79 6.8-6.8a1 1 0 0 1 1.4 0Z" clip-rule="evenodd"/></svg>
+                    </span>
+                    <span><span class="block font-semibold text-ink">{{ $title }}</span><span class="text-ink-mute text-[13px]">{{ $text }}</span></span>
+                </div>
+            @endforeach
+        </section>
+    @endunless
 </div>

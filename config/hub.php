@@ -29,4 +29,10 @@ return [
     */
     'catalogue_producer' => env('HUB_CATALOGUE_PRODUCER', 'BR-AMS'),
 
+    /*
+    | A partner range given its own block on the marketplace home page
+    | ("Silverlands feeds"). Empty hides the block.
+    */
+    'partner_producer' => env('HUB_PARTNER_PRODUCER', 'BR-SIL'),
+
 ];

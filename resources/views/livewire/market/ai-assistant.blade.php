@@ -1,6 +1,6 @@
 <div x-data="{ open: false }" x-on:keydown.escape.window="open = false">
     <button type="button" x-on:click="open = true"
-        class="inline-flex items-center gap-2 rounded-pill bg-brand-dark text-white px-4 py-2 text-[14px] font-medium hover:bg-brand-dark/90 shadow-sm">
+        class="inline-flex items-center gap-2 rounded-pill bg-leaf text-ink px-5 py-2.5 text-[14px] font-semibold hover:bg-leaf-deep shadow-sm">
         <span aria-hidden="true">✨</span> Use AI to place order
     </button>
 

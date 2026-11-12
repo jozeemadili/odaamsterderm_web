@@ -11,6 +11,9 @@
     --font-sans: 'Inter', 'SF Pro Display', system-ui, -apple-system, sans-serif, 'Apple Color Emoji',
         'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 
+    /* Headings on the marketplace (loaded from Google Fonts in the market layout) */
+    --font-display: 'Montserrat', 'Inter', system-ui, sans-serif;
+
     /* Brand & accent — Amsterdam Group logo: maroon #881824 + green #82C247.
        Maroon is the action colour on light surfaces; green is the accent on
        dark surfaces (header, sidebar) and for good news. */
