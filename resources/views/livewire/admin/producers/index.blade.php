@@ -69,12 +69,16 @@
                         </td>
                         <td class="px-5 py-3 text-ink-secondary">{{ $producer->country ?: '—' }}</td>
                         <td class="px-5 py-3 tnum text-ink-secondary">{{ $producer->products_count }}</td>
-                        <td class="px-5 py-3"><x-ui.badge :tone="$producer->is_active ? 'success' : 'neutral'">{{ $producer->is_active ? 'Active' : 'Inactive' }}</x-ui.badge></td>
+                        <td class="px-5 py-3 space-x-1">
+                            <x-ui.badge :tone="$producer->is_active ? 'success' : 'neutral'">{{ $producer->is_active ? 'Active' : 'Inactive' }}</x-ui.badge>
+                            @unless($producer->on_marketplace)<x-ui.badge tone="warning">hidden on marketplace</x-ui.badge>@endunless
+                        </td>
                         <td class="px-5 py-3 text-right whitespace-nowrap">
                             <button wire:click="startEditing({{ $producer->id }})" class="text-[12px] text-ink-mute hover:text-ink mr-3">Edit</button>
                             @if($producer->logoUrl())
                                 <button wire:click="removeLogo({{ $producer->id }})" class="text-[12px] text-ink-mute hover:text-ruby mr-3">Remove logo</button>
                             @endif
+                            <button wire:click="toggleMarketplace({{ $producer->id }})" class="text-[12px] text-ink-mute hover:text-ink mr-3">{{ $producer->on_marketplace ? 'Hide on marketplace' : 'Show on marketplace' }}</button>
                             <button wire:click="toggleActive({{ $producer->id }})" class="text-[12px] {{ $producer->is_active ? 'text-ink-mute hover:text-ruby' : 'text-primary-deep' }}">{{ $producer->is_active ? 'Deactivate' : 'Reactivate' }}</button>
                         </td>
                     </tr>

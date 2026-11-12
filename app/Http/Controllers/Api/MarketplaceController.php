@@ -70,7 +70,7 @@ class MarketplaceController extends Controller
     /** One product and every seller offering it — the comparison table. */
     public function product(Request $request, Product $product)
     {
-        abort_unless($product->isApproved(), 404);
+        abort_unless($product->isShownOnMarketplace(), 404);
 
         $data = $request->validate([
             'sort' => ['nullable', Rule::in([MarketplaceSearch::SORT_NEAREST, MarketplaceSearch::SORT_PRICE, MarketplaceSearch::SORT_AVAILABILITY])],

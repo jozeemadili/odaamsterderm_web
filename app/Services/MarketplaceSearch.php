@@ -63,7 +63,7 @@ class MarketplaceSearch
             ->select('products.id as product_id')
             ->join('inventory_items', 'inventory_items.product_id', '=', 'products.id')
             ->tap(fn (Builder $q) => $this->onlyPublicOffers($q))
-            ->where('products.status', Product::STATUS_APPROVED)
+            ->tap(fn ($q) => Product::whereShownOnMarketplace($q))
             ->selectRaw("MIN(CASE WHEN {$available} THEN inventory_items.unit_price END) as min_price")
             ->selectRaw("MAX(CASE WHEN {$available} THEN inventory_items.unit_price END) as max_price")
             ->selectRaw('COUNT(DISTINCT inventory_items.merchant_id) as sellers_count')
@@ -108,7 +108,7 @@ class MarketplaceSearch
 
         if ($wholeCatalog) {
             $results->leftJoinSub($query->toBase(), 'agg', 'agg.product_id', '=', 'products.id')
-                ->where('products.status', Product::STATUS_APPROVED)
+                ->tap(fn ($q) => Product::whereShownOnMarketplace($q))
                 ->tap(fn (Builder $q) => $this->applyProductFilters($q, $filters))
                 ->orderByRaw('agg.sellers_count IS NULL');
         } else {
@@ -237,7 +237,7 @@ class MarketplaceSearch
             ->withCount(['inventoryItems as offers_count' => fn (Builder $q) => $q
                 ->where('is_marketplace_visible', true)
                 ->whereRaw($available)
-                ->whereHas('product', fn (Builder $p) => $p->where('status', Product::STATUS_APPROVED))]);
+                ->whereHas('product', fn (Builder $p) => Product::whereShownOnMarketplace($p))]);
 
         if ($from) {
             [$distance, $bindings] = $from->distanceSql('branches.latitude', 'branches.longitude');
@@ -268,7 +268,7 @@ class MarketplaceSearch
         return Product::query()
             ->join('inventory_items', 'inventory_items.product_id', '=', 'products.id')
             ->tap(fn (Builder $q) => $this->onlyPublicOffers($q))
-            ->where('products.status', Product::STATUS_APPROVED)
+            ->tap(fn ($q) => Product::whereShownOnMarketplace($q))
             ->whereNotNull('products.brand')
             ->distinct()
             ->orderBy('products.brand')
@@ -294,7 +294,7 @@ class MarketplaceSearch
             ->selectRaw(self::AVAILABLE_SQL.' as is_available')
             ->join('products', 'products.id', '=', 'inventory_items.product_id')
             ->tap(fn (Builder $q) => $this->onlyPublicOffers($q))
-            ->where('products.status', Product::STATUS_APPROVED)
+            ->tap(fn ($q) => Product::whereShownOnMarketplace($q))
             ->with(['branch', 'merchant', 'media', 'variant', 'product.media', 'product.producer.media']);
 
         if ($from) {

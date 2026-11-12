@@ -138,7 +138,7 @@ class InventoryItem extends Model implements HasMedia
             ->where('inventory_items.is_marketplace_visible', true)
             ->where('inventory_items.marketplace_status', self::MARKET_ACTIVE)
             ->where('inventory_items.marketplace_quantity', '>', 0)
-            ->whereHas('product', fn (Builder $p) => $p->where('status', Product::STATUS_APPROVED))
+            ->whereHas('product', fn (Builder $p) => Product::whereShownOnMarketplace($p))
             ->whereHas('branch', fn (Builder $b) => $b->marketplaceReady())
             ->whereHas('merchant', fn (Builder $m) => $m->marketplaceApproved());
     }
@@ -161,6 +161,8 @@ class InventoryItem extends Model implements HasMedia
             $blockers[] = 'Link this item to a catalog product.';
         } elseif (! $this->product?->isApproved()) {
             $blockers[] = 'The linked catalog product is waiting for admin approval.';
+        } elseif (! $this->product->isShownOnMarketplace()) {
+            $blockers[] = 'Products of '.$this->product->producer->name.' are not shown on the marketplace.';
         } elseif (! $this->product_variant_id && $this->product->variants()->count() > 1) {
             $blockers[] = 'Choose which pack size of the catalog product this is.';
         }

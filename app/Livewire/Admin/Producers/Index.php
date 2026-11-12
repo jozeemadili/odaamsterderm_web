@@ -110,6 +110,16 @@ class Index extends Component
             : 'Producer deactivated — its products keep showing it, but it can no longer be chosen for new products.');
     }
 
+    public function toggleMarketplace(int $id): void
+    {
+        $producer = Producer::findOrFail($id);
+        $producer->update(['on_marketplace' => ! $producer->on_marketplace]);
+
+        session()->flash('status', $producer->on_marketplace
+            ? "{$producer->name}'s products are shown on the marketplace again."
+            : "{$producer->name}'s products are hidden from customers. They stay in the catalogue and in stores' stock.");
+    }
+
     protected function uniqueSlug(string $name): string
     {
         $base = Str::slug($name) ?: 'producer';

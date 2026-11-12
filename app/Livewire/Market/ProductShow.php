@@ -28,7 +28,7 @@ class ProductShow extends Component
 
     public function mount(Product $product): void
     {
-        abort_unless($product->isApproved(), 404);
+        abort_unless($product->isShownOnMarketplace(), 404);
         $this->product = $product->load(['animalType', 'animalTypes', 'lifeStages', 'category.parent', 'media', 'producer.media']);
     }
 

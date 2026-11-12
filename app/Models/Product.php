@@ -193,6 +193,23 @@ class Product extends Model implements HasMedia
                 ->whereIn('animal_type_product.animal_type_id', $ids));
     }
 
+    /**
+     * Products customers may see: approved, and not from a producer that is
+     * switched off for the marketplace. Works on any query that has the
+     * products table (joined or as the model's own).
+     */
+    public static function whereShownOnMarketplace(Builder|QueryBuilder $query): Builder|QueryBuilder
+    {
+        return $query->where('products.status', self::STATUS_APPROVED)
+            ->where(fn ($q) => $q->whereNull('products.producer_id')
+                ->orWhereIn('products.producer_id', Producer::where('on_marketplace', true)->select('id')));
+    }
+
+    public function isShownOnMarketplace(): bool
+    {
+        return $this->isApproved() && ($this->producer_id === null || (bool) $this->producer?->on_marketplace);
+    }
+
     public function scopeApproved(Builder $query): Builder
     {
         return $query->where('status', self::STATUS_APPROVED);
