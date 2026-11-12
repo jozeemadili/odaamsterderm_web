@@ -15,11 +15,18 @@ use App\Models\ProductVariant;
 use App\Models\SearchKeyword;
 use App\Services\CatalogTaxonomyImporter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class TaxonomyImportTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        Storage::fake('public'); // catalogue pack photos
+    }
 
     public function test_command_imports_the_whole_taxonomy_from_the_workbook(): void
     {
@@ -56,14 +63,16 @@ class TaxonomyImportTest extends TestCase
     {
         $this->artisan('catalog:import-taxonomy')->assertSuccessful();
 
-        $this->assertSame(24, Producer::count());
-        $this->assertSame(115, Product::count());
-        $this->assertSame(115, Product::approved()->count());
+        // The workbook's 24 brands and 115 products, plus Amsterdam's catalogue (3 brands, 10 products).
+        $this->assertSame(27, Producer::count());
+        $this->assertSame(125, Product::count());
+        $this->assertSame(125, Product::approved()->count());
 
         $afya = Producer::where('code', 'BR-AFM')->first();
         $this->assertSame('India', $afya->country);
-        $this->assertTrue($afya->is_demo);
-        $this->assertFalse(Producer::where('code', 'BR-SIL')->value('is_demo'));
+        // Workbook data is treated as live data, demo-named brands included.
+        $this->assertFalse($afya->is_demo);
+        $this->assertSame(0, Producer::where('is_demo', true)->count());
 
         $albendazole = Product::where('code', 'P052')->first();
         $this->assertSame('Albendazole 10% Oral Suspension', $albendazole->name);
@@ -78,7 +87,7 @@ class TaxonomyImportTest extends TestCase
         $this->assertSame(4, $albendazole->withdrawal_milk_days);
         $this->assertFalse($albendazole->prescription_required);
         $this->assertStringContainsString('minyoo', $albendazole->search_keywords);
-        $this->assertTrue($albendazole->is_demo);
+        $this->assertFalse($albendazole->is_demo);
         // Two pack sizes: they live on the variants.
         $this->assertNull($albendazole->pack_size);
         $this->assertSame('bottle', $albendazole->unit);
@@ -86,7 +95,7 @@ class TaxonomyImportTest extends TestCase
         $this->assertSame('L', $oneLitre->pack_size_unit);
         $this->assertSame('bottle', $oneLitre->selling_unit);
         $this->assertNotNull($oneLitre->reference_price);
-        $this->assertSame(150, ProductVariant::count());
+        $this->assertSame(166, ProductVariant::count()); // 150 workbook SKUs + 16 from the catalogue
         $this->assertSame(50, ProductVariant::where('selling_unit', 'bird')->value('min_order_qty'));
 
         $newcastle = Product::where('code', 'P063')->first();

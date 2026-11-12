@@ -15,7 +15,7 @@
                     <p class="text-[12px] text-ink-mute mt-1 max-w-2xl">About {{ $product->producer->name }}: {{ $product->producer->description }}</p>
                 @endif
                 @if($product->description)
-                    <p class="text-[14px] text-ink-secondary mt-3 max-w-2xl">{{ $product->description }}</p>
+                    <p class="text-[14px] text-ink-secondary mt-3 max-w-2xl whitespace-pre-line">{{ $product->description }}</p>
                 @endif
                 @if($product->lifeStages->isNotEmpty())
                     <p class="text-[13px] text-ink-mute mt-2">For: {{ $product->lifeStages->pluck('name')->join(', ') }}</p>

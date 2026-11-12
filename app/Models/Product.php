@@ -45,7 +45,7 @@ class Product extends Model implements HasMedia
 
     public const UNITS = [
         'bag', 'kg', 'g', 'litre', 'ml', 'bottle', 'sachet', 'box', 'vial', 'tin', 'piece', 'pack', 'dose',
-        'bale', 'set', 'bird', 'head', 'straw',
+        'bale', 'set', 'bird', 'head', 'straw', 'jerrycan', 'drum',
     ];
 
     protected function casts(): array

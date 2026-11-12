@@ -315,7 +315,7 @@ class CatalogTaxonomyImporter
                 'name' => $row['name'],
                 'role' => $row['role'],
                 'country' => $row['country'],
-                'is_demo' => $this->bool($row['is_demo']),
+                'is_demo' => false, // all workbook data is treated as live data
             ])->save();
         }
 
@@ -350,7 +350,7 @@ class CatalogTaxonomyImporter
             $animals = $ids($row['animal_types'], $animalIds, 'animal type');
             $product = Product::where('code', $code)->first()
                 ?? $liveProducts[$code]
-                ?? new Product(['status' => Product::STATUS_APPROVED, 'reviewed_at' => now(), 'is_demo' => $this->bool($row['is_demo_data'])]);
+                ?? new Product(['status' => Product::STATUS_APPROVED, 'reviewed_at' => now()]);
 
             $productVariants = $variants[$code] ?? collect();
             $product->slug ??= Product::uniqueSlug($row['product_name'].' '.$row['brand_name']);
@@ -386,6 +386,7 @@ class CatalogTaxonomyImporter
                 'breed_strain' => $this->text($row['breed_strain']),
                 'country_of_origin' => $row['country_of_origin'],
                 'search_keywords' => $row['search_keywords'] ? Str::lower($row['search_keywords']) : null,
+                'is_demo' => false, // all workbook data is treated as live data
             ])->save();
 
             $product->animalTypes()->sync($animals);
