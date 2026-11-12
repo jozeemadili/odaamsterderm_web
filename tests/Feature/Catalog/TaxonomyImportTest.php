@@ -26,6 +26,19 @@ class TaxonomyImportTest extends TestCase
     {
         parent::setUp();
         Storage::fake('public'); // catalogue pack photos
+        config(['hub.catalogue_producer' => null]); // these tests check the workbook's own brands
+    }
+
+    public function test_every_product_is_shown_under_the_catalogue_owner(): void
+    {
+        config(['hub.catalogue_producer' => 'BR-AMS']);
+
+        $this->artisan('catalog:import-taxonomy')->assertSuccessful();
+
+        $amsterdam = Producer::where('code', 'BR-AMS')->sole();
+        $this->assertSame(Product::count(), Product::where('producer_id', $amsterdam->id)->count());
+        $this->assertSame(['Amsterdam Group'], Product::distinct()->pluck('brand')->all());
+        $this->assertSame('Netherlands', Product::where('code', 'P121')->value('country_of_origin')); // still made by Selko
     }
 
     public function test_command_imports_the_whole_taxonomy_from_the_workbook(): void

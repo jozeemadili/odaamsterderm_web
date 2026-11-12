@@ -362,7 +362,7 @@ class CatalogTaxonomyImporter
                 'name' => $row['product_name'],
                 'description' => $row['description_en'],
                 'product_category_id' => $categoryIds[$row['category_id']] ?? throw new RuntimeException("Product {$code} uses unknown category '{$row['category_id']}'."),
-                'producer_id' => $producerId = $producerIds[$row['producer_id'] ?? $row['brand_id']] ?? null,
+                'producer_id' => $producerId = $producerIds[config('hub.catalogue_producer') ?: ($row['producer_id'] ?? $row['brand_id'])] ?? null,
                 'brand' => $producerId ? $producerNames[$producerId] : $row['brand_name'],
                 'animal_type_id' => $animals[0] ?? throw new RuntimeException("Product {$code} has no animal type."),
                 'regulatory_class' => $row['regulatory_class'],

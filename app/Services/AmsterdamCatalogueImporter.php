@@ -88,8 +88,13 @@ class AmsterdamCatalogueImporter
     private function importProduct(array $row): Product
     {
         $code = $row['code'];
-        $producer = Producer::where('code', $row['producer'])->first()
+        // The maker on the pack, and who the product is shown under (the
+        // catalogue owner, when one is configured).
+        $maker = Producer::where('code', $row['producer'])->first()
             ?? throw new RuntimeException("Product {$code} uses unknown producer '{$row['producer']}'.");
+        $producer = config('hub.catalogue_producer')
+            ? Producer::where('code', config('hub.catalogue_producer'))->first() ?? $maker
+            : $maker;
         $category = ProductCategory::where('code', $row['category'])->value('id')
             ?? throw new RuntimeException("Product {$code} uses unknown category '{$row['category']}'.");
         $animals = array_map(fn ($a) => AnimalType::where('code', $a)->value('id')
@@ -100,7 +105,7 @@ class AmsterdamCatalogueImporter
         $product = Product::where('code', $code)->first()
             ?? new Product(['status' => Product::STATUS_APPROVED, 'reviewed_at' => now()]);
 
-        $product->slug ??= Product::uniqueSlug($row['name'].' '.$producer->name);
+        $product->slug ??= Product::uniqueSlug($row['name'].' '.$maker->name);
         $product->fill(array_filter([
             'code' => $code,
             'name' => $row['name'],
@@ -112,7 +117,7 @@ class AmsterdamCatalogueImporter
             'form' => $row['form'],
             'inclusion_or_dosage' => $row['dosage'],
             'crude_protein_pct' => $row['crude_protein'] ?? null,
-            'country_of_origin' => $row['country'] ?? $producer->country,
+            'country_of_origin' => $row['country'] ?? $maker->country,
             'search_keywords' => isset($row['keywords']) ? Str::lower($row['keywords']) : null,
             'unit' => $row['variants'][0]['selling_unit'],
             'is_demo' => false,

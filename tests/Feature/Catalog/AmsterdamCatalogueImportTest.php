@@ -57,7 +57,8 @@ class AmsterdamCatalogueImportTest extends TestCase
         $this->assertSame('P034-100G', $stock->fresh()->variant->sku);
 
         $alpha = Product::where('code', 'P121')->sole();
-        $this->assertSame('Selko', $alpha->producer->name);
+        $this->assertSame('Amsterdam Group', $alpha->producer->name); // shown under the catalogue owner
+        $this->assertSame('Netherlands', $alpha->country_of_origin); // made by Selko
         $this->assertSame('C2040', $alpha->category->code);
         $this->assertEqualsCanonicalizing(['AN-POU', 'AN-PIG'], $alpha->animalTypes->pluck('code')->all());
         $this->assertSame(['P121-1KG', 'P121-5KG', 'P121-25KG', 'P121-200KG'], $alpha->variants()->orderBy('sort_order')->pluck('sku')->all());
