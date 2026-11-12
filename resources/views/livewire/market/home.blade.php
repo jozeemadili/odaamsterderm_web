@@ -226,7 +226,11 @@
                                     <div class="h-1" style="background: {{ $accent }}"></div>
                                     <div class="p-4">
                                         <p class="text-[12px] text-ink-mute">{{ collect([$store->address, $store->city])->filter()->join(', ') }}</p>
-                                        <p class="text-[12px] text-primary mt-2">{{ $store->offers_count }} {{ \Illuminate\Support\Str::plural('product', $store->offers_count) }} available &rarr;</p>
+                                        @if($store->offers_count > 0)
+                                            <p class="text-[12px] text-primary mt-2">{{ $store->offers_count }} {{ \Illuminate\Support\Str::plural('product', $store->offers_count) }} available &rarr;</p>
+                                        @else
+                                            <p class="text-[12px] text-ink-mute mt-2">No products online yet &rarr;</p>
+                                        @endif
                                     </div>
                                 </x-ui.card>
                             </a>

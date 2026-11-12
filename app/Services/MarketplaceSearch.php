@@ -199,6 +199,8 @@ class MarketplaceSearch
 
     /**
      * Stores customers can buy from, nearest first when a location is known.
+     * Stores with nothing online yet are listed too, so buyers can find every
+     * branch; offers_count says how many products each has.
      *
      * @return Collection<int, Branch> each with distance_km and offers_count
      */
@@ -227,7 +229,7 @@ class MarketplaceSearch
             $query->selectRaw('NULL as distance_km')->orderBy('branches.name');
         }
 
-        return $query->limit($limit)->get()->filter(fn (Branch $b) => $b->offers_count > 0)->values();
+        return $query->limit($limit)->get();
     }
 
     /** Whether a store page may be shown to the public. */

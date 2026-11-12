@@ -3,6 +3,7 @@
 namespace Tests\Feature\Market;
 
 use App\Models\AnimalType;
+use App\Models\Branch;
 use App\Models\InventoryItem;
 use App\Services\MarketplaceSearch;
 use App\Support\GeoPoint;
@@ -119,6 +120,19 @@ class MarketplaceSearchTest extends TestCase
 
         $this->assertSame(['Seller A Store', 'Seller B Store', 'Seller C Store'], $stores->pluck('name')->all());
         $this->assertSame([2, 1, 1], $stores->pluck('offers_count')->map(fn ($c) => (int) $c)->all());
+    }
+
+    public function test_stores_with_nothing_online_yet_are_still_listed(): void
+    {
+        $empty = Branch::create(['merchant_id' => $this->stores['A']->merchant_id, 'name' => 'New Branch', 'latitude' => -6.75, 'longitude' => 39.22]);
+        Branch::create(['merchant_id' => $this->stores['A']->merchant_id, 'name' => 'No Pin Branch']);
+
+        $stores = $this->search->stores($this->sinza);
+
+        $this->assertContains('New Branch', $stores->pluck('name')->all());
+        $this->assertNotContains('No Pin Branch', $stores->pluck('name')->all()); // still needs a map pin
+        $this->assertSame(0, (int) $stores->firstWhere('id', $empty->id)->offers_count);
+        $this->get('/')->assertOk()->assertSee('New Branch')->assertSee('No products online yet');
     }
 
     public function test_distance_formatting(): void
