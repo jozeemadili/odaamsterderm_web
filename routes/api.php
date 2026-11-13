@@ -63,6 +63,7 @@ Route::prefix('v1')->group(function () {
         Route::post('/me/avatar', [ProfileController::class, 'updateAvatar']);
         Route::delete('/me/avatar', [ProfileController::class, 'destroyAvatar']);
         Route::put('/me/password', [ProfileController::class, 'updatePassword'])->middleware('throttle:6,1');
+        Route::delete('/me', [ProfileController::class, 'destroy'])->middleware('throttle:6,1');
 
         // Order notifications for any signed-in user (customer or seller staff).
         Route::get('/me/notifications', [UserNotificationController::class, 'index']);

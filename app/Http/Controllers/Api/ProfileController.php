@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\UserResource;
+use App\Services\AccountDeletion;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
@@ -57,6 +58,32 @@ class ProfileController extends Controller
         }
 
         return new UserResource($user->fresh());
+    }
+
+    /**
+     * Deletes the customer's own account. Confirmed with the password, or
+     * by typing DELETE (FUTA) when the account never had one (Google).
+     */
+    public function destroy(Request $request, AccountDeletion $deletion)
+    {
+        $user = $request->user();
+
+        $data = $request->validate([
+            'password' => [Rule::requiredIf((bool) $user->has_password), 'nullable', 'string'],
+            'confirm' => [Rule::requiredIf(! $user->has_password), 'nullable', 'string'],
+        ]);
+
+        if ($user->has_password && ! Hash::check($data['password'], $user->password)) {
+            throw ValidationException::withMessages(['password' => __('The password is incorrect.')]);
+        }
+
+        if (! $user->has_password && ! in_array(mb_strtoupper(trim((string) $data['confirm'])), ['DELETE', 'FUTA'], true)) {
+            throw ValidationException::withMessages(['confirm' => __('Type DELETE to confirm.')]);
+        }
+
+        $deletion->delete($user);
+
+        return response()->noContent();
     }
 
     /**

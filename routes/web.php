@@ -20,6 +20,8 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', Market\Home::class)->name('market.home');
 Route::get('/products/{product:slug}', Market\ProductShow::class)->name('market.product');
 Route::get('/stores/{store}', Market\StoreShow::class)->name('market.store');
+Route::get('/privacy', Market\Privacy::class)->name('market.privacy');
+Route::get('/delete-account', Market\DeleteAccountInfo::class)->name('market.delete-account');
 Route::middleware(['auth', 'customer'])->group(function () {
     Route::get('/account', Market\Account::class)->name('market.account');
     Route::get('/cart', Market\Cart::class)->name('market.cart');

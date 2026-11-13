@@ -98,7 +98,13 @@
             </div>
         </div>
         <div class="border-t border-white/10">
-            <p class="max-w-6xl mx-auto px-4 py-4 text-[12px] text-white/40">&copy; {{ date('Y') }} Amsterdam Digital. All rights reserved.</p>
+            <div class="max-w-6xl mx-auto px-4 py-4 flex flex-wrap items-center justify-between gap-3 text-[12px] text-white/50">
+                <p>&copy; {{ date('Y') }} Amsterdam Digital. All rights reserved.</p>
+                <p class="flex gap-4">
+                    <a href="{{ route('market.privacy') }}" class="hover:text-white">Privacy policy</a>
+                    <a href="{{ route('market.delete-account') }}" class="hover:text-white">Delete account</a>
+                </p>
+            </div>
         </div>
     </footer>
 

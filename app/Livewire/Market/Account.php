@@ -2,10 +2,13 @@
 
 namespace App\Livewire\Market;
 
+use App\Services\AccountDeletion;
 use App\Support\GeoPoint;
 use App\Support\MarketLocation;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
@@ -24,6 +27,11 @@ class Account extends Component
     public $longitude = null;
 
     public string $location_label = '';
+
+    /** Confirmation for deleting the account: the password, or DELETE for Google-only accounts. */
+    public string $deletePassword = '';
+
+    public string $deleteConfirm = '';
 
     public function mount(): void
     {
@@ -57,6 +65,28 @@ class Account extends Component
         }
 
         session()->flash('status', 'Your details are saved.');
+    }
+
+    public function deleteAccount(AccountDeletion $deletion)
+    {
+        $user = Auth::user();
+
+        if ($user->has_password) {
+            if (! Hash::check($this->deletePassword, $user->password)) {
+                throw ValidationException::withMessages(['deletePassword' => 'The password is incorrect.']);
+            }
+        } elseif (! in_array(mb_strtoupper(trim($this->deleteConfirm)), ['DELETE', 'FUTA'], true)) {
+            throw ValidationException::withMessages(['deleteConfirm' => 'Type DELETE to confirm.']);
+        }
+
+        $deletion->delete($user);
+
+        Auth::logout();
+        session()->invalidate();
+        session()->regenerateToken();
+        session()->flash('status', 'Your account has been deleted.');
+
+        return $this->redirectRoute('market.home');
     }
 
     public function render()

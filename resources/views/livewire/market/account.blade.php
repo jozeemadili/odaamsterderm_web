@@ -39,4 +39,28 @@
             <a href="{{ route('market.orders') }}" class="text-[13px] text-primary hover:text-primary-deep">My orders &rarr;</a>
         </div>
     </x-ui.card>
+
+    {{-- Required by the app stores: customers can delete their own account. --}}
+    <x-ui.card>
+        <div x-data="{ open: false }" class="space-y-3">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                    <h2 class="text-[16px] font-light mb-1 text-ruby">Delete account</h2>
+                    <p class="text-[13px] text-ink-mute">Removes your details and signs you out everywhere. <a href="{{ route('market.delete-account') }}" class="underline">What is deleted?</a></p>
+                </div>
+                <button type="button" x-on:click="open = !open" class="rounded-pill border border-ruby/40 px-4 py-2 text-[13px] font-medium text-ruby hover:bg-ruby/5">Delete account</button>
+            </div>
+            <form x-show="open" x-cloak wire:submit="deleteAccount" class="space-y-3 rounded-xl border border-ruby/30 bg-ruby/5 p-4">
+                <p class="text-[13px] text-ink-secondary">This cannot be undone. Orders a shop has not started are cancelled.</p>
+                @if(auth()->user()->has_password)
+                    <x-ui.input type="password" wire:model="deletePassword" label="Your password" id="del_password" autocomplete="current-password" />
+                    @error('deletePassword')<p class="text-[12px] text-ruby -mt-2">{{ $message }}</p>@enderror
+                @else
+                    <x-ui.input wire:model="deleteConfirm" label="Type DELETE to confirm" id="del_confirm" />
+                    @error('deleteConfirm')<p class="text-[12px] text-ruby -mt-2">{{ $message }}</p>@enderror
+                @endif
+                <button type="submit" class="rounded-pill bg-ruby px-4 py-2 text-[13px] font-semibold text-white hover:opacity-90" wire:loading.attr="disabled" wire:target="deleteAccount">Delete my account</button>
+            </form>
+        </div>
+    </x-ui.card>
 </div>
