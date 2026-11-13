@@ -39,7 +39,7 @@
         </ol>
     </x-ui.card>
 
-    @if(in_array($order->status, ['accepted', 'preparing', 'ready_for_pickup'], true) && $order->branch->hasLocation())
+    @if(in_array($order->status, ['pending', 'accepted', 'preparing', 'ready_for_pickup'], true) && $order->branch->hasLocation())
         <x-ui.card>
             <div x-data="liveDistance({ lat: {{ (float) $order->branch->latitude }}, lng: {{ (float) $order->branch->longitude }} })" class="flex flex-wrap items-center justify-between gap-3">
                 <div>

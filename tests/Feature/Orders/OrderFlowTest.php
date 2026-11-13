@@ -61,7 +61,6 @@ class OrderFlowTest extends TestCase
         $this->assertSame('Coming at 4pm', $order->customer_note);
 
         Livewire::actingAs($this->sellerA)->test(SellerOrderShow::class, ['order' => $order])
-            ->call('advance', 'accepted')
             ->call('advance', 'ready_for_pickup')
             ->call('advance', 'completed')
             ->assertHasNoErrors();
@@ -128,20 +127,27 @@ class OrderFlowTest extends TestCase
 
         Sanctum::actingAs($this->sellerA);
         $this->getJson('/api/v1/orders')->assertOk()->assertJsonPath('data.0.customer.name', 'Juma');
-        $this->postJson("/api/v1/orders/{$orderId}/status", ['status' => 'accepted'])
+        // No approval step: a new order goes straight to the shop.
+        $this->getJson("/api/v1/orders/{$orderId}")
             ->assertOk()
-            ->assertJsonPath('data.status', 'accepted')
+            ->assertJsonPath('data.status_label', 'Sent to shop')
             ->assertJsonPath('data.next_statuses.0.status', 'preparing');
+        $this->postJson("/api/v1/orders/{$orderId}/status", ['status' => 'accepted'])->assertUnprocessable();
+        $this->postJson("/api/v1/orders/{$orderId}/status", ['status' => 'preparing'])
+            ->assertOk()
+            ->assertJsonPath('data.status', 'preparing')
+            ->assertJsonPath('data.next_statuses.0.status', 'ready_for_pickup');
         $this->postJson("/api/v1/orders/{$orderId}/status", ['status' => 'completed'])->assertUnprocessable();
 
         Sanctum::actingAs($this->customer);
         $this->getJson('/api/v1/me/notifications')
             ->assertOk()
             ->assertJsonPath('unread_count', 1)
-            ->assertJsonPath('data.0.status', 'accepted');
+            ->assertJsonPath('data.0.status', 'preparing');
         $this->getJson("/api/v1/customer/orders/{$orderId}")->assertOk()->assertJsonCount(2, 'data.events');
+        // Too late to cancel once the shop is preparing it.
         $this->postJson("/api/v1/customer/orders/{$orderId}/cancel", ['reason' => 'Changed plans'])
-            ->assertOk()->assertJsonPath('data.status', 'cancelled');
+            ->assertUnprocessable();
 
         Sanctum::actingAs($this->sellerA);
         $this->getJson('/api/v1/dashboard')->assertJsonPath('marketplace.orders.pending', 0);

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Orders;
 
+use App\Models\Cart;
 use App\Models\InventoryItem;
 use App\Models\Order;
 use App\Models\SalesRecord;
@@ -69,7 +70,7 @@ class OrderServiceTest extends TestCase
         $this->assertEquals(10, $a->reserved_quantity);
         $this->assertSame($this->customer->id, $orderA->user_id);
 
-        $this->assertSame(0, \App\Models\Cart::for($this->customer)->items()->count());
+        $this->assertSame(0, Cart::for($this->customer)->items()->count());
         Notification::assertSentTo($this->sellerA, OrderPlaced::class);
     }
 
@@ -92,7 +93,7 @@ class OrderServiceTest extends TestCase
 
         $this->assertSame(0, Order::count());
         $this->assertEquals(0, $a->fresh()->reserved_quantity, 'Seller A reservation must be rolled back too.');
-        $this->assertSame(2, \App\Models\Cart::for($this->customer)->items()->count());
+        $this->assertSame(2, Cart::for($this->customer)->items()->count());
     }
 
     public function test_cart_refuses_more_than_marketplace_quantity_or_unlisted_offers(): void
@@ -124,7 +125,7 @@ class OrderServiceTest extends TestCase
         $this->orders->addToCart($this->customer, $a->id, 10);
         $order = $this->orders->checkout($this->customer)->first();
 
-        foreach ([Order::ACCEPTED, Order::PREPARING, Order::READY, Order::COMPLETED] as $status) {
+        foreach ([Order::PREPARING, Order::READY, Order::COMPLETED] as $status) {
             $order = $this->orders->advance($order, $status, $this->sellerA);
         }
 
@@ -139,9 +140,9 @@ class OrderServiceTest extends TestCase
         $this->assertEquals(450000, $sale->amount);
         $this->assertEquals(40500, $sale->items->first()->unit_cost); // cost captured for profit reports
 
-        $this->assertSame(['pending', 'accepted', 'preparing', 'ready_for_pickup', 'completed'], $order->events()->pluck('status')->all());
+        $this->assertSame(['pending', 'preparing', 'ready_for_pickup', 'completed'], $order->events()->pluck('status')->all());
         $this->assertTrue(StockMovement::where('type', StockMovement::TYPE_ONLINE_SALE)->where('inventory_item_id', $a->id)->exists());
-        Notification::assertSentToTimes($this->customer, OrderStatusChanged::class, 4);
+        Notification::assertSentToTimes($this->customer, OrderStatusChanged::class, 3);
     }
 
     public function test_rejecting_requires_a_reason_and_returns_units_to_the_marketplace(): void
@@ -180,7 +181,7 @@ class OrderServiceTest extends TestCase
         $a = $this->offer('A');
         $this->orders->addToCart($this->customer, $a->id, 4);
         $order = $this->orders->checkout($this->customer)->first();
-        $order = $this->orders->advance($order, Order::ACCEPTED, $this->sellerA);
+        $this->assertSame('Sent to shop', $order->statusLabel());
 
         $order = $this->orders->cancelByCustomer($order, $this->customer, 'Bought elsewhere');
         $this->assertSame(Order::CANCELLED, $order->status);
@@ -188,7 +189,6 @@ class OrderServiceTest extends TestCase
 
         $this->orders->addToCart($this->customer, $a->id, 1);
         $second = $this->orders->checkout($this->customer)->first();
-        $this->orders->advance($second, Order::ACCEPTED, $this->sellerA);
         $second = $this->orders->advance($second, Order::PREPARING, $this->sellerA);
 
         $this->expectException(ValidationException::class);

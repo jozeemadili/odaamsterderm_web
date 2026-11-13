@@ -159,7 +159,7 @@ class OrderService
                 }
 
                 $order->update(['total' => $total, 'items_count' => $storeLines->count()]);
-                $order->events()->create(['status' => Order::PENDING, 'note' => 'Order placed', 'user_id' => $customer->id, 'created_at' => now()]);
+                $order->events()->create(['status' => Order::PENDING, 'note' => 'Order placed and sent to the shop', 'user_id' => $customer->id, 'created_at' => now()]);
                 $orders->push($order);
             }
 

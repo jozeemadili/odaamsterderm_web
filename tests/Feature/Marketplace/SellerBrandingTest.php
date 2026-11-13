@@ -89,8 +89,7 @@ class SellerBrandingTest extends TestCase
             ->assertSee('TZS 87,000');
         $this->get("/receipts/orders/{$order->id}")->assertForbidden();
 
-        $orders->advance($order, Order::ACCEPTED, $this->seller);
-        $orders->advance($order->fresh(), Order::PREPARING, $this->seller);
+        $orders->advance($order, Order::PREPARING, $this->seller);
         $orders->advance($order->fresh(), Order::READY, $this->seller);
         $orders->advance($order->fresh(), Order::COMPLETED, $this->seller);
         $sale = SalesRecord::where('order_id', $order->id)->firstOrFail();

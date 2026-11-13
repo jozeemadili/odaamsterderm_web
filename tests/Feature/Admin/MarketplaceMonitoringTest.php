@@ -144,7 +144,7 @@ class MarketplaceMonitoringTest extends TestCase
 
         $orders->addToCart($this->customer, $this->offerA()->id, 2);
         $done = $orders->checkout($this->customer)->first();
-        foreach ([Order::ACCEPTED, Order::READY, Order::COMPLETED] as $s) {
+        foreach ([Order::PREPARING, Order::READY, Order::COMPLETED] as $s) {
             $done = $orders->advance($done, $s, $sellerA);
         }
 

@@ -17,8 +17,10 @@ use Spatie\Activitylog\Support\LogOptions;
 /**
  * A marketplace order for pickup: one customer, one seller, one store.
  *
- * pending → accepted → preparing → ready_for_pickup → completed
+ * Placing an order sends it straight to the shop (no approval step):
+ * pending ("Sent to shop") → preparing → ready_for_pickup → completed
  * pending/accepted/preparing → rejected (seller) · pending/accepted → cancelled (customer)
+ * `accepted` is kept for orders placed before the approval step was removed.
  */
 #[Fillable([
     'reference', 'user_id', 'merchant_id', 'branch_id', 'status', 'total', 'items_count',
@@ -44,7 +46,7 @@ class Order extends Model
     public const CANCELLED = 'cancelled';
 
     public const LABELS = [
-        self::PENDING => 'Waiting for seller',
+        self::PENDING => 'Sent to shop',
         self::ACCEPTED => 'Accepted',
         self::PREPARING => 'Being prepared',
         self::READY => 'Ready for pickup',
@@ -55,7 +57,7 @@ class Order extends Model
 
     /** Seller-driven next steps from each status. */
     public const SELLER_TRANSITIONS = [
-        self::PENDING => [self::ACCEPTED, self::REJECTED],
+        self::PENDING => [self::PREPARING, self::READY, self::REJECTED],
         self::ACCEPTED => [self::PREPARING, self::READY, self::REJECTED],
         self::PREPARING => [self::READY, self::REJECTED],
         self::READY => [self::COMPLETED],
