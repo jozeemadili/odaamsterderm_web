@@ -52,9 +52,18 @@ class AuthController extends Controller
         $name = $claims['name'] ?? null;
 
         $user = User::where('google_id', $googleId)->orWhere('email', $email)->first();
+        $customersOnly = $request->input('account_type') === User::TYPE_CUSTOMER;
+
+        // For now Google sign-in in the app is for customers only: sellers
+        // and staff sign in there with their email and password.
+        if ($user && $customersOnly && ! $user->isCustomer()) {
+            throw ValidationException::withMessages([
+                'id_token' => 'Google sign-in in the app is for customers. Sellers: please sign in with your email and password.',
+            ]);
+        }
 
         // The marketplace side of the app signs customers up in one step.
-        if (! $user && $request->input('account_type') === User::TYPE_CUSTOMER && $email) {
+        if (! $user && $customersOnly && $email) {
             return $this->issueSession(User::registerCustomer([
                 'name' => $name ?: $email,
                 'email' => $email,

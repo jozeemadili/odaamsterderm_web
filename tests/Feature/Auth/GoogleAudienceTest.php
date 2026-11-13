@@ -33,4 +33,20 @@ class GoogleAudienceTest extends TestCase
         $this->postJson('/api/v1/auth/google', ['id_token' => 'x'])->assertOk();
         $this->postJson('/api/v1/auth/google', ['id_token' => 'x'])->assertStatus(422);
     }
+
+    public function test_app_google_sign_in_is_for_customers_only(): void
+    {
+        $this->seed(RolesAndPermissionsSeeder::class);
+        config(['services.google.client_id' => 'web-live.apps.googleusercontent.com']);
+        Http::fake(['oauth2.googleapis.com/*' => Http::response($this->claims('web-live.apps.googleusercontent.com'))]);
+
+        // A new Google user becomes a customer in one step.
+        $this->postJson('/api/v1/auth/google', ['id_token' => 'x', 'account_type' => 'customer'])
+            ->assertOk()->assertJsonPath('user.user_type', User::TYPE_CUSTOMER);
+
+        // A seller's Google account is turned away on the customer path.
+        User::where('email', 'buyer@example.com')->update(['user_type' => User::TYPE_MERCHANT]);
+        $this->postJson('/api/v1/auth/google', ['id_token' => 'x', 'account_type' => 'customer'])
+            ->assertStatus(422)->assertJsonValidationErrors('id_token');
+    }
 }
