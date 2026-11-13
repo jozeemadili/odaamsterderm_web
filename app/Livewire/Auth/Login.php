@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 
 #[Layout('layouts.guest')]
@@ -14,6 +15,14 @@ class Login extends Component
     public string $email = '';
 
     public string $password = '';
+
+    /**
+     * Who the page is for: customers by default (the marketplace header);
+     * "seller" from the footer's seller links. Any account can sign in on
+     * either — only the sign-up links and Google's new-account path differ.
+     */
+    #[Url]
+    public string $as = '';
 
     public function login()
     {
@@ -46,6 +55,6 @@ class Login extends Component
 
     public function render()
     {
-        return view('livewire.auth.login');
+        return view('livewire.auth.login', ['seller' => $this->as === 'seller']);
     }
 }

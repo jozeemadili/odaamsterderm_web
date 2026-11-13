@@ -37,6 +37,6 @@
     </form>
 
     <p class="text-[13px] text-ink-mute mt-6 text-center">
-        Already registered? <a href="{{ route('login') }}" class="text-primary hover:text-primary-deep">Sign in</a>
+        Already registered? <a href="{{ route('login', ['as' => 'seller']) }}" class="text-primary hover:text-primary-deep">Sign in</a>
     </p>
 </div>

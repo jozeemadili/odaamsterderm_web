@@ -93,7 +93,7 @@
                 <p class="text-[12px] uppercase tracking-[0.14em] text-white/50 font-medium mb-3">Sell</p>
                 <ul class="space-y-2">
                     <li><a href="{{ route('register') }}" class="text-leaf hover:text-white">Sell on Amsterdam Digital &rarr;</a></li>
-                    <li><a href="{{ route('login') }}" class="hover:text-white">Seller sign in</a></li>
+                    <li><a href="{{ route('login', ['as' => 'seller']) }}" class="hover:text-white">Seller sign in</a></li>
                 </ul>
             </div>
         </div>

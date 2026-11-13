@@ -135,4 +135,21 @@ class MarketplaceWebTest extends TestCase
         $product->setRelation('variants', collect([new ProductVariant(['name' => '50 kg bag'])]));
         $this->assertSame('50 kg bag', $product->packRange());
     }
+
+    public function test_header_sign_in_is_for_customers_and_the_footer_for_sellers(): void
+    {
+        // The header's Sign in: only customer sign-up, and new Google users become customers.
+        $this->get(route('login'))->assertOk()
+            ->assertSee('Create a customer account')
+            ->assertDontSee('Register your business')
+            ->assertSee(route('auth.google.redirect', ['as' => 'customer']), false);
+
+        // The footer's Seller sign in: business sign-up instead.
+        $this->get(route('login', ['as' => 'seller']))->assertOk()
+            ->assertSee('Seller sign in')
+            ->assertSee('Register your business')
+            ->assertDontSee('Create a customer account');
+
+        $this->get('/')->assertSee(route('login', ['as' => 'seller']), false);
+    }
 }

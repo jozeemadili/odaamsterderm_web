@@ -1,7 +1,8 @@
 <div>
-    <h2 class="text-[22px] font-light text-ink tracking-tight mb-6">Sign in</h2>
+    <h2 class="text-[22px] font-light text-ink tracking-tight mb-6">{{ $seller ? 'Seller sign in' : 'Sign in' }}</h2>
 
-    <a href="{{ route('auth.google.redirect') }}" class="w-full inline-flex items-center justify-center gap-2.5 rounded-pill border border-hairline-input bg-canvas text-ink text-[14px] font-medium px-4 py-2.5 hover:bg-canvas-soft transition">
+    {{-- New Google users become customers here; on the seller page they set up a business. --}}
+    <a href="{{ $seller ? route('auth.google.redirect') : route('auth.google.redirect', ['as' => 'customer']) }}" class="w-full inline-flex items-center justify-center gap-2.5 rounded-pill border border-hairline-input bg-canvas text-ink text-[14px] font-medium px-4 py-2.5 hover:bg-canvas-soft transition">
         <x-icon.google class="h-4.5 w-4.5 shrink-0" />
         Continue with Google
     </a>
@@ -28,10 +29,16 @@
         </x-ui.button>
     </form>
 
-    <p class="text-[13px] text-ink-mute mt-6 text-center">
-        New here? <a href="{{ route('customer.register') }}" class="text-primary hover:text-primary-deep">Create a customer account</a>
-    </p>
-    <p class="text-[13px] text-ink-mute mt-2 text-center">
-        Selling animal products? <a href="{{ route('register') }}" class="text-primary hover:text-primary-deep">Register your business</a>
-    </p>
+    @if($seller)
+        <p class="text-[13px] text-ink-mute mt-6 text-center">
+            Selling animal products? <a href="{{ route('register') }}" class="text-primary hover:text-primary-deep">Register your business</a>
+        </p>
+        <p class="text-[13px] text-ink-mute mt-2 text-center">
+            Buying for your farm? <a href="{{ route('login') }}" class="text-primary hover:text-primary-deep">Customer sign in</a>
+        </p>
+    @else
+        <p class="text-[13px] text-ink-mute mt-6 text-center">
+            New here? <a href="{{ route('customer.register') }}" class="text-primary hover:text-primary-deep">Create a customer account</a>
+        </p>
+    @endif
 </div>
