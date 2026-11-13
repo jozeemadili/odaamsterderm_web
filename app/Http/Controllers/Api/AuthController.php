@@ -109,6 +109,7 @@ class AuthController extends Controller
                 'email' => $data['email'],
                 'google_id' => $data['google_id'] ?? null,
                 'password' => Hash::make($data['password'] ?? Str::random(32)),
+                'has_password' => isset($data['password']),
                 'user_type' => User::TYPE_MERCHANT,
                 'merchant_id' => $merchant->id,
                 'phone' => $data['phone'],

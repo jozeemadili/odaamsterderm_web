@@ -20,6 +20,7 @@ use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\PaymentMethodController;
 use App\Http\Controllers\Api\PosController;
+use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\SalesController;
 use App\Http\Controllers\Api\SellerOrderController;
@@ -56,6 +57,12 @@ Route::prefix('v1')->group(function () {
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/auth/logout', [AuthController::class, 'logout']);
         Route::get('/auth/me', [AuthController::class, 'me']);
+
+        // The signed-in person's own profile (customers and seller staff).
+        Route::patch('/me/profile', [ProfileController::class, 'update']);
+        Route::post('/me/avatar', [ProfileController::class, 'updateAvatar']);
+        Route::delete('/me/avatar', [ProfileController::class, 'destroyAvatar']);
+        Route::put('/me/password', [ProfileController::class, 'updatePassword'])->middleware('throttle:6,1');
 
         // Order notifications for any signed-in user (customer or seller staff).
         Route::get('/me/notifications', [UserNotificationController::class, 'index']);

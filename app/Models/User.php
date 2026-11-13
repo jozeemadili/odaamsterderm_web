@@ -12,11 +12,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 
-#[Fillable(['name', 'email', 'google_id', 'password', 'user_type', 'merchant_id', 'all_branches', 'phone', 'status', 'latitude', 'longitude', 'location_label'])]
+#[Fillable(['name', 'email', 'google_id', 'password', 'user_type', 'merchant_id', 'all_branches', 'phone', 'status', 'latitude', 'longitude', 'location_label', 'avatar_path', 'has_password'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -43,7 +44,25 @@ class User extends Authenticatable
             'all_branches' => 'boolean',
             'latitude' => 'float',
             'longitude' => 'float',
+            'has_password' => 'boolean',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        // Accounts made through Google never chose a password, unless the
+        // caller says otherwise (e.g. a seller who typed one at sign-up).
+        static::creating(function (self $user) {
+            if (! array_key_exists('has_password', $user->getAttributes())) {
+                $user->has_password = $user->google_id === null;
+            }
+        });
+    }
+
+    /** Public URL of the profile photo, or null when none is set. */
+    public function avatarUrl(): ?string
+    {
+        return $this->avatar_path ? Storage::disk('public')->url($this->avatar_path) : null;
     }
 
     /** Stores this staff member works in (ignored when all_branches is on). */
@@ -105,6 +124,7 @@ class User extends Authenticatable
             'phone' => $data['phone'] ?? null,
             'google_id' => $data['google_id'] ?? null,
             'password' => $data['password'] ?? Str::random(32),
+            'has_password' => isset($data['password']),
             'user_type' => self::TYPE_CUSTOMER,
         ]);
 
