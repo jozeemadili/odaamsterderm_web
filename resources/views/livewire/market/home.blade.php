@@ -251,13 +251,20 @@
                 <span class="text-[13px] text-ink-mute">{{ $products->total() }} {{ \Illuminate\Support\Str::plural('product', $products->total()) }}</span>
             </div>
 
-            <div class="grid grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4" wire:loading.class="opacity-60">
+            {{-- While a search, filter or page change loads: skeleton cards. --}}
+            <div class="grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4" wire:loading.grid aria-busy="true">
+                @foreach(range(1, 6) as $i)
+                    <x-market.skeleton-card />
+                @endforeach
+            </div>
+
+            <div class="grid grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4" wire:loading.remove>
                 @forelse($products as $product)
                     @include('livewire.market.product-card', ['product' => $product])
                 @empty
                     @if($aiPending)
                         @foreach(range(1, 3) as $i)
-                            <div class="h-64 rounded-xl bg-canvas-soft animate-pulse"></div>
+                            <x-market.skeleton-card />
                         @endforeach
                     @else
                         <div class="col-span-full rounded-xl border border-dashed border-hairline bg-canvas p-10 text-center text-ink-mute">

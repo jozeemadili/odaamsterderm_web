@@ -32,8 +32,7 @@
                 <img src="{{ $brandMerchant->logo()->getUrl() }}" alt="{{ $brandMerchant->business_name }}" class="h-7 w-7 rounded-md shrink-0 bg-white object-contain p-0.5">
                 <span class="text-[16px] font-medium tracking-tight text-white truncate max-w-[200px]">{{ $brandMerchant->business_name }}</span>
             @else
-            <img src="{{ asset('images/amsterdam-mark.png') }}" alt="Amsterdam Digital" class="h-7 w-auto rounded-md bg-white px-1.5 py-1 shrink-0">
-            <span class="text-[16px] font-light tracking-tight text-white"><span class="font-semibold text-leaf">Amsterdam</span><span class="font-medium"> Digital</span></span>
+            <x-brand size="sm" class="shrink-0" aria-label="Amsterdam Digital" />
             @endif
         </div>
         <button type="button" @click="sidebarOpen = true" class="p-1.5 text-white/80 hover:text-white" aria-label="Open menu">
@@ -66,9 +65,8 @@
                                 <p class="text-[10px] text-white/40 mt-0.5 uppercase tracking-wide">on Amsterdam Digital</p>
                             </div>
                         @else
-                        <img src="{{ asset('images/amsterdam-mark.png') }}" alt="Amsterdam Digital" class="h-7 w-auto rounded-md bg-white px-1.5 py-1 shrink-0">
                         <div class="min-w-0">
-                            <span class="text-[17px] font-light tracking-tight text-white"><span class="font-semibold text-leaf">Amsterdam</span><span class="font-medium"> Digital</span></span>
+                            <x-brand size="sm" aria-label="Amsterdam Digital" />
                             <p class="text-[11px] text-white/40 mt-0.5 uppercase tracking-wide truncate">{{ auth()->user()->merchant?->business_name }}</p>
                         </div>
                         @endif

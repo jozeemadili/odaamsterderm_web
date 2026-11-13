@@ -17,8 +17,7 @@
     <header class="md:sticky md:top-0 z-30 bg-brand-dark/95 backdrop-blur text-white shadow-[0_1px_0_rgba(255,255,255,0.06),0_4px_16px_rgba(42,10,15,0.25)]">
         <div class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap items-center gap-3">
             <a href="{{ route('market.home') }}" class="flex items-center gap-2 shrink-0">
-                <img src="{{ asset('images/amsterdam-mark.png') }}" alt="Amsterdam Digital" class="h-8 w-auto rounded-md bg-white px-1.5 py-1">
-                <span class="text-[18px] font-light tracking-tight"><span class="font-semibold text-leaf">Amsterdam</span><span class="font-medium"> Digital</span></span>
+                <x-brand aria-label="Amsterdam Digital" />
             </a>
 
             @php($askAiOn = \App\Services\Ai\AiProductSearch::enabled())
@@ -71,8 +70,7 @@
         <div class="max-w-6xl mx-auto px-4 py-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr] text-[14px]">
             <div>
                 <a href="{{ route('market.home') }}" class="flex items-center gap-2">
-                    <img src="{{ asset('images/amsterdam-mark.png') }}" alt="Amsterdam Digital" class="h-8 w-auto rounded-md bg-white px-1.5 py-1">
-                    <span class="text-[18px] font-light tracking-tight text-white"><span class="font-semibold text-leaf">Amsterdam</span><span class="font-medium"> Digital</span></span>
+                    <x-brand aria-label="Amsterdam Digital" />
                 </a>
                 <p class="mt-3 max-w-sm text-[13px] leading-relaxed">Livestock, poultry and aquaculture products from approved sellers. Compare prices and buy from the stores closest to you.</p>
             </div>

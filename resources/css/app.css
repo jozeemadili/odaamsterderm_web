@@ -123,3 +123,28 @@ body {
 .spinner {
     animation: spin 0.6s linear infinite;
 }
+
+/* Skeleton loading: grey shapes in the layout of the content that is
+   coming, with a soft light sweeping across them. */
+@keyframes skeleton-shimmer {
+    from {
+        background-position: 150% 0;
+    }
+    to {
+        background-position: -50% 0;
+    }
+}
+
+.skeleton {
+    background-color: #e9e8e1;
+    background-image: linear-gradient(90deg, #e9e8e1 35%, #f7f7f2 50%, #e9e8e1 65%);
+    background-size: 200% 100%;
+    animation: skeleton-shimmer 1.3s linear infinite;
+    border-radius: 6px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .skeleton {
+        animation: none;
+    }
+}
