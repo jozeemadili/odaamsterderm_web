@@ -49,4 +49,27 @@ class GoogleAudienceTest extends TestCase
         $this->postJson('/api/v1/auth/google', ['id_token' => 'x', 'account_type' => 'customer'])
             ->assertStatus(422)->assertJsonValidationErrors('id_token');
     }
+
+    public function test_new_google_users_finish_signing_up_with_their_details(): void
+    {
+        $this->seed(RolesAndPermissionsSeeder::class);
+        config(['services.google.client_id' => 'web-live.apps.googleusercontent.com']);
+        Http::fake(['oauth2.googleapis.com/*' => Http::response($this->claims('web-live.apps.googleusercontent.com'))]);
+
+        // Not registered: the app is told, nothing is created yet.
+        $this->postJson('/api/v1/auth/google', ['id_token' => 'x', 'account_type' => 'customer', 'ask_signup' => true])
+            ->assertOk()->assertJsonPath('needs_registration', true)->assertJsonPath('email', 'buyer@example.com');
+        $this->assertDatabaseMissing('users', ['email' => 'buyer@example.com']);
+
+        // The sign-up form sends the token back with the name and phone.
+        $this->postJson('/api/v1/auth/register-customer', ['id_token' => 'x', 'name' => 'Asha Buyer', 'phone' => '+255700000555'])
+            ->assertCreated()->assertJsonPath('user.email', 'buyer@example.com')->assertJsonPath('user.phone', '+255700000555');
+        $this->assertDatabaseHas('users', ['email' => 'buyer@example.com', 'google_id' => 'google-123', 'user_type' => User::TYPE_CUSTOMER, 'has_password' => false]);
+
+        // Registered now: the same Google account simply signs in.
+        $this->postJson('/api/v1/auth/google', ['id_token' => 'x', 'account_type' => 'customer', 'ask_signup' => true])
+            ->assertOk()->assertJsonStructure(['token']);
+        $this->postJson('/api/v1/auth/register-customer', ['id_token' => 'x', 'name' => 'Again', 'phone' => '+255700000555'])
+            ->assertJsonValidationErrors('email');
+    }
 }

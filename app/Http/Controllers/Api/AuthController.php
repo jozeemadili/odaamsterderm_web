@@ -32,20 +32,7 @@ class AuthController extends Controller
     {
         $request->validate(['id_token' => ['required', 'string']]);
 
-        $response = Http::get('https://oauth2.googleapis.com/tokeninfo', [
-            'id_token' => $request->string('id_token'),
-        ]);
-
-        if (! $response->ok()) {
-            throw ValidationException::withMessages(['id_token' => 'That Google sign-in could not be verified.']);
-        }
-
-        $claims = $response->json();
-
-        $audiences = array_filter([config('services.google.client_id'), ...config('services.google.app_client_ids', [])]);
-        if (! in_array($claims['aud'] ?? null, $audiences, true)) {
-            throw ValidationException::withMessages(['id_token' => 'That Google sign-in could not be verified.']);
-        }
+        $claims = $this->verifiedGoogleClaims((string) $request->string('id_token'));
 
         $googleId = $claims['sub'];
         $email = $claims['email'] ?? null;
@@ -62,7 +49,18 @@ class AuthController extends Controller
             ]);
         }
 
-        // The marketplace side of the app signs customers up in one step.
+        // The app can ask to be told about a new Google user, so it can open
+        // the sign-up form (prefilled) instead of creating the account here.
+        if (! $user && $customersOnly && $request->boolean('ask_signup')) {
+            return response()->json([
+                'needs_registration' => true,
+                'google_id' => $googleId,
+                'email' => $email,
+                'name' => $name,
+            ]);
+        }
+
+        // Older app versions: sign the new customer up in one step.
         if (! $user && $customersOnly && $email) {
             return $this->issueSession(User::registerCustomer([
                 'name' => $name ?: $email,
@@ -135,6 +133,30 @@ class AuthController extends Controller
     /** Marketplace customer sign-up (email + password, or a verified Google identity). */
     public function registerCustomer(Request $request)
     {
+        // With a Google ID token the email and Google identity come from the
+        // verified token, and no password is needed.
+        if ($request->filled('id_token')) {
+            $data = $request->validate([
+                'id_token' => ['required', 'string'],
+                'name' => ['required', 'string', 'max:255'],
+                'phone' => ['required', 'string', 'max:30'],
+            ]);
+
+            $claims = $this->verifiedGoogleClaims($data['id_token']);
+            $email = $claims['email'] ?? null;
+
+            if (! $email || User::where('google_id', $claims['sub'])->orWhere('email', $email)->exists()) {
+                throw ValidationException::withMessages(['email' => 'This Google account is already registered. Please sign in instead.']);
+            }
+
+            return $this->issueSession(User::registerCustomer([
+                'name' => $data['name'],
+                'phone' => $data['phone'],
+                'email' => $email,
+                'google_id' => $claims['sub'],
+            ]))->setStatusCode(201);
+        }
+
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'phone' => ['required', 'string', 'max:30'],
@@ -143,6 +165,30 @@ class AuthController extends Controller
         ]);
 
         return $this->issueSession(User::registerCustomer($data))->setStatusCode(201);
+    }
+
+    /**
+     * Verifies a Google ID token with Google and checks it was issued for one
+     * of our clients; returns its claims (sub, email, name…).
+     *
+     * @return array<string, mixed>
+     */
+    private function verifiedGoogleClaims(string $idToken): array
+    {
+        $response = Http::get('https://oauth2.googleapis.com/tokeninfo', ['id_token' => $idToken]);
+
+        if (! $response->ok()) {
+            throw ValidationException::withMessages(['id_token' => 'That Google sign-in could not be verified.']);
+        }
+
+        $claims = $response->json();
+        $audiences = array_filter([config('services.google.client_id'), ...config('services.google.app_client_ids', [])]);
+
+        if (! in_array($claims['aud'] ?? null, $audiences, true) || empty($claims['sub'])) {
+            throw ValidationException::withMessages(['id_token' => 'That Google sign-in could not be verified.']);
+        }
+
+        return $claims;
     }
 
     public function login(Request $request)
