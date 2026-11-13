@@ -149,7 +149,7 @@ class MarketplaceSearchTest extends TestCase
         $this->assertContains('New Branch', $stores->pluck('name')->all());
         $this->assertNotContains('No Pin Branch', $stores->pluck('name')->all()); // still needs a map pin
         $this->assertSame(0, (int) $stores->firstWhere('id', $empty->id)->offers_count);
-        $this->get('/')->assertOk()->assertSee('New Branch')->assertSee('No products online yet');
+        $this->get('/')->assertOk()->assertSee('New Branch');
     }
 
     public function test_distance_formatting(): void

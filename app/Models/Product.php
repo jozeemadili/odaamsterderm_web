@@ -279,6 +279,39 @@ class Product extends Model implements HasMedia
         return $this->producer?->name ?? ($this->brand ?: null);
     }
 
+    /**
+     * Pack sizes on sale, smallest to largest: "30 g – 1 kg", the only
+     * pack's name, "3 sizes" when the names carry no size, or null.
+     */
+    public function packRange(): ?string
+    {
+        $names = $this->variants->pluck('name')->filter()->values();
+        if ($names->isEmpty()) {
+            return null;
+        }
+        if ($names->count() === 1) {
+            return $names->first();
+        }
+
+        $sizes = $names->map(function (string $name) {
+            if (! preg_match('/^([\d.,]+)\s*(g|kg|ml|l)\b/i', $name, $m)) {
+                return null;
+            }
+            $unit = strtolower($m[2]);
+            $value = (float) str_replace(',', '', $m[1]);
+
+            $number = str_contains($m[1], '.') ? rtrim(rtrim($m[1], '0'), '.') : $m[1];
+
+            return ['label' => $number.' '.$unit, 'base' => $value * (in_array($unit, ['kg', 'l'], true) ? 1000 : 1)];
+        })->filter()->sortBy('base')->values();
+
+        if ($sizes->count() < 2) {
+            return $names->count().' sizes';
+        }
+
+        return $sizes->first()['label'].' – '.$sizes->last()['label'];
+    }
+
     /** For APIs: {id, name, logo_url, country}; id null when only a free-text brand is known. */
     public function makerSummary(): ?array
     {

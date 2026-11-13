@@ -22,21 +22,22 @@
 
             @php($askAiOn = \App\Services\Ai\AiProductSearch::enabled())
             @php($inAiMode = $askAiOn && request()->filled('ask'))
-            <form action="{{ route('market.home') }}" method="GET" class="order-3 w-full md:order-none md:w-auto md:flex-1 md:max-w-xl flex items-center gap-2"
-                x-data="{ ai: {{ $inAiMode ? 'true' : 'false' }} }">
-                <label for="market_q" class="sr-only">Search products</label>
-                <input id="market_q" x-ref="q" type="search" name="{{ $inAiMode ? 'ask' : 'q' }}" :name="ai ? 'ask' : 'q'" maxlength="300"
+            {{-- One search bar with Ask AI inside, like the app: Enter searches,
+                 "Ask AI" sends the same words to the AI as a question. --}}
+            <form action="{{ route('market.home') }}" method="GET" x-data
+                class="order-3 w-full md:order-none md:w-auto md:flex-1 md:max-w-2xl flex items-center gap-2 rounded-pill bg-white/10 border border-white/15 pl-4 pr-1 py-1 focus-within:border-primary-soft transition">
+                <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="h-[18px] w-[18px] shrink-0 text-white/60"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+                <label for="market_q" class="sr-only">Search products or ask a question</label>
+                <input id="market_q" x-ref="q" type="search" name="{{ $inAiMode ? 'ask' : 'q' }}" maxlength="300"
                     value="{{ $inAiMode ? request('ask') : request('q') }}"
-                    placeholder="{{ $inAiMode ? 'Describe what you need, e.g. feed for 200 broiler chicks' : 'Search feeds, vaccines, medicines…' }}"
-                    :placeholder="ai ? 'Describe what you need, e.g. feed for 200 broiler chicks' : 'Search feeds, vaccines, medicines…'"
-                    class="w-full rounded-pill bg-white/10 border text-white placeholder:text-white/50 px-4 py-2 text-[14px] focus:outline-none focus:border-primary-soft"
-                    :class="ai ? 'border-primary-soft' : 'border-white/15'">
+                    placeholder="{{ $askAiOn ? 'Search feeds, vaccines, medicines… or ask AI' : 'Search feeds, vaccines, medicines…' }}"
+                    class="min-w-0 flex-1 bg-transparent py-1.5 text-[14px] text-white placeholder:text-white/50 focus:outline-none">
                 @if($askAiOn)
-                    <button type="button" x-on:click="ai = !ai; $nextTick(() => $refs.q.focus())" :aria-pressed="ai.toString()"
+                    <button type="submit" x-on:click="$refs.q.name = 'ask'"
                         title="Ask AI: describe what you need in your own words (English or Kiswahili)"
-                        class="shrink-0 rounded-pill px-3.5 py-2 text-[13px] font-medium border transition"
-                        :class="ai ? 'bg-leaf text-ink border-leaf' : 'bg-white/10 text-white border-white/15 hover:border-primary-soft'">
-                        ✨ Ask AI
+                        class="shrink-0 inline-flex items-center gap-1.5 rounded-pill bg-primary px-3.5 py-2 text-[13px] font-semibold text-white hover:bg-primary-deep transition">
+                        <svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor" class="h-4 w-4 text-leaf"><path d="M12 3l1.9 4.6L18.5 9.5l-4.6 1.9L12 16l-1.9-4.6L5.5 9.5l4.6-1.9z"/><path d="M19 15l.8 1.9 1.9.8-1.9.8L19 20.4l-.8-1.9-1.9-.8 1.9-.8z"/></svg>
+                        Ask AI
                     </button>
                 @endif
             </form>

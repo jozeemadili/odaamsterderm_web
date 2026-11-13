@@ -71,11 +71,29 @@ class Home extends Component
     #[Url(as: 'max')]
     public string $maxPrice = '';
 
+    /** Products shown so far; scrolling to the end loads the next batch. */
+    public const BATCH = 24;
+
+    public int $perPage = self::BATCH;
+
     public function updating(string $name): void
     {
-        if ($name !== 'page') {
-            $this->resetPage();
+        if (! in_array($name, ['page', 'perPage'], true)) {
+            $this->restart();
         }
+    }
+
+    /** Infinite scroll: the next batch of products. */
+    public function loadMore(): void
+    {
+        $this->perPage += self::BATCH;
+    }
+
+    /** A new search, filter or sort starts from the first batch again. */
+    protected function restart(): void
+    {
+        $this->perPage = self::BATCH;
+        $this->resetPage();
     }
 
     public function updatedAsk(): void
@@ -100,7 +118,7 @@ class Home extends Component
         $this->followUp = '';
         $this->ai = null;
         $this->aiFor = '';
-        $this->resetPage();
+        $this->restart();
 
         // Show the question at once; the answer follows.
         $this->js('$wire.runAi()');
@@ -123,27 +141,27 @@ class Home extends Component
         }
 
         $this->aiFor = $ask;
-        $this->resetPage();
+        $this->restart();
     }
 
     public function clearAi(): void
     {
         $this->reset(['ask', 'ai', 'aiFor', 'aiThread', 'followUp']);
         $this->sort = MarketLocation::current() ? MarketplaceSearch::SORT_NEAREST : MarketplaceSearch::SORT_PRICE;
-        $this->resetPage();
+        $this->restart();
     }
 
     public function chooseAnimal(?int $id): void
     {
         $this->animal = $id ? (string) $id : '';
         $this->category = '';
-        $this->resetPage();
+        $this->restart();
     }
 
     public function clearFilters(): void
     {
         $this->reset(['animal', 'category', 'brand', 'seller', 'inStock', 'minPrice', 'maxPrice']);
-        $this->resetPage();
+        $this->restart();
     }
 
     #[On('market-location-updated')]
@@ -151,7 +169,7 @@ class Home extends Component
     {
         // A freshly chosen location is what customers want ranked by.
         $this->sort = MarketLocation::current() ? MarketplaceSearch::SORT_NEAREST : MarketplaceSearch::SORT_PRICE;
-        $this->resetPage();
+        $this->restart();
     }
 
     public function render(MarketplaceSearch $search)
@@ -195,15 +213,10 @@ class Home extends Component
 
         $hasFilters = $this->ask !== '' || $this->q !== '' || array_filter([$this->animal, $this->category, $this->brand, $this->seller, $this->minPrice, $this->maxPrice]) || $this->inStock;
 
-        // Amsterdam Group's own catalogue, featured above everything else,
-        // then a partner range (Silverlands) in a block of its own.
+        // Amsterdam Group's own catalogue: the picks row under the banner.
         $featuredBrand = Producer::where('code', config('hub.catalogue_producer'))->value('name');
         $featured = $featuredBrand && ! $hasFilters
-            ? $search->products(['brand' => $featuredBrand], $from, MarketplaceSearch::SORT_NAME, 8, 'featured_page')
-            : null;
-        $partnerBrand = Producer::where('code', config('hub.partner_producer'))->where('on_marketplace', true)->value('name');
-        $partner = $partnerBrand && ! $hasFilters
-            ? $search->products(['brand' => $partnerBrand], $from, MarketplaceSearch::SORT_NAME, 4, 'partner_page')
+            ? $search->products(['brand' => $featuredBrand], $from, MarketplaceSearch::SORT_NAME, 12, 'featured_page')
             : null;
         $featuredItems = $featured?->getCollection() ?? collect();
 
@@ -212,13 +225,10 @@ class Home extends Component
             'featured' => $featuredItems,
             // The hero's product: a featured one customers can see and buy.
             'spotlight' => $featuredItems->first(fn ($p) => $p->image() && $p->min_price !== null),
-            'partner' => $partner?->getCollection() ?? collect(),
-            'partnerTotal' => $partner?->total() ?? 0,
-            'partnerBrand' => $partnerBrand,
             'featuredTotal' => $featured?->total() ?? 0,
             'featuredBrand' => $featuredBrand,
-            'products' => $search->products($filters, $from, $this->sort, 24),
-            'stores' => $hasFilters ? collect() : $search->stores($from, 6),
+            'products' => $search->products($filters, $from, $this->sort, $this->perPage),
+            'stores' => $hasFilters ? collect() : $search->stores($from, 12),
             'animalGroups' => AnimalType::active()->whereNull('parent_id')->with(['children' => fn ($q) => $q->active()])->orderBy('sort_order')->get(),
             'categories' => ProductCategory::active()->whereNull('parent_id')
                 ->withProductsFor($this->animal ? (int) $this->animal : null)

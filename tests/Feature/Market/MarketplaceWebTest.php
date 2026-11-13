@@ -7,6 +7,8 @@ use App\Livewire\Market\Account;
 use App\Livewire\Market\Home;
 use App\Livewire\Market\LocationBar;
 use App\Livewire\Market\ProductShow;
+use App\Models\Product;
+use App\Models\ProductVariant;
 use App\Models\User;
 use App\Support\MarketLocation;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -109,5 +111,28 @@ class MarketplaceWebTest extends TestCase
 
         $seller = User::factory()->create(['user_type' => User::TYPE_MERCHANT, 'merchant_id' => $this->stores['A']->merchant_id]);
         $this->actingAs($seller)->get(route('market.account'))->assertForbidden();
+    }
+
+    public function test_products_load_in_batches_as_customers_scroll(): void
+    {
+        $home = Livewire::test(Home::class)
+            ->assertSet('perPage', Home::BATCH)
+            ->assertSee("You're all caught up", false)
+            ->call('loadMore')
+            ->assertSet('perPage', Home::BATCH * 2);
+
+        // A new filter starts from the first batch again.
+        $home->call('chooseAnimal', null)->assertSet('perPage', Home::BATCH);
+    }
+
+    public function test_product_posts_show_pack_sizes_smallest_to_largest(): void
+    {
+        $product = Product::first();
+        $product->setRelation('variants', collect(['1 kg sachet', '30 g sachet', '100 g sachet'])
+            ->map(fn ($name) => new ProductVariant(['name' => $name])));
+        $this->assertSame('30 g – 1 kg', $product->packRange());
+
+        $product->setRelation('variants', collect([new ProductVariant(['name' => '50 kg bag'])]));
+        $this->assertSame('50 kg bag', $product->packRange());
     }
 }

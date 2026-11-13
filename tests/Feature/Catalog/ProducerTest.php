@@ -90,7 +90,8 @@ class ProducerTest extends TestCase
         $producer = Producer::create(['name' => 'Silverlands', 'country' => 'Tanzania']);
         Product::where('name', 'Chicken Starter')->first()->update(['producer_id' => $producer->id]);
 
-        $this->get('/')->assertOk()->assertSeeInOrder(['Chicken Starter 25KG', 'by', 'Silverlands']);
+        // Each product post names its maker above the photo, like the app.
+        $this->get('/')->assertOk()->assertSeeInOrder(['Silverlands', 'Chicken Starter 25KG']);
         $this->get('/products/chicken-starter-25kg')->assertOk()->assertSee('Silverlands')->assertSee('Made in Tanzania');
 
         $this->getJson('/api/v1/market/products?search=starter')

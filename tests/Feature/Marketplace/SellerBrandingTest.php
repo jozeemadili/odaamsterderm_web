@@ -49,8 +49,8 @@ class SellerBrandingTest extends TestCase
         $this->actingAs($this->seller)->get(route('portal.dashboard'))->assertOk()
             ->assertSee('--brand:#14532D;--brand-ink:#FFFFFF;--brand-accent:#84CC16;--brand-accent-ink:#231416;', false);
 
-        // Store cards on the marketplace home and the stores API carry the branding.
-        $this->get('/')->assertOk()->assertSee('background: #14532D', false)->assertSee('background: #84CC16', false);
+        // Store circles on the marketplace home and the stores API carry the branding.
+        $this->get('/')->assertOk()->assertSee('background: linear-gradient(45deg, #84CC16, #14532D)', false);
         $this->getJson('/api/v1/market/stores')->assertJsonFragment(['brand_color' => '#14532D', 'brand_accent_color' => '#84CC16']);
 
         $this->get("/stores/{$this->stores['B']->id}")->assertOk()->assertSee('background: #14532D', false)->assertSee('background: #84CC16', false);
