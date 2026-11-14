@@ -11,6 +11,7 @@ use App\Models\ProductVariant;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use RuntimeException;
+use Spatie\MediaLibrary\HasMedia;
 
 /**
  * Loads the product catalogues in database/data on top of the taxonomy
@@ -33,6 +34,7 @@ class AmsterdamCatalogueImporter
     public const DATA_PATHS = [
         'database/data/amsterdam-catalogue.json',
         'database/data/silverlands-catalogue.json',
+        'database/data/ricagrovet-catalogue.json',
     ];
 
     /** Pack photos of every catalogue file. */
@@ -71,7 +73,7 @@ class AmsterdamCatalogueImporter
 
         return DB::transaction(function () use ($data, $path, $underOwner) {
             foreach ($data['producers'] as $row) {
-                $this->importProducer($row);
+                $this->importProducer($row, dirname($path));
             }
 
             $variants = $photos = 0;
@@ -93,8 +95,12 @@ class AmsterdamCatalogueImporter
         });
     }
 
-    /** @param  array<string, string>  $row */
-    private function importProducer(array $row): void
+    /**
+     * @param  array<string, mixed>  $row
+     * @param  string  $dataDir  the catalogue file's folder; a producer's
+     *                           `logo` path is relative to it
+     */
+    private function importProducer(array $row, string $dataDir): void
     {
         $producer = Producer::where('code', $row['code'])->first()
             ?? Producer::whereNull('code')->where('name', $row['name'])->first()
@@ -105,9 +111,13 @@ class AmsterdamCatalogueImporter
             'code' => $row['code'],
             'name' => $row['name'],
             'role' => $row['role'],
-            'country' => $row['country'],
+            'country' => $row['country'] ?? null,
             'is_demo' => false,
         ])->save();
+
+        if (isset($row['logo'])) {
+            $this->setPhoto($producer, 'logo', $dataDir.'/'.$row['logo']);
+        }
     }
 
     /** @param  array<string, mixed>  $row */
@@ -145,6 +155,7 @@ class AmsterdamCatalogueImporter
             'crude_protein_pct' => $row['crude_protein'] ?? null,
             'country_of_origin' => $row['country'] ?? $maker->country,
             'search_keywords' => isset($row['keywords']) ? Str::lower($row['keywords']) : null,
+            'prescription_required' => $row['prescription_required'] ?? null,
             'unit' => $row['variants'][0]['selling_unit'],
             'is_demo' => false,
         ], fn ($value) => $value !== null));
@@ -189,16 +200,16 @@ class AmsterdamCatalogueImporter
      * seller's. Replaced only when the catalogue's file changes, so a photo
      * an admin uploaded for a product the catalogue has no photo for stays.
      */
-    private function setPhoto(Product $product, string $collection, string $file): bool
+    private function setPhoto(HasMedia $model, string $collection, string $file): bool
     {
-        $current = $product->getFirstMedia($collection);
+        $current = $model->getFirstMedia($collection);
         $name = basename($file);
 
         if (! is_file($file) || $current?->getCustomProperty('catalogue_file') === $name) {
             return false;
         }
 
-        $product->addMedia($file)->preservingOriginal()
+        $model->addMedia($file)->preservingOriginal()
             ->withCustomProperties(['catalogue_file' => $name])
             ->toMediaCollection($collection);
 

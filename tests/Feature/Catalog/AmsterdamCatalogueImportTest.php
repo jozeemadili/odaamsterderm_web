@@ -50,7 +50,8 @@ class AmsterdamCatalogueImportTest extends TestCase
 
         // A front for each of the 14 products plus the backs of Vitamix Chick/Plus, Clear Heat and the pig concentrate.
         // Amsterdam: 14 products, 27 packs, 18 photos. Silverlands: 8 products, 12 packs, 6 photos.
-        $this->assertSame(['producers' => 3, 'products' => 22, 'product_variants' => 39, 'photos_added' => 24], $counts);
+        // RIC Agrovet: 10 products, 20 packs, 10 photos (and 2 producers, RIC Agrovet and Medisel).
+        $this->assertSame(['producers' => 5, 'products' => 32, 'product_variants' => 59, 'photos_added' => 34], $counts);
 
         $chick->refresh();
         $this->assertSame(['P034-30G', 'P034-100G', 'P034-250G', 'P034-1KG'], $chick->variants()->orderBy('sort_order')->pluck('sku')->all());
@@ -89,9 +90,36 @@ class AmsterdamCatalogueImportTest extends TestCase
         // Re-running changes nothing and adds no second photo.
         $again = app(AmsterdamCatalogueImporter::class)->import();
         $this->assertSame(0, $again['photos_added']);
-        $this->assertSame(129, Product::count());
-        $this->assertSame(170, ProductVariant::count());
+        $this->assertSame(139, Product::count());
+        $this->assertSame(190, ProductVariant::count());
 
         $this->get(route('market.product', $alpha->slug))->assertOk();
+    }
+
+    public function test_ric_agrovet_products_keep_their_maker_logos_and_prescription_flags(): void
+    {
+        app(CatalogTaxonomyImporter::class)->import();
+        app(AmsterdamCatalogueImporter::class)->import();
+
+        $ric = Producer::where('code', 'BR-RIC')->sole();
+        $medisel = Producer::where('code', 'BR-MEDISEL')->sole();
+        $this->assertNotNull($ric->logoUrl());
+        $this->assertNotNull($medisel->logoUrl());
+
+        // Shown under their own makers, not under the Amsterdam Group catalogue owner.
+        $this->assertSame(9, Product::where('producer_id', $ric->id)->count());
+        $petD = Product::where('code', 'P136')->sole();
+        $this->assertSame($medisel->id, $petD->producer_id);
+        $this->assertNotNull($petD->image());
+
+        $this->assertTrue(Product::where('code', 'P131')->sole()->prescription_required);
+        $this->assertTrue(Product::where('code', 'P133')->sole()->prescription_required);
+        $this->assertSame(['10% · 100 ml bottle', '10% · 250 ml bottle', '20% · 100 ml bottle'],
+            Product::where('code', 'P131')->sole()->variants()->orderBy('sort_order')->pluck('name')->all());
+
+        // Running again changes nothing (same files, same photos and logos).
+        $again = app(AmsterdamCatalogueImporter::class)->import();
+        $this->assertSame(0, $again['photos_added']);
+        $this->assertSame(1, $ric->fresh()->getMedia('logo')->count());
     }
 }
