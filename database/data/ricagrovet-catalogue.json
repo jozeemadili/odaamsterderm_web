@@ -1,0 +1,388 @@
+{
+  "source": "RIC Agrovet Ltd website (ricagrovet.co.tz, products page), read 14 Nov 2026. Descriptions and dosages from the site, lightly edited for spelling; pack sizes from the site text and pack photos.",
+  "show_under_owner": false,
+  "status": "prepared — not imported yet (not in AmsterdamCatalogueImporter::DATA_PATHS)",
+  "producers": [
+    {
+      "code": "BR-RIC",
+      "name": "RIC Agrovet",
+      "role": "Importer & distributor (veterinary medicines and supplements)",
+      "country": null,
+      "logo": "ricagrovet/logos/logo.png",
+      "website": "https://www.ricagrovet.co.tz",
+      "phone": "+255 657 836 775",
+      "email": "info@ricagrovet.co.tz",
+      "notes": "RIC AGROVET LTD, since 2016. Imports from Kenya and India. HQ Olkung'u Terrat, Arusha; branches Arusha (Ngarenaro), Morogoro (Bigwa), Mbeya (Uyole), Dar es Salaam (Mabibo)."
+    },
+    {
+      "code": "BR-MEDISEL",
+      "name": "Medisel",
+      "role": "Manufacturer (veterinary medicines)",
+      "country": null,
+      "logo": "ricagrovet/logos/medisel.jpg",
+      "notes": "Shown as a RIC Agrovet partner; makes Pet-D Worm Tablets."
+    }
+  ],
+  "partners_on_site": [
+    {
+      "name": "UNIM",
+      "logo": "ricagrovet/logos/unim.png",
+      "type": "partner company"
+    },
+    {
+      "name": "MEDISEL",
+      "logo": "ricagrovet/logos/medisel.jpg",
+      "type": "partner company (manufacturer)"
+    },
+    {
+      "name": "TMDA",
+      "logo": "ricagrovet/logos/tmda.png",
+      "type": "regulator"
+    },
+    {
+      "name": "Veterinary Council of Tanzania",
+      "logo": "ricagrovet/logos/tvc.png",
+      "type": "regulator"
+    },
+    {
+      "name": "BRELA",
+      "logo": "ricagrovet/logos/brela.png",
+      "type": "regulator"
+    }
+  ],
+  "products": [
+    {
+      "code": "P130",
+      "name": "RIC Neoxy Plus",
+      "producer": "BR-RIC",
+      "category": "C3010",
+      "animals": [
+        "AN-CHK"
+      ],
+      "life_stages": [],
+      "form": "powder",
+      "description": "Water-soluble veterinary powder with antibiotics, vitamins and minerals, made for chicks. For treating susceptible bacterial infections in poultry and for vitamin and mineral supplementation.",
+      "dosage": "Mix 1 g per 2–3 litres of clean drinking water for 3–5 days (often used in the first 5 days of chicks to prevent early losses).",
+      "keywords": "ric agrovet|neoxy|antibiotic|vifaranga|chicks|dawa ya kuku",
+      "photo": "ric-neoxy-plus.jpeg",
+      "variants": [
+        {
+          "sku": "P130-PACK",
+          "name": "Pack (size to confirm)",
+          "value": null,
+          "unit": null,
+          "selling_unit": "pack"
+        }
+      ],
+      "needs_confirmation": [
+        "pack sizes (sachet and tub shown, sizes not readable)"
+      ]
+    },
+    {
+      "code": "P131",
+      "name": "RIC-OXY 10% & 20% Injection",
+      "producer": "BR-RIC",
+      "category": "C3010",
+      "animals": [
+        "AN-CAT",
+        "AN-GTS"
+      ],
+      "life_stages": [],
+      "form": "injection",
+      "description": "Sterile oxytetracycline injection for livestock. For treating susceptible bacterial infections in cattle, goats, sheep and other livestock. Prescription-only medicine (POM).",
+      "dosage": "RIC-OXY 10%: 100 mg oxytetracycline per ml. RIC-OXY 20%: 200 mg oxytetracycline per ml. Use as prescribed by a veterinarian.",
+      "keywords": "ric agrovet|oxytetracycline|oxy|sindano|injection|antibiotic",
+      "photo": "ric-oxy.jpeg",
+      "prescription_required": true,
+      "variants": [
+        {
+          "sku": "P131-10-100ML",
+          "name": "10% · 100 ml bottle",
+          "value": 100,
+          "unit": "ml",
+          "selling_unit": "bottle"
+        },
+        {
+          "sku": "P131-10-250ML",
+          "name": "10% · 250 ml bottle",
+          "value": 250,
+          "unit": "ml",
+          "selling_unit": "bottle"
+        },
+        {
+          "sku": "P131-20-100ML",
+          "name": "20% · 100 ml bottle",
+          "value": 100,
+          "unit": "ml",
+          "selling_unit": "bottle"
+        }
+      ]
+    },
+    {
+      "code": "P132",
+      "name": "Calsum WS",
+      "producer": "BR-RIC",
+      "category": "C2030",
+      "animals": [
+        "AN-POU",
+        "AN-CAT",
+        "AN-GTS",
+        "AN-OTH"
+      ],
+      "life_stages": [],
+      "form": "liquid",
+      "description": "Water-soluble calcium and phosphorus supplement for poultry and livestock. Supports bone development, skeletal health and eggshell formation in laying hens.",
+      "dosage": "Cows, camels and horses: 100 ml per head per day. Calves: 40 ml per head per day. Sheep and goats: 10 ml per head per day. Poultry: 2–3 ml per litre of drinking water.",
+      "keywords": "ric agrovet|calsum|calcium|phosphorus|madini|kuku wa mayai|eggshell",
+      "photo": "ric-calsum-ws.png",
+      "variants": [
+        {
+          "sku": "P132-500ML",
+          "name": "500 ml bottle",
+          "value": 500,
+          "unit": "ml",
+          "selling_unit": "bottle"
+        }
+      ]
+    },
+    {
+      "code": "P133",
+      "name": "Ampro 200 WS",
+      "producer": "BR-RIC",
+      "category": "C3030",
+      "animals": [
+        "AN-POU"
+      ],
+      "life_stages": [],
+      "form": "powder",
+      "description": "Water-soluble powder with Amprolium HCl 20%, for treating and preventing coccidiosis in poultry. Prescription-only medicine (POM).",
+      "dosage": "20 mg amprolium per kg body weight per day for 5–7 days, in drinking water.",
+      "keywords": "ric agrovet|ampro|amprolium|coccidiosis|kuhara damu|dawa ya kuku",
+      "photo": "ric-ampro-200-ws.jpeg",
+      "prescription_required": true,
+      "variants": [
+        {
+          "sku": "P133-PACK",
+          "name": "Pack (size to confirm)",
+          "value": null,
+          "unit": null,
+          "selling_unit": "pack"
+        }
+      ],
+      "needs_confirmation": [
+        "pack sizes (sachet and tubs shown, sizes not readable)"
+      ]
+    },
+    {
+      "code": "P134",
+      "name": "Alberic 2.5",
+      "producer": "BR-RIC",
+      "category": "C3020",
+      "animals": [
+        "AN-CAT",
+        "AN-GTS"
+      ],
+      "life_stages": [],
+      "form": "liquid",
+      "description": "Oral suspension of Albendazole 2.5% w/v (25 mg/ml), a broad-spectrum dewormer for livestock. Treats roundworms and other susceptible gastrointestinal worms.",
+      "dosage": "Cattle and calves: 1 ml per 3 kg body weight (liver fluke: 1 ml per 2.5 kg). Sheep and goats: 1 ml per 5 kg body weight (liver fluke: 1 ml per 3 kg).",
+      "keywords": "ric agrovet|alberic|albendazole|dewormer|dawa ya minyoo|minyoo",
+      "photo": "ric-alberic-2-5.png",
+      "variants": [
+        {
+          "sku": "P134-125ML",
+          "name": "125 ml bottle",
+          "value": 125,
+          "unit": "ml",
+          "selling_unit": "bottle"
+        },
+        {
+          "sku": "P134-500ML",
+          "name": "500 ml bottle",
+          "value": 500,
+          "unit": "ml",
+          "selling_unit": "bottle"
+        },
+        {
+          "sku": "P134-1L",
+          "name": "1 litre",
+          "value": 1,
+          "unit": "l",
+          "selling_unit": "bottle"
+        }
+      ]
+    },
+    {
+      "code": "P135",
+      "name": "My Powder (More Yeast)",
+      "producer": "BR-RIC",
+      "category": "C2040",
+      "animals": [
+        "AN-CAT",
+        "AN-GTS",
+        "AN-OTH"
+      ],
+      "life_stages": [],
+      "form": "powder",
+      "description": "Yeast feed supplement for livestock: more milk, more fat, more growth and better digestion and feed use.",
+      "dosage": "Calves, sheep and goats: 10 g twice a day. Cows, camels and horses: 25 g twice a day.",
+      "keywords": "ric agrovet|my powder|more yeast|yeast|hamira|maziwa|milk",
+      "photo": "ric-my-powder.jpeg",
+      "variants": [
+        {
+          "sku": "P135-200G",
+          "name": "200 g pack",
+          "value": 200,
+          "unit": "g",
+          "selling_unit": "pack"
+        },
+        {
+          "sku": "P135-1KG",
+          "name": "1 kg pack",
+          "value": 1,
+          "unit": "kg",
+          "selling_unit": "pack"
+        }
+      ]
+    },
+    {
+      "code": "P136",
+      "name": "Pet-D Worm Tablets",
+      "producer": "BR-MEDISEL",
+      "category": "C3020",
+      "animals": [
+        "AN-OTH"
+      ],
+      "life_stages": [],
+      "form": "tablets",
+      "description": "Deworming tablets for cats and dogs. Treats roundworms, hookworms and tapeworms. A product of Medisel, supplied by RIC Agrovet.",
+      "dosage": "1 tablet per 5 kg (11 lb) body weight, for dogs and cats.",
+      "keywords": "ric agrovet|medisel|pet-d|dog|cat|mbwa|paka|dewormer|minyoo",
+      "photo": "ric-pet-d-worm.png",
+      "variants": [
+        {
+          "sku": "P136-60TAB",
+          "name": "Box of 60 tablets",
+          "value": 60,
+          "unit": "tablets",
+          "selling_unit": "box"
+        }
+      ]
+    },
+    {
+      "code": "P137",
+      "name": "Nutrovet Tablets",
+      "producer": "BR-RIC",
+      "category": "C2010",
+      "animals": [
+        "AN-OTH"
+      ],
+      "life_stages": [],
+      "form": "tablets",
+      "description": "Chewable multivitamin and mineral tablets for dogs, chicken flavour. Supplements vitamins and minerals and supports growth.",
+      "dosage": "Dogs up to 20 kg: 1–2 tablets. Over 20 kg: 2–4 tablets, or as your veterinarian recommends.",
+      "keywords": "ric agrovet|nutrovet|dog vitamins|mbwa|multivitamin",
+      "photo": "ric-nutrovet.png",
+      "variants": [
+        {
+          "sku": "P137-50TAB",
+          "name": "Box of 50 tablets",
+          "value": 50,
+          "unit": "tablets",
+          "selling_unit": "box"
+        }
+      ],
+      "needs_confirmation": [
+        "manufacturer (not shown)"
+      ]
+    },
+    {
+      "code": "P138",
+      "name": "Vetofeed Gold",
+      "producer": "BR-RIC",
+      "category": "C2010",
+      "animals": [
+        "AN-CAT",
+        "AN-GTS",
+        "AN-POU"
+      ],
+      "life_stages": [],
+      "form": "powder",
+      "description": "Chelated feed supplement for livestock and poultry with vitamins, minerals, amino acids, live yeast, selenium and choline chloride. Supports growth, digestion and nutrient absorption.",
+      "dosage": "Livestock: 25–30 g per animal per day. Chicks and broilers: mix 1 kg per tonne (1,000 kg) of feed.",
+      "keywords": "ric agrovet|vetofeed|vitamins|minerals|madini|ng'ombe|kuku",
+      "photo": "ric-vetofeed-gold.png",
+      "variants": [
+        {
+          "sku": "P138-1KG",
+          "name": "1 kg pack",
+          "value": 1,
+          "unit": "kg",
+          "selling_unit": "pack"
+        },
+        {
+          "sku": "P138-5KG",
+          "name": "5 kg tub",
+          "value": 5,
+          "unit": "kg",
+          "selling_unit": "tub"
+        },
+        {
+          "sku": "P138-25KG",
+          "name": "25 kg bucket",
+          "value": 25,
+          "unit": "kg",
+          "selling_unit": "bucket"
+        }
+      ],
+      "needs_confirmation": [
+        "manufacturer (a logo is on the pack, not named on the site)"
+      ]
+    },
+    {
+      "code": "P139",
+      "name": "Respacare Liquid",
+      "producer": "BR-RIC",
+      "category": "C2060",
+      "animals": [
+        "AN-POU"
+      ],
+      "life_stages": [],
+      "form": "liquid",
+      "description": "Liquid feed supplement that supports respiratory health in poultry.",
+      "dosage": "Prevention: 1 ml per litre of drinking water for 3–7 days. Treatment: 2 ml per litre of drinking water for 7–10 days.",
+      "keywords": "ric agrovet|respacare|respiratory|kupumua|mafua ya kuku",
+      "photo": "ric-respacare-liquid.png",
+      "variants": [
+        {
+          "sku": "P139-100ML",
+          "name": "100 ml bottle",
+          "value": 100,
+          "unit": "ml",
+          "selling_unit": "bottle"
+        },
+        {
+          "sku": "P139-250ML",
+          "name": "250 ml bottle",
+          "value": 250,
+          "unit": "ml",
+          "selling_unit": "bottle"
+        },
+        {
+          "sku": "P139-500ML",
+          "name": "500 ml bottle",
+          "value": 500,
+          "unit": "ml",
+          "selling_unit": "bottle"
+        },
+        {
+          "sku": "P139-1L",
+          "name": "1 litre",
+          "value": 1,
+          "unit": "l",
+          "selling_unit": "bottle"
+        }
+      ]
+    }
+  ]
+}
