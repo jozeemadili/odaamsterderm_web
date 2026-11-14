@@ -87,6 +87,17 @@
         @endforeach
     </div>
 
+    {{-- What it treats / is used for --}}
+    @if(count($uses))
+        <div class="-mx-1 mt-2 flex items-center gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:none]">
+            <span class="shrink-0 text-[12.5px] font-semibold text-ink-mute">Used for</span>
+            @foreach($uses as $u)
+                <button wire:click="chooseUse(@js($u['code']))" title="{{ $u['label_sw'] }}"
+                    class="shrink-0 inline-flex items-center rounded-pill border px-3 py-1.5 text-[13px] font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 {{ $use === $u['code'] ? 'border-leaf-deep bg-leaf text-ink' : 'border-hairline bg-canvas text-ink-secondary hover:border-leaf-deep/60' }}">{{ $u['label'] }}</button>
+            @endforeach
+        </div>
+    @endif
+
     @unless($hasFilters)
         @if($featured->isNotEmpty())
             {{-- Amsterdam Group picks: small cards in one swipeable row --}}
@@ -204,6 +215,12 @@
                             @foreach($brands as $b)<option value="{{ $b }}">{{ $b }}</option>@endforeach
                         </x-ui.select>
                     @endif
+                    @if(count($uses))
+                        <x-ui.select wire:model.live="use" label="Used for / treats" id="mk_use">
+                            <option value="">Anything</option>
+                            @foreach($uses as $u)<option value="{{ $u['code'] }}">{{ $u['label'] }}</option>@endforeach
+                        </x-ui.select>
+                    @endif
                     <x-ui.select wire:model.live="seller" label="Seller" id="mk_seller">
                         <option value="">All sellers</option>
                         @foreach($sellers as $s)<option value="{{ $s->id }}">{{ $s->business_name }}</option>@endforeach
@@ -228,7 +245,7 @@
         </div>
 
         {{-- While a search, filter or sort loads: skeleton posts. --}}
-        @php($reloads = 'chooseAnimal,clearFilters,clearAi,askFollowUp,runAi,sort,category,brand,seller,inStock,minPrice,maxPrice')
+        @php($reloads = 'chooseAnimal,clearFilters,clearAi,askFollowUp,runAi,sort,category,brand,use,chooseUse,seller,inStock,minPrice,maxPrice')
         <div class="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" wire:loading.grid wire:target="{{ $reloads }}" aria-busy="true">
             @foreach(range(1, 6) as $i)
                 <x-market.skeleton-post />

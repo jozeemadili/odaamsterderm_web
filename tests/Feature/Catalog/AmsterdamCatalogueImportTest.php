@@ -114,6 +114,12 @@ class AmsterdamCatalogueImportTest extends TestCase
 
         $this->assertTrue(Product::where('code', 'P131')->sole()->prescription_required);
         $this->assertTrue(Product::where('code', 'P133')->sole()->prescription_required);
+
+        // What each medicine treats, how to give it and what is in it.
+        $ampro = Product::where('code', 'P133')->sole();
+        $this->assertSame(['coccidiosis'], $ampro->use_cases);
+        $this->assertSame(['drinking_water'], $ampro->administration_route);
+        $this->assertSame('Amprolium HCl 20%', $ampro->active_ingredients);
         $this->assertSame(['10% · 100 ml bottle', '10% · 250 ml bottle', '20% · 100 ml bottle'],
             Product::where('code', 'P131')->sole()->variants()->orderBy('sort_order')->pluck('name')->all());
 

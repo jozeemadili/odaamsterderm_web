@@ -59,6 +59,10 @@ class Home extends Component
     #[Url]
     public string $seller = '';
 
+    /** What it treats / is used for: a use_cases code. */
+    #[Url]
+    public string $use = '';
+
     #[Url]
     public string $sort = MarketplaceSearch::SORT_NEAREST;
 
@@ -158,9 +162,15 @@ class Home extends Component
         $this->restart();
     }
 
+    public function chooseUse(string $code): void
+    {
+        $this->use = $this->use === $code ? '' : $code;
+        $this->restart();
+    }
+
     public function clearFilters(): void
     {
-        $this->reset(['animal', 'category', 'brand', 'seller', 'inStock', 'minPrice', 'maxPrice']);
+        $this->reset(['animal', 'category', 'brand', 'seller', 'use', 'inStock', 'minPrice', 'maxPrice']);
         $this->restart();
     }
 
@@ -196,6 +206,7 @@ class Home extends Component
             'animal_type_id' => $this->animal,
             'category_id' => $this->category,
             'brand' => $this->brand,
+            'use' => $this->use,
             'merchant_id' => $this->seller,
             'in_stock' => $this->inStock,
             'min_price' => $this->minPrice,
@@ -211,7 +222,7 @@ class Home extends Component
             $filters['any_words'] = AiProductSearch::fallbackWords($this->ask);
         }
 
-        $hasFilters = $this->ask !== '' || $this->q !== '' || array_filter([$this->animal, $this->category, $this->brand, $this->seller, $this->minPrice, $this->maxPrice]) || $this->inStock;
+        $hasFilters = $this->ask !== '' || $this->q !== '' || array_filter([$this->animal, $this->category, $this->brand, $this->use, $this->seller, $this->minPrice, $this->maxPrice]) || $this->inStock;
 
         // Amsterdam Group's own catalogue: the picks row under the banner.
         $featuredBrand = Producer::where('code', config('hub.catalogue_producer'))->value('name');
@@ -235,6 +246,7 @@ class Home extends Component
                 ->with(['children' => fn ($q) => $q->active()->withProductsFor($this->animal ? (int) $this->animal : null)])
                 ->orderBy('sort_order')->get(),
             'brands' => $search->brands(),
+            'uses' => $search->uses(),
             'sellers' => $search->sellers(),
             'hasFilters' => $hasFilters,
             'askAi' => $askAi,

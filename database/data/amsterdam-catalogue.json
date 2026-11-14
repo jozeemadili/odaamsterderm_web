@@ -68,7 +68,17 @@
                 }
             ],
             "tagline": "Essential chick starter premix formulated with vitamins, probiotics and glucose for strong early-life growth.",
-            "photo_back": "vitamix-chick-back.png"
+            "photo_back": "vitamix-chick-back.png",
+            "use_cases": [
+                "early_growth",
+                "immunity",
+                "stress_vaccination_transport"
+            ],
+            "administration_route": [
+                "drinking_water",
+                "in_feed"
+            ],
+            "active_ingredients": "Vitamins, probiotics and glucose"
         },
         {
             "code": "P035",
@@ -120,7 +130,17 @@
                 }
             ],
             "tagline": "Comprehensive feed-grade vitamin supplement packed with essential amino acids and trace elements for peak animal performance.",
-            "photo_back": "vitamix-plus-back.png"
+            "photo_back": "vitamix-plus-back.png",
+            "use_cases": [
+                "weight_gain",
+                "egg_production",
+                "immunity"
+            ],
+            "administration_route": [
+                "drinking_water",
+                "in_feed"
+            ],
+            "active_ingredients": "Vitamins, amino acids and trace elements"
         },
         {
             "code": "P039",
@@ -169,7 +189,16 @@
                 }
             ],
             "tagline": "Scientifically formulated electrolyte supplement designed to combat heat stress, dehydration and fluid imbalance in poultry.",
-            "photo_back": "clear-heat-electrolyte-back.png"
+            "photo_back": "clear-heat-electrolyte-back.png",
+            "use_cases": [
+                "heat_stress",
+                "dehydration",
+                "stress_vaccination_transport"
+            ],
+            "administration_route": [
+                "drinking_water"
+            ],
+            "active_ingredients": "Electrolytes"
         },
         {
             "code": "P018",
@@ -207,7 +236,14 @@
                 }
             ],
             "tagline": "High-performance 20% pig protein concentrate enriched with essential nutrients for optimal swine growth.",
-            "photo_back": "pig-protein-concentrate-back.png"
+            "photo_back": "pig-protein-concentrate-back.png",
+            "use_cases": [
+                "weight_gain",
+                "feed_mixing"
+            ],
+            "administration_route": [
+                "in_feed"
+            ]
         },
         {
             "code": "P116",
@@ -234,6 +270,12 @@
                     "unit": "kg",
                     "selling_unit": "bag"
                 }
+            ],
+            "use_cases": [
+                "gut_health"
+            ],
+            "administration_route": [
+                "in_feed"
             ]
         },
         {
@@ -262,7 +304,19 @@
                     "unit": "kg",
                     "selling_unit": "bag"
                 }
-            ]
+            ],
+            "use_cases": [
+                "feed_mixing",
+                "weight_gain",
+                "coccidiosis"
+            ],
+            "disease_target": [
+                "coccidiosis"
+            ],
+            "administration_route": [
+                "in_feed"
+            ],
+            "active_ingredients": "Vitamins, minerals, amino acids, enzymes and coccidiostats"
         },
         {
             "code": "P118",
@@ -288,7 +342,19 @@
                     "unit": "kg",
                     "selling_unit": "bag"
                 }
-            ]
+            ],
+            "use_cases": [
+                "feed_mixing",
+                "egg_production",
+                "coccidiosis"
+            ],
+            "disease_target": [
+                "coccidiosis"
+            ],
+            "administration_route": [
+                "in_feed"
+            ],
+            "active_ingredients": "Vitamins, minerals, amino acids, enzymes, yolk colorant and coccidiostats"
         },
         {
             "code": "P119",
@@ -314,6 +380,12 @@
                     "unit": "kg",
                     "selling_unit": "bag"
                 }
+            ],
+            "use_cases": [
+                "mycotoxins"
+            ],
+            "administration_route": [
+                "in_feed"
             ]
         },
         {
@@ -340,6 +412,12 @@
                     "unit": "kg",
                     "selling_unit": "bag"
                 }
+            ],
+            "use_cases": [
+                "mycotoxins"
+            ],
+            "administration_route": [
+                "in_feed"
             ]
         },
         {
@@ -388,7 +466,14 @@
                     "unit": "kg",
                     "selling_unit": "drum"
                 }
-            ]
+            ],
+            "use_cases": [
+                "gut_health"
+            ],
+            "administration_route": [
+                "drinking_water"
+            ],
+            "active_ingredients": "Organic acids (free and buffered)"
         },
         {
             "code": "P122",
@@ -418,7 +503,14 @@
                     "unit": "kg",
                     "selling_unit": "bag"
                 }
-            ]
+            ],
+            "use_cases": [
+                "feed_mixing"
+            ],
+            "administration_route": [
+                "in_feed"
+            ],
+            "active_ingredients": "Monocalcium phosphate"
         },
         {
             "code": "P123",
@@ -446,6 +538,13 @@
                     "unit": "kg",
                     "selling_unit": "bag"
                 }
+            ],
+            "use_cases": [
+                "feed_mixing",
+                "weight_gain"
+            ],
+            "administration_route": [
+                "in_feed"
             ]
         },
         {
@@ -474,6 +573,9 @@
                     "unit": "kg",
                     "selling_unit": "bag"
                 }
+            ],
+            "use_cases": [
+                "early_growth"
             ]
         },
         {
@@ -501,6 +603,9 @@
                     "unit": "kg",
                     "selling_unit": "bag"
                 }
+            ],
+            "use_cases": [
+                "egg_production"
             ]
         }
     ]

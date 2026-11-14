@@ -156,6 +156,10 @@ class AmsterdamCatalogueImporter
             'country_of_origin' => $row['country'] ?? $maker->country,
             'search_keywords' => isset($row['keywords']) ? Str::lower($row['keywords']) : null,
             'prescription_required' => $row['prescription_required'] ?? null,
+            'use_cases' => $row['use_cases'] ?? null,
+            'disease_target' => $row['disease_target'] ?? null,
+            'administration_route' => $row['administration_route'] ?? null,
+            'active_ingredients' => $row['active_ingredients'] ?? null,
             'unit' => $row['variants'][0]['selling_unit'],
             'is_demo' => false,
         ], fn ($value) => $value !== null));

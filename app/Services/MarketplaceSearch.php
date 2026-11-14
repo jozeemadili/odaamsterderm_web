@@ -7,6 +7,7 @@ use App\Models\Branch;
 use App\Models\InventoryItem;
 use App\Models\Merchant;
 use App\Models\Product;
+use App\Models\ProductAttribute;
 use App\Models\ProductCategory;
 use App\Support\GeoPoint;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -51,7 +52,7 @@ class MarketplaceSearch
      * Products with at least one public offer, with per-product price,
      * seller count, available units and nearest available store.
      *
-     * @param  array{search?:?string, animal_type_id?:int|string|null, category_id?:int|string|null, brand?:?string, merchant_id?:int|string|null, min_price?:mixed, max_price?:mixed, in_stock?:bool, radius_km?:mixed, product_ids?:list<int>, any_words?:list<string>}  $filters
+     * @param  array{search?:?string, animal_type_id?:int|string|null, category_id?:int|string|null, brand?:?string, use?:?string, merchant_id?:int|string|null, min_price?:mixed, max_price?:mixed, in_stock?:bool, radius_km?:mixed, product_ids?:list<int>, any_words?:list<string>}  $filters
      */
     public function products(array $filters = [], ?GeoPoint $from = null, string $sort = self::SORT_NEAREST, int $perPage = 20, string $pageName = 'page'): LengthAwarePaginator
     {
@@ -276,6 +277,31 @@ class MarketplaceSearch
             ->all();
     }
 
+    /**
+     * What products on the marketplace are used for / treat, for the
+     * "what it treats" filter: [{code, label, label_sw}] in dictionary order,
+     * only uses that at least one product customers can see has (the feed
+     * lists the whole catalogue, not only what stores stock).
+     *
+     * @return list<array{code:string, label:string, label_sw:?string}>
+     */
+    public function uses(): array
+    {
+        $codes = Product::query()
+            ->tap(fn ($q) => Product::whereShownOnMarketplace($q))
+            ->whereNotNull('products.use_cases')
+            ->pluck('products.use_cases')
+            ->flatMap(fn ($value) => is_array($value) ? $value : (json_decode((string) $value, true) ?: []))
+            ->unique()
+            ->values()
+            ->all();
+
+        return array_values(array_filter(
+            ProductAttribute::useTags(array_keys(ProductAttribute::options('use_cases'))),
+            fn ($tag) => in_array($tag['code'], $codes, true),
+        ));
+    }
+
     /** Sellers with at least one public offer (for the seller filter). */
     public function sellers(): Collection
     {
@@ -363,6 +389,10 @@ class MarketplaceSearch
 
         if (! empty($filters['brand'])) {
             $query->where('products.brand', $filters['brand']);
+        }
+
+        if (! empty($filters['use'])) {
+            $query->whereJsonContains('products.use_cases', $filters['use']);
         }
 
         if (! empty($filters['merchant_id'])) {

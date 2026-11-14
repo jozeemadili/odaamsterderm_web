@@ -43,4 +43,35 @@ class ProductAttribute extends Model
             ->pluck('label', 'code')
             ->all();
     }
+
+    /**
+     * What each product is used for / treats, as tags a buyer can read:
+     * [{code, label, label_sw}] in dictionary order. Unknown codes are kept
+     * with the code as the label.
+     *
+     * @param  list<string>|null  $codes
+     * @return list<array{code:string, label:string, label_sw:?string}>
+     */
+    public static function useTags(?array $codes): array
+    {
+        if (! $codes) {
+            return [];
+        }
+        $dictionary = once(fn () => ProductAttributeValue::query()
+            ->whereRelation('attribute', 'key', 'use_cases')
+            ->where('is_active', true)
+            ->orderBy('sort_order')
+            ->get(['code', 'label', 'label_sw'])
+            ->toBase()
+            ->keyBy('code'));
+
+        $known = $dictionary->only($codes)->values()->map(fn ($v) => [
+            'code' => $v->code, 'label' => $v->label, 'label_sw' => $v->label_sw,
+        ]);
+        $unknown = collect($codes)->diff($dictionary->keys())->map(fn ($c) => [
+            'code' => $c, 'label' => $c, 'label_sw' => null,
+        ]);
+
+        return $known->concat($unknown)->values()->all();
+    }
 }

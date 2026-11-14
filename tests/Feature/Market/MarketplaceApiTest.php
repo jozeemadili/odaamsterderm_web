@@ -3,6 +3,7 @@
 namespace Tests\Feature\Market;
 
 use App\Models\Product;
+use App\Models\ProductAttribute;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
@@ -115,5 +116,27 @@ class MarketplaceApiTest extends TestCase
         Sanctum::actingAs($seller);
 
         $this->getJson('/api/v1/customer/profile')->assertForbidden();
+    }
+
+    public function test_products_can_be_filtered_by_what_they_treat(): void
+    {
+        $attribute = ProductAttribute::firstOrCreate(['key' => 'use_cases'], ['label' => 'Used for', 'level' => 'product', 'data_type' => 'enum', 'is_multi_select' => true]);
+        $attribute->values()->updateOrCreate(['code' => 'coccidiosis'], ['label' => 'Coccidiosis', 'label_sw' => 'Kuhara damu', 'is_active' => true, 'sort_order' => 1]);
+        $this->chickenStarter()->update(['use_cases' => ['coccidiosis', 'unlisted_use']]);
+
+        $this->getJson('/api/v1/market/products?use=coccidiosis')
+            ->assertOk()
+            ->assertJsonPath('meta.total', 1)
+            ->assertJsonPath('data.0.display_name', 'Chicken Starter 25KG')
+            ->assertJsonPath('data.0.uses.0', ['code' => 'coccidiosis', 'label' => 'Coccidiosis', 'label_sw' => 'Kuhara damu'])
+            ->assertJsonPath('data.0.uses.1.label', 'unlisted_use');
+
+        $this->getJson('/api/v1/market/products?use=worms')->assertOk()->assertJsonPath('meta.total', 0);
+
+        $this->getJson('/api/v1/market/filters')
+            ->assertOk()
+            ->assertJsonPath('uses', [['code' => 'coccidiosis', 'label' => 'Coccidiosis', 'label_sw' => 'Kuhara damu']]);
+
+        $this->assertSame('Coccidiosis, unlisted_use', $this->chickenStarter()->fresh()->detailsForBuyers()['Used for']);
     }
 }

@@ -8,6 +8,7 @@
     $subtitle = collect([$product->category?->name ?? $product->animalType?->name, $product->nearest_km !== null ? \App\Support\GeoPoint::formatKm((float) $product->nearest_km) : null])->filter()->join(' · ');
     $url = route('market.product', $product->slug);
     $packs = $product->packRange();
+    $uses = \App\Models\ProductAttribute::useTags($product->use_cases);
 @endphp
 <article class="flex flex-col overflow-hidden rounded-[18px] bg-canvas border border-hairline hover:shadow-[0_10px_28px_rgba(42,10,15,0.08)] transition">
     {{-- Who makes it, like the account that posted it --}}
@@ -61,5 +62,13 @@
             <span class="block text-[13px] font-semibold text-ink-mute">Not in stores yet</span>
         @endif
         <span class="mt-1 block text-[14px] leading-snug line-clamp-2"><span class="font-bold text-ink">{{ $product->displayName() }}</span>@if($packs)<span class="text-ink-mute">&nbsp; {{ $packs }}</span>@endif</span>
+        @if($uses)
+            <span class="mt-2 flex flex-wrap gap-1.5">
+                @foreach(array_slice($uses, 0, 3) as $u)
+                    <span title="{{ $u['label_sw'] }}" class="rounded-pill bg-leaf/15 px-2 py-0.5 text-[11.5px] font-semibold text-leaf-deep">{{ $u['label'] }}</span>
+                @endforeach
+                @if(count($uses) > 3)<span class="rounded-pill bg-canvas-soft px-2 py-0.5 text-[11.5px] font-semibold text-ink-mute">+{{ count($uses) - 3 }}</span>@endif
+            </span>
+        @endif
     </a>
 </article>

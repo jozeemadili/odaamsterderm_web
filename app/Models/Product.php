@@ -257,6 +257,7 @@ class Product extends Model implements HasMedia
             : null;
 
         return array_filter([
+            'Used for' => $labels('use_cases', $this->use_cases),
             'Prescription' => $this->prescription_required ? 'Needs a vet prescription' : null,
             'Cold chain' => $this->cold_chain_required ? 'Keep at 2–8 °C' : null,
             'Active ingredients' => $this->active_ingredients,

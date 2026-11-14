@@ -36,6 +36,7 @@ class MarketplaceController extends Controller
             'animal_types' => $tree(AnimalType::active()->whereNull('parent_id')->with(['children' => fn ($q) => $q->active()])->orderBy('sort_order')->get()),
             'categories' => $tree(ProductCategory::active()->whereNull('parent_id')->with(['children' => fn ($q) => $q->active()])->orderBy('sort_order')->get()),
             'brands' => $this->search->brands(),
+            'uses' => $this->search->uses(),
             'sellers' => $this->search->sellers()->map(fn ($m) => ['id' => $m->id, 'name' => $m->business_name])->values(),
             'sorts' => collect(MarketplaceSearch::SORTS)->map(fn ($label, $key) => ['key' => $key, 'label' => $label])->values(),
         ]);
@@ -48,6 +49,7 @@ class MarketplaceController extends Controller
             'animal_type_id' => ['nullable', 'integer'],
             'category_id' => ['nullable', 'integer'],
             'brand' => ['nullable', 'string', 'max:255'],
+            'use' => ['nullable', 'string', 'max:64'],
             'merchant_id' => ['nullable', 'integer'],
             'min_price' => ['nullable', 'numeric', 'min:0'],
             'max_price' => ['nullable', 'numeric', 'min:0'],

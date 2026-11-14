@@ -76,7 +76,15 @@
       ],
       "needs_confirmation": [
         "pack sizes (sachet and tub shown, sizes not readable)"
-      ]
+      ],
+      "use_cases": [
+        "bacterial_infection",
+        "early_growth"
+      ],
+      "administration_route": [
+        "drinking_water"
+      ],
+      "active_ingredients": "Antibiotics, vitamins and minerals"
     },
     {
       "code": "P131",
@@ -116,7 +124,14 @@
           "unit": "ml",
           "selling_unit": "bottle"
         }
-      ]
+      ],
+      "use_cases": [
+        "bacterial_infection"
+      ],
+      "administration_route": [
+        "injection_im"
+      ],
+      "active_ingredients": "Oxytetracycline 10% (100 mg/ml) or 20% (200 mg/ml)"
     },
     {
       "code": "P132",
@@ -143,7 +158,15 @@
           "unit": "ml",
           "selling_unit": "bottle"
         }
-      ]
+      ],
+      "use_cases": [
+        "egg_production"
+      ],
+      "administration_route": [
+        "drinking_water",
+        "oral_drench"
+      ],
+      "active_ingredients": "Calcium and phosphorus"
     },
     {
       "code": "P133",
@@ -171,7 +194,17 @@
       ],
       "needs_confirmation": [
         "pack sizes (sachet and tubs shown, sizes not readable)"
-      ]
+      ],
+      "use_cases": [
+        "coccidiosis"
+      ],
+      "disease_target": [
+        "coccidiosis"
+      ],
+      "administration_route": [
+        "drinking_water"
+      ],
+      "active_ingredients": "Amprolium HCl 20%"
     },
     {
       "code": "P134",
@@ -210,7 +243,14 @@
           "unit": "l",
           "selling_unit": "bottle"
         }
-      ]
+      ],
+      "use_cases": [
+        "worms"
+      ],
+      "administration_route": [
+        "oral_drench"
+      ],
+      "active_ingredients": "Albendazole 2.5% w/v (25 mg/ml)"
     },
     {
       "code": "P135",
@@ -243,7 +283,16 @@
           "unit": "kg",
           "selling_unit": "pack"
         }
-      ]
+      ],
+      "use_cases": [
+        "gut_health",
+        "milk_yield",
+        "weight_gain"
+      ],
+      "administration_route": [
+        "in_feed"
+      ],
+      "active_ingredients": "Yeast"
     },
     {
       "code": "P136",
@@ -267,6 +316,9 @@
           "unit": "tablets",
           "selling_unit": "box"
         }
+      ],
+      "use_cases": [
+        "worms"
       ]
     },
     {
@@ -294,6 +346,10 @@
       ],
       "needs_confirmation": [
         "manufacturer (not shown)"
+      ],
+      "active_ingredients": "Multivitamins and minerals",
+      "use_cases": [
+        "immunity"
       ]
     },
     {
@@ -337,7 +393,15 @@
       ],
       "needs_confirmation": [
         "manufacturer (a logo is on the pack, not named on the site)"
-      ]
+      ],
+      "use_cases": [
+        "weight_gain",
+        "gut_health"
+      ],
+      "administration_route": [
+        "in_feed"
+      ],
+      "active_ingredients": "Vitamins, minerals, amino acids, live yeast, selenium and choline chloride"
     },
     {
       "code": "P139",
@@ -382,6 +446,12 @@
           "unit": "l",
           "selling_unit": "bottle"
         }
+      ],
+      "use_cases": [
+        "respiratory"
+      ],
+      "administration_route": [
+        "drinking_water"
       ]
     }
   ]

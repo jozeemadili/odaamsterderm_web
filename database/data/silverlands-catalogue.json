@@ -8,14 +8,27 @@
             "name": "Broiler Pre-Starter Crumble",
             "producer": "BR-SIL",
             "category": "C1010",
-            "animals": ["AN-CHK"],
-            "life_stages": ["LS-POU-STR"],
+            "animals": [
+                "AN-CHK"
+            ],
+            "life_stages": [
+                "LS-POU-STR"
+            ],
             "form": "crumbs",
             "description": "The first feed in the Silverlands broiler programme, a crumble for chicks in their first week.\n\nSilverlands broiler programme:\n• Pre-Starter Crumble: day 0–7\n• Starter Crumble: day 8–14\n• Grower Pellet: day 15–27\n• Finisher Pellet: day 28–42",
             "dosage": "Feed from day 0 to day 7, then move to Broiler Starter Crumble.",
             "keywords": "silverlands|broiler|pre-starter|chakula cha kuku wa nyama|vifaranga",
             "variants": [
-                {"sku": "P126-50KG", "name": "50 kg bag", "value": 50, "unit": "kg", "selling_unit": "bag"}
+                {
+                    "sku": "P126-50KG",
+                    "name": "50 kg bag",
+                    "value": 50,
+                    "unit": "kg",
+                    "selling_unit": "bag"
+                }
+            ],
+            "use_cases": [
+                "early_growth"
             ]
         },
         {
@@ -23,16 +36,35 @@
             "name": "Broiler Starter Crumble",
             "producer": "BR-SIL",
             "category": "C1010",
-            "animals": ["AN-CHK"],
-            "life_stages": ["LS-POU-STR"],
+            "animals": [
+                "AN-CHK"
+            ],
+            "life_stages": [
+                "LS-POU-STR"
+            ],
             "form": "crumbs",
             "description": "Silverlands broiler starter in crumble form, for the second week of a broiler's life. Silverlands says that with this programme and their broiler chicks, birds can reach about 1.4 kg at 28 days with a feed conversion of about 1.4.\n\nSilverlands broiler programme:\n• Pre-Starter Crumble: day 0–7\n• Starter Crumble: day 8–14\n• Grower Pellet: day 15–27\n• Finisher Pellet: day 28–42\n\nAlso the first feed (day 0–13) in the Silverlands layer pullet programme.",
             "dosage": "Broilers: day 8 to 14. Layer pullets: day 0 to 13.",
             "keywords": "silverlands|broiler starter|starter crumble|chakula cha kuku wa nyama|nyama bora",
             "photo": "silverlands-broiler-starter-crumble.jpg",
             "variants": [
-                {"sku": "P001-25KG", "name": "25 kg bag", "value": 25, "unit": "kg", "selling_unit": "bag"},
-                {"sku": "P001-50KG", "name": "50 kg bag", "value": 50, "unit": "kg", "selling_unit": "bag"}
+                {
+                    "sku": "P001-25KG",
+                    "name": "25 kg bag",
+                    "value": 25,
+                    "unit": "kg",
+                    "selling_unit": "bag"
+                },
+                {
+                    "sku": "P001-50KG",
+                    "name": "50 kg bag",
+                    "value": 50,
+                    "unit": "kg",
+                    "selling_unit": "bag"
+                }
+            ],
+            "use_cases": [
+                "early_growth"
             ]
         },
         {
@@ -40,16 +72,35 @@
             "name": "Broiler Grower Pellets",
             "producer": "BR-SIL",
             "category": "C1010",
-            "animals": ["AN-CHK"],
-            "life_stages": ["LS-POU-GRW"],
+            "animals": [
+                "AN-CHK"
+            ],
+            "life_stages": [
+                "LS-POU-GRW"
+            ],
             "form": "pellets",
             "description": "Silverlands broiler grower in pellet form, for fast growth from the third week until the finishing stage.\n\nSilverlands broiler programme:\n• Pre-Starter Crumble: day 0–7\n• Starter Crumble: day 8–14\n• Grower Pellet: day 15–27\n• Finisher Pellet: day 28–42",
             "dosage": "Feed from day 15 to day 27.",
             "keywords": "silverlands|broiler grower|grower pellets|chakula cha kuku wa nyama|nyama bora",
             "photo": "silverlands-broiler-grower-pellet.jpg",
             "variants": [
-                {"sku": "P002-25KG", "name": "25 kg bag", "value": 25, "unit": "kg", "selling_unit": "bag"},
-                {"sku": "P002-50KG", "name": "50 kg bag", "value": 50, "unit": "kg", "selling_unit": "bag"}
+                {
+                    "sku": "P002-25KG",
+                    "name": "25 kg bag",
+                    "value": 25,
+                    "unit": "kg",
+                    "selling_unit": "bag"
+                },
+                {
+                    "sku": "P002-50KG",
+                    "name": "50 kg bag",
+                    "value": 50,
+                    "unit": "kg",
+                    "selling_unit": "bag"
+                }
+            ],
+            "use_cases": [
+                "weight_gain"
             ]
         },
         {
@@ -57,16 +108,35 @@
             "name": "Broiler Finisher Pellets",
             "producer": "BR-SIL",
             "category": "C1010",
-            "animals": ["AN-CHK"],
-            "life_stages": ["LS-POU-FIN"],
+            "animals": [
+                "AN-CHK"
+            ],
+            "life_stages": [
+                "LS-POU-FIN"
+            ],
             "form": "pellets",
             "description": "Silverlands broiler finisher in pellet form, the last feed before slaughter.\n\nSilverlands broiler programme:\n• Pre-Starter Crumble: day 0–7\n• Starter Crumble: day 8–14\n• Grower Pellet: day 15–27\n• Finisher Pellet: day 28–42",
             "dosage": "Feed from day 28 to day 42.",
             "keywords": "silverlands|broiler finisher|finisher pellets|chakula cha kuku wa nyama|nyama bora",
             "photo": "silverlands-broiler-finisher-pellet.jpg",
             "variants": [
-                {"sku": "P003-25KG", "name": "25 kg bag", "value": 25, "unit": "kg", "selling_unit": "bag"},
-                {"sku": "P003-50KG", "name": "50 kg bag", "value": 50, "unit": "kg", "selling_unit": "bag"}
+                {
+                    "sku": "P003-25KG",
+                    "name": "25 kg bag",
+                    "value": 25,
+                    "unit": "kg",
+                    "selling_unit": "bag"
+                },
+                {
+                    "sku": "P003-50KG",
+                    "name": "50 kg bag",
+                    "value": 50,
+                    "unit": "kg",
+                    "selling_unit": "bag"
+                }
+            ],
+            "use_cases": [
+                "weight_gain"
             ]
         },
         {
@@ -74,15 +144,28 @@
             "name": "Layer Starter Mash",
             "producer": "BR-SIL",
             "category": "C1010",
-            "animals": ["AN-CHK"],
-            "life_stages": ["LS-POU-STR"],
+            "animals": [
+                "AN-CHK"
+            ],
+            "life_stages": [
+                "LS-POU-STR"
+            ],
             "form": "mash",
             "description": "Silverlands starter mash for young layer pullets, following the starter crumble.\n\nSilverlands layer pullet programme:\n• Broiler Starter Crumble: day 0–13\n• Layer Starter Mash: day 14–42\n• Layer Grower Mash: day 43–126\n• Complete Layer Mash: day 127 to sale",
             "dosage": "Feed from day 14 to day 42.",
             "keywords": "silverlands|layer starter|starter mash|chakula cha kuku wa mayai|mayai bora",
             "photo": "silverlands-layer-starter-mash.jpg",
             "variants": [
-                {"sku": "P127-50KG", "name": "50 kg bag", "value": 50, "unit": "kg", "selling_unit": "bag"}
+                {
+                    "sku": "P127-50KG",
+                    "name": "50 kg bag",
+                    "value": 50,
+                    "unit": "kg",
+                    "selling_unit": "bag"
+                }
+            ],
+            "use_cases": [
+                "early_growth"
             ]
         },
         {
@@ -90,15 +173,28 @@
             "name": "Layer Grower Mash",
             "producer": "BR-SIL",
             "category": "C1010",
-            "animals": ["AN-CHK"],
-            "life_stages": ["LS-POU-GRW"],
+            "animals": [
+                "AN-CHK"
+            ],
+            "life_stages": [
+                "LS-POU-GRW"
+            ],
             "form": "mash",
             "description": "Silverlands grower mash that takes layer pullets up to the start of lay.\n\nSilverlands layer pullet programme:\n• Broiler Starter Crumble: day 0–13\n• Layer Starter Mash: day 14–42\n• Layer Grower Mash: day 43–126\n• Complete Layer Mash: day 127 to sale",
             "dosage": "Feed from day 43 to day 126.",
             "keywords": "silverlands|layer grower|grower mash|chakula cha kuku wa mayai|mayai bora",
             "photo": "silverlands-layer-grower-mash.jpg",
             "variants": [
-                {"sku": "P128-50KG", "name": "50 kg bag", "value": 50, "unit": "kg", "selling_unit": "bag"}
+                {
+                    "sku": "P128-50KG",
+                    "name": "50 kg bag",
+                    "value": 50,
+                    "unit": "kg",
+                    "selling_unit": "bag"
+                }
+            ],
+            "use_cases": [
+                "weight_gain"
             ]
         },
         {
@@ -106,16 +202,35 @@
             "name": "Complete Layer Mash",
             "producer": "BR-SIL",
             "category": "C1010",
-            "animals": ["AN-CHK"],
-            "life_stages": ["LS-POU-LAY"],
+            "animals": [
+                "AN-CHK"
+            ],
+            "life_stages": [
+                "LS-POU-LAY"
+            ],
             "form": "mash",
             "description": "Silverlands complete feed for laying hens, from the start of lay until the birds are sold, for strong and steady egg production.\n\nSilverlands layer pullet programme:\n• Broiler Starter Crumble: day 0–13\n• Layer Starter Mash: day 14–42\n• Layer Grower Mash: day 43–126\n• Complete Layer Mash: day 127 to sale",
             "dosage": "Feed from day 127 until the birds are sold.",
             "keywords": "silverlands|layers mash|complete layer mash|chakula cha kuku wa mayai|mayai bora",
             "photo": "silverlands-complete-layer-mash.jpg",
             "variants": [
-                {"sku": "P006-50KG", "name": "50 kg bag", "value": 50, "unit": "kg", "selling_unit": "bag"},
-                {"sku": "P006-25KG", "name": "25 kg bag", "value": 25, "unit": "kg", "selling_unit": "bag"}
+                {
+                    "sku": "P006-50KG",
+                    "name": "50 kg bag",
+                    "value": 50,
+                    "unit": "kg",
+                    "selling_unit": "bag"
+                },
+                {
+                    "sku": "P006-25KG",
+                    "name": "25 kg bag",
+                    "value": 25,
+                    "unit": "kg",
+                    "selling_unit": "bag"
+                }
+            ],
+            "use_cases": [
+                "egg_production"
             ]
         },
         {
@@ -123,14 +238,31 @@
             "name": "Complete Layer Mash Concentrate 40%",
             "producer": "BR-SIL",
             "category": "C1020",
-            "animals": ["AN-CHK"],
-            "life_stages": ["LS-POU-LAY"],
+            "animals": [
+                "AN-CHK"
+            ],
+            "life_stages": [
+                "LS-POU-LAY"
+            ],
             "form": "mash",
             "description": "A Silverlands layer concentrate for farmers who mix their own feed: add maize to make complete layer feed at lower cost.",
             "dosage": "Mix 40% concentrate with 60% maize.",
             "keywords": "silverlands|layer concentrate|kontsentreti|chakula cha kuku wa mayai|mahindi",
             "variants": [
-                {"sku": "P129-20KG", "name": "20 kg bag", "value": 20, "unit": "kg", "selling_unit": "bag"}
+                {
+                    "sku": "P129-20KG",
+                    "name": "20 kg bag",
+                    "value": 20,
+                    "unit": "kg",
+                    "selling_unit": "bag"
+                }
+            ],
+            "use_cases": [
+                "feed_mixing",
+                "egg_production"
+            ],
+            "administration_route": [
+                "in_feed"
             ]
         }
     ]

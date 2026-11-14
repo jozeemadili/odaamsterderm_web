@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Market;
 
+use App\Models\ProductAttribute;
 use App\Support\GeoPoint;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -30,6 +31,7 @@ class MarketProductResource extends JsonResource
             'regulatory_class' => $this->regulatory_class,
             'prescription_required' => (bool) $this->prescription_required,
             'cold_chain_required' => (bool) $this->cold_chain_required,
+            'uses' => ProductAttribute::useTags($this->use_cases),
             'animal_types' => $this->whenLoaded('animalTypes', fn () => $this->animalTypes->map(fn ($a) => ['id' => $a->id, 'name' => $a->name])->values()),
             'variants' => $this->whenLoaded('variants', fn () => $this->variants->where('is_active', true)->map(fn ($v) => $v->summary())->values()),
             'life_stages' => $this->whenLoaded('lifeStages', fn () => $this->lifeStages->map(fn ($s) => ['id' => $s->id, 'code' => $s->code, 'name' => $s->name])->values()),
