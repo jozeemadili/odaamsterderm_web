@@ -9,7 +9,7 @@
                 <div>
                     <p class="text-[12px] uppercase tracking-[0.18em] text-primary font-semibold">Animal products marketplace</p>
                     <h1 class="mt-3 font-display text-[28px] sm:text-[44px] leading-[1.08] font-bold tracking-tight text-primary">Everything your animals need, from trusted sellers near you.</h1>
-                    <p class="mt-3 text-[16px] leading-relaxed text-ink/80 max-w-xl">Compare prices on feeds, vaccines, medicines and equipment for poultry, cattle, goats, pigs and fish — from approved agrovets across Tanzania.</p>
+                    <p class="mt-3 text-[16px] leading-relaxed text-ink/80 max-w-xl">@prices Compare prices on @else Find @endprices feeds, vaccines, medicines and equipment for poultry, cattle, goats, pigs and fish — from approved agrovets across Tanzania.</p>
                     <div class="mt-6 flex flex-wrap gap-3">
                         <a href="#products" class="rounded-pill bg-primary text-white font-medium px-5 py-2.5 text-[14px] shadow-sm hover:bg-primary-deep transition">Browse products</a>
                         @unless($from)
@@ -26,10 +26,14 @@
                                 <span class="block text-[17px] font-semibold text-ink">{{ $spotlight->name }}</span>
                                 <span class="block text-[13px] text-ink-mute">{{ $spotlight->variants->pluck('name')->join(' · ') }}</span>
                             </span>
-                            <span class="text-right">
-                                <span class="block text-[11px] text-ink-mute">from</span>
-                                <span class="block font-display text-[20px] font-bold text-ink tnum whitespace-nowrap">TZS {{ number_format($spotlight->min_price) }}</span>
-                            </span>
+                            @prices
+                                <span class="text-right">
+                                    <span class="block text-[11px] text-ink-mute">from</span>
+                                    <span class="block font-display text-[20px] font-bold text-ink tnum whitespace-nowrap">TZS {{ number_format($spotlight->min_price) }}</span>
+                                </span>
+                            @else
+                                <span class="shrink-0 rounded-pill bg-success-subtle px-2.5 py-1 text-[12px] font-semibold text-success">In stock</span>
+                            @endprices
                         </span>
                     </a>
                 @endif
@@ -116,7 +120,11 @@
                             </span>
                             <span class="block px-2.5 pb-3 pt-2">
                                 <span class="block text-[13px] font-semibold leading-snug text-ink line-clamp-2">{{ $product->name }}</span>
-                                <span class="mt-1 block font-display text-[14px] font-bold text-ink tnum">{{ $product->min_price !== null ? 'TZS '.number_format($product->min_price) : 'Not in stores yet' }}</span>
+                                @prices
+                                    <span class="mt-1 block font-display text-[14px] font-bold text-ink tnum">{{ $product->min_price !== null ? 'TZS '.number_format($product->min_price) : 'Not in stores yet' }}</span>
+                                @else
+                                    <span class="mt-1 block text-[12.5px] font-semibold {{ $product->min_price !== null ? 'text-success' : 'text-ink-mute' }}">{{ $product->min_price !== null ? 'In stock' : 'Not in stores yet' }}</span>
+                                @endprices
                             </span>
                         </a>
                     @endforeach
@@ -197,6 +205,7 @@
                     <x-ui.select wire:model.live="sort" label="Sort by" id="mk_sort">
                         @if($askAi)<option value="relevance">Best match (AI)</option>@endif
                         @foreach(\App\Services\MarketplaceSearch::SORTS as $key => $label)
+                            @continue($key === 'price' && ! \App\Models\PlatformSetting::showPrices())
                             <option value="{{ $key }}" @disabled($key === 'nearest' && ! $from)>{{ $label }}{{ $key === 'nearest' && ! $from ? ' (set location)' : '' }}</option>
                         @endforeach
                     </x-ui.select>
@@ -225,6 +234,7 @@
                         <option value="">All sellers</option>
                         @foreach($sellers as $s)<option value="{{ $s->id }}">{{ $s->business_name }}</option>@endforeach
                     </x-ui.select>
+                    @prices
                     <div>
                         <p class="text-[13px] text-ink-mute mb-1.5">Price (TZS)</p>
                         <div class="flex gap-2">
@@ -232,6 +242,7 @@
                             <input type="number" min="0" wire:model.live.debounce.500ms="maxPrice" placeholder="Max" class="w-full rounded-sm border border-hairline-input px-2.5 py-1.5 text-[14px]">
                         </div>
                     </div>
+                    @endprices
                     <label class="flex items-center gap-2 text-[13px] text-ink-secondary">
                         <input type="checkbox" wire:model.live="inStock" class="rounded border-hairline-input text-primary focus:ring-primary"> Available now only
                     </label>

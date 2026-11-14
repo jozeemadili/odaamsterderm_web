@@ -19,12 +19,16 @@ class PlatformSetting extends Model
 
     public const AI_DAILY_LIMIT = 'ai.daily_limit';
 
+    /** Show product prices to customers (off until sellers have set them). */
+    public const MARKET_SHOW_PRICES = 'market.show_prices';
+
     /** Used when a key has never been saved. */
     public const DEFAULTS = [
         self::AI_SEARCH_ENABLED => false,
         self::AI_SEARCH_GUESTS => true,
         self::AI_ORDER_ENABLED => false,
         self::AI_DAILY_LIMIT => 500,
+        self::MARKET_SHOW_PRICES => false,
     ];
 
     private const CACHE_KEY = 'platform_settings';
@@ -38,6 +42,15 @@ class PlatformSetting extends Model
         $all = Cache::rememberForever(self::CACHE_KEY, fn () => static::query()->pluck('value', 'key')->all());
 
         return array_key_exists($key, $all) ? $all[$key] : ($default ?? self::DEFAULTS[$key] ?? null);
+    }
+
+    /**
+     * Whether customers see product prices (marketplace, cart, orders, app,
+     * AI answers). Off while sellers are still setting their prices.
+     */
+    public static function showPrices(): bool
+    {
+        return (bool) static::get(self::MARKET_SHOW_PRICES);
     }
 
     public static function set(string $key, mixed $value, ?User $by = null): void

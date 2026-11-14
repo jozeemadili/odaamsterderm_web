@@ -3,6 +3,7 @@
 namespace App\Livewire\Market;
 
 use App\Models\AnimalType;
+use App\Models\PlatformSetting;
 use App\Models\Producer;
 use App\Models\ProductCategory;
 use App\Services\Ai\AiProductSearch;
@@ -199,6 +200,14 @@ class Home extends Component
         // "Nearest" means nothing without a location — show what's really applied.
         if (! $from && $this->sort === MarketplaceSearch::SORT_NEAREST) {
             $this->sort = MarketplaceSearch::SORT_PRICE;
+        }
+
+        // Prices hidden: no sorting or filtering by them either.
+        if (! PlatformSetting::showPrices()) {
+            if ($this->sort === MarketplaceSearch::SORT_PRICE) {
+                $this->sort = MarketplaceSearch::SORT_AVAILABILITY;
+            }
+            $this->minPrice = $this->maxPrice = '';
         }
 
         $filters = [

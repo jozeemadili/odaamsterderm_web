@@ -185,7 +185,7 @@ class AiProductSearch
             $p->brand ?: '-',
             $p->animalType?->name ?: '-',
             $p->category?->fullName() ?: '-',
-            $p->min_price !== null ? 'from TZS '.number_format((float) $p->min_price) : 'out of stock',
+            $p->min_price === null ? 'out of stock' : (PlatformSetting::showPrices() ? 'from TZS '.number_format((float) $p->min_price) : 'in stock'),
             ((float) $p->available_quantity).' '.($p->unit ?? 'units').' available',
             $p->inclusion_or_dosage ? 'use rate: '.$p->inclusion_or_dosage : '-',
         ]))->implode("\n");
@@ -203,9 +203,19 @@ class AiProductSearch
 
         {$guides}
 
+        {$this->priceRule()}
+
         Catalog (id | name | brand | animal | category | price | stock | use rate):
         {$lines}
         PROMPT;
+    }
+
+    /** While prices are hidden from customers the assistant must not give any. */
+    protected function priceRule(): string
+    {
+        return PlatformSetting::showPrices()
+            ? ''
+            : 'Prices are not published on the marketplace yet: never state or estimate a price or a total cost, ignore budgets, and if asked about price say the store confirms it when the customer orders or collects. Never sort by price.';
     }
 
     /** @return array<string, mixed> */

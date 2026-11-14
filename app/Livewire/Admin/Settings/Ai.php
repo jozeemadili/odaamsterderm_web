@@ -29,6 +29,8 @@ class Ai extends Component
 
     public int $dailyLimit = 500;
 
+    public bool $showPrices = false;
+
     public function mount(): void
     {
         abort_unless(Auth::user()->can('manage-platform-settings'), 403);
@@ -37,6 +39,13 @@ class Ai extends Component
         $this->orderEnabled = (bool) PlatformSetting::get(PlatformSetting::AI_ORDER_ENABLED);
         $this->guestsAllowed = (bool) PlatformSetting::get(PlatformSetting::AI_SEARCH_GUESTS);
         $this->dailyLimit = (int) PlatformSetting::get(PlatformSetting::AI_DAILY_LIMIT);
+        $this->showPrices = PlatformSetting::showPrices();
+    }
+
+    public function updatedShowPrices(bool $value): void
+    {
+        $this->store(PlatformSetting::MARKET_SHOW_PRICES, $value);
+        session()->flash('status', $value ? 'Product prices are now shown to customers.' : 'Product prices are now hidden from customers.');
     }
 
     /** The on/off switch saves at once, so the button appears or disappears immediately. */

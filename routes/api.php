@@ -45,6 +45,7 @@ Route::prefix('v1')->group(function () {
 
     // --- Public marketplace (no sign-in) --------------------------------
     Route::prefix('market')->group(function () {
+        Route::get('/settings', [MarketplaceController::class, 'settings']);
         Route::get('/filters', [MarketplaceController::class, 'filters']);
         Route::get('/products', [MarketplaceController::class, 'products']);
         Route::get('/products/{product}', [MarketplaceController::class, 'product']);

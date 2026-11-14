@@ -8,6 +8,7 @@ use App\Livewire\Market\ProductShow;
 use App\Livewire\Portal\Orders\Show as SellerOrderShow;
 use App\Models\InventoryItem;
 use App\Models\Order;
+use App\Models\PlatformSetting;
 use App\Models\User;
 use App\Services\OrderService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -42,6 +43,7 @@ class OrderFlowTest extends TestCase
 
     public function test_web_customer_adds_to_cart_checks_out_and_seller_fulfils(): void
     {
+        PlatformSetting::set(PlatformSetting::MARKET_SHOW_PRICES, true);
         $offer = $this->offerA();
 
         Livewire::actingAs($this->customer)->test(ProductShow::class, ['product' => $this->chickenStarter()])

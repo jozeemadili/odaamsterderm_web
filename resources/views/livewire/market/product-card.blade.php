@@ -9,7 +9,11 @@
             <div>
                 @if($product->min_price !== null)
                     <p class="text-[11px] text-ink-mute">from</p>
-                    <p class="text-[16px] sm:text-[18px] font-semibold tnum text-ink whitespace-nowrap">TZS {{ number_format($product->min_price) }}</p>
+                    @prices
+                        <p class="text-[16px] sm:text-[18px] font-semibold tnum text-ink whitespace-nowrap">TZS {{ number_format($product->min_price) }}</p>
+                    @else
+                        <p class="text-[13px] font-semibold text-success whitespace-nowrap">In stock</p>
+                    @endprices
                 @elseif($product->sellers_count)
                     <p class="text-[13px] text-ruby font-medium">Out of stock</p>
                 @else

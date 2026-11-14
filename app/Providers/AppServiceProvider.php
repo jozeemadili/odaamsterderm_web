@@ -2,9 +2,11 @@
 
 namespace App\Providers;
 
+use App\Models\PlatformSetting;
 use App\Services\Ai\AiClient;
 use App\Services\Ai\ClaudeAiClient;
 use App\Services\Ai\DemoAiClient;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -29,6 +31,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // @prices … @else … @endprices: product prices, shown to customers
+        // only once the admin switches prices on.
+        Blade::if('prices', fn () => PlatformSetting::showPrices());
     }
 }

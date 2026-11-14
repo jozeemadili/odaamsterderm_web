@@ -74,12 +74,16 @@
             @foreach($order->items as $item)
                 <div class="px-4 py-2.5 flex justify-between gap-3 text-[14px]">
                     <span>{{ rtrim(rtrim((string) $item->quantity, '0'), '.') }} × {{ $item->name }}</span>
-                    <span class="tnum">TZS {{ number_format($item->line_total) }}</span>
+                    @prices<span class="tnum">TZS {{ number_format($item->line_total) }}</span>@endprices
                 </div>
             @endforeach
-            <div class="px-4 py-3 flex justify-between font-medium">
-                <span>Total (pay at pickup)</span><span class="tnum">TZS {{ number_format($order->total) }}</span>
-            </div>
+            @prices
+                <div class="px-4 py-3 flex justify-between font-medium">
+                    <span>Total (pay at pickup)</span><span class="tnum">TZS {{ number_format($order->total) }}</span>
+                </div>
+            @else
+                <div class="px-4 py-3 text-[13px] text-ink-mute">The store confirms the price when you collect; pay at pickup.</div>
+            @endprices
         </div>
     </x-ui.card>
 

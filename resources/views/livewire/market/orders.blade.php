@@ -28,7 +28,7 @@
                         <p class="text-[12px] text-ink-mute">{{ $order->branch->name }} · {{ $order->created_at->format('d M Y H:i') }} · {{ $order->items_count }} {{ \Illuminate\Support\Str::plural('item', $order->items_count) }}</p>
                     </div>
                     <div class="text-right">
-                        <p class="tnum font-medium">TZS {{ number_format($order->total) }}</p>
+                        @prices<p class="tnum font-medium">TZS {{ number_format($order->total) }}</p>@endprices
                         @include('livewire.shared.order-status-badge', ['status' => $order->status, 'label' => $order->statusLabel()])
                     </div>
                 </a>

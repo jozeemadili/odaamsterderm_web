@@ -8,6 +8,7 @@ use App\Http\Resources\Market\OfferResource;
 use App\Http\Resources\Market\PublicStoreResource;
 use App\Models\AnimalType;
 use App\Models\Branch;
+use App\Models\PlatformSetting;
 use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Services\MarketplaceSearch;
@@ -22,6 +23,14 @@ use Illuminate\Validation\Rule;
 class MarketplaceController extends Controller
 {
     public function __construct(private readonly MarketplaceSearch $search) {}
+
+    /** Marketplace-wide switches the app follows (prices shown or not). */
+    public function settings()
+    {
+        return response()->json([
+            'show_prices' => PlatformSetting::showPrices(),
+        ]);
+    }
 
     /** Everything the search filters need, in one call. */
     public function filters()

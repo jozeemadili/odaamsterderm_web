@@ -93,7 +93,7 @@
                         </div>
                     </a>
                     <div class="flex items-center gap-3">
-                        <p class="tnum font-medium">TZS {{ number_format($offer->unit_price) }}</p>
+                        @prices<p class="tnum font-medium">TZS {{ number_format($offer->unit_price) }}</p>@endprices
                         @if($offer->is_available)
                             <input type="number" min="1" step="1" wire:model="quantities.{{ $offer->id }}" placeholder="1" aria-label="Quantity" class="w-16 rounded-sm border border-hairline-input px-2 py-1 text-[13px] tnum">
                             <x-ui.button size="sm" wire:click="addToCart({{ $offer->id }})" target="addToCart({{ $offer->id }})">Add</x-ui.button>

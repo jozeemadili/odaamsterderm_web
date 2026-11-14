@@ -3,6 +3,20 @@
         <div class="rounded-lg bg-success-subtle border border-success/20 text-success px-4 py-2.5 text-[14px]">{{ session('status') }}</div>
     @endif
 
+    <x-ui.card>
+        <div class="flex flex-wrap items-start justify-between gap-4">
+            <div class="max-w-2xl">
+                <h2 class="text-[16px] font-medium">Marketplace prices</h2>
+                <p class="text-[13px] text-ink-mute mt-1">Shows product prices to customers on the website, in the app, in the cart and orders, and in AI answers. Keep it <strong>hidden</strong> while sellers set their prices in the portal and app; customers can still order, and the store confirms the price when they collect.</p>
+            </div>
+            <label class="inline-flex items-center gap-3 cursor-pointer select-none">
+                <span class="text-[13px] font-medium {{ $showPrices ? 'text-primary-deep' : 'text-ink-mute' }}">{{ $showPrices ? 'Shown' : 'Hidden' }}</span>
+                <input type="checkbox" wire:model.live="showPrices" class="sr-only peer" id="market_show_prices">
+                <span class="relative h-6 w-11 rounded-full bg-hairline peer-checked:bg-primary transition after:absolute after:top-0.5 after:left-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow after:transition peer-checked:after:translate-x-5"></span>
+            </label>
+        </div>
+    </x-ui.card>
+
     @if($demo)
         <div class="rounded-lg bg-primary-subtle/30 border border-primary/20 text-ink px-4 py-2.5 text-[14px]">
             <strong>Demo mode (no real AI, free).</strong> No Anthropic API key is set, so a simple word-matching assistant answers instead of Claude. It understands common English and Kiswahili words and uses simple quantity rules — good for testing the screens and the ordering flow, not for judging answer quality. Add <code class="text-[13px]">ANTHROPIC_API_KEY=…</code> to the server's <code class="text-[13px]">.env</code> to switch to real AI.

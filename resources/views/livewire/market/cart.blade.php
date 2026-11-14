@@ -14,7 +14,7 @@
                     <p class="text-[15px] font-medium">Pickup at {{ $group['store']->name }}</p>
                     <p class="text-[12px] text-ink-mute">{{ $group['store']->merchant->business_name }} · {{ collect([$group['store']->address, $group['store']->city])->filter()->join(', ') }}</p>
                 </div>
-                <p class="tnum font-medium">TZS {{ number_format($group['total']) }}</p>
+                @prices<p class="tnum font-medium">TZS {{ number_format($group['total']) }}</p>@endprices
             </div>
             <div class="divide-y divide-hairline">
                 @foreach($group['lines'] as $line)
@@ -22,14 +22,14 @@
                         <div>
                             <p class="text-[14px] font-medium">{{ $line['offer']->offerName() }}</p>
                             <x-market.producer :product="$line['offer']->product" />
-                            <p class="text-[12px] text-ink-mute">TZS {{ number_format($line['offer']->unit_price) }} per {{ $line['offer']->sellingUnit() }}</p>
+                            @prices<p class="text-[12px] text-ink-mute">TZS {{ number_format($line['offer']->unit_price) }} per {{ $line['offer']->sellingUnit() }}</p>@endprices
                             @if($line['problem'])<p class="text-[12px] text-ruby">{{ $line['problem'] }}</p>@endif
                         </div>
                         <div class="flex items-center gap-3">
                             <input type="number" min="0" step="1" value="{{ rtrim(rtrim((string) $line['cart_item']->quantity, '0'), '.') }}"
                                 wire:change="setQuantity({{ $line['offer']->id }}, $event.target.value)" aria-label="Quantity"
                                 class="w-20 rounded-sm border border-hairline-input px-2 py-1 text-[14px] tnum">
-                            <p class="w-28 text-right tnum">TZS {{ number_format($line['line_total']) }}</p>
+                            @prices<p class="w-28 text-right tnum">TZS {{ number_format($line['line_total']) }}</p>@endprices
                             <button type="button" wire:click="remove({{ $line['offer']->id }})" class="text-[12px] text-ink-mute hover:text-ruby">Remove</button>
                         </div>
                     </div>
@@ -45,10 +45,14 @@
     @if(count($groups))
         <x-ui.card>
             <form wire:submit="checkout" class="space-y-4">
-                <div class="flex items-baseline justify-between">
-                    <p class="text-[15px]">Total to pay at pickup</p>
-                    <p class="text-[22px] font-medium tnum">TZS {{ number_format($total) }}</p>
-                </div>
+                @prices
+                    <div class="flex items-baseline justify-between">
+                        <p class="text-[15px]">Total to pay at pickup</p>
+                        <p class="text-[22px] font-medium tnum">TZS {{ number_format($total) }}</p>
+                    </div>
+                @else
+                    <p class="text-[14px] text-ink-secondary">The store confirms the price when you collect your order, and you pay at pickup.</p>
+                @endprices
                 @if(count($groups) > 1)
                     <p class="text-[13px] text-ink-mute">Your items come from {{ count($groups) }} stores, so you'll get {{ count($groups) }} orders — collect each at its store.</p>
                 @endif

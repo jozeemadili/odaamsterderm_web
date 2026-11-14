@@ -46,6 +46,7 @@
         <h2 class="text-[18px] font-light tracking-tight">Compare {{ $offers->count() }} {{ \Illuminate\Support\Str::plural('seller', $offers->count()) }}</h2>
         <div class="flex items-center gap-1 bg-canvas rounded-pill p-1 border border-hairline text-[13px]">
             @foreach(['nearest' => 'Nearest', 'price' => 'Lowest price', 'availability' => 'Most available'] as $key => $label)
+                @continue($key === 'price' && ! \App\Models\PlatformSetting::showPrices())
                 <button wire:click="$set('sort', '{{ $key }}')" @disabled($key === 'nearest' && ! $from)
                     class="px-3 py-1.5 rounded-pill transition disabled:opacity-40 {{ $sort === $key ? 'bg-brand-dark text-white' : 'text-ink-secondary hover:text-ink' }}">{{ $label }}</button>
             @endforeach
@@ -70,7 +71,7 @@
                         <tr>
                             <th class="px-4 py-3 font-normal">Seller</th>
                             <th class="px-4 py-3 font-normal">Distance</th>
-                            <th class="px-4 py-3 font-normal">Price</th>
+                            @prices<th class="px-4 py-3 font-normal">Price</th>@endprices
                             <th class="px-4 py-3 font-normal">Available</th>
                             <th class="px-4 py-3 font-normal">Status</th>
                             <th class="px-4 py-3 font-normal"></th>
@@ -97,7 +98,7 @@
                                         <button type="button" x-data x-on:click="document.querySelector('header [wire\\:click=openPicker]')?.click()" class="text-[12px] text-primary hover:text-primary-deep">Set location</button>
                                     @endif
                                 </td>
-                                <td class="px-4 py-3 tnum font-medium">TZS {{ number_format($offer->unit_price) }}</td>
+                                @prices<td class="px-4 py-3 tnum font-medium">TZS {{ number_format($offer->unit_price) }}</td>@endprices
                                 <td class="px-4 py-3 tnum">{{ $offer->is_available ? rtrim(rtrim((string) $offer->marketplace_quantity, '0'), '.').' '.\Illuminate\Support\Str::plural($offer->sellingUnit(), (int) $offer->marketplace_quantity) : '0' }}</td>
                                 <td class="px-4 py-3">
                                     <x-ui.badge :tone="$offer->is_available ? 'success' : 'danger'">{{ $offer->is_available ? 'Available' : 'Out of stock' }}</x-ui.badge>

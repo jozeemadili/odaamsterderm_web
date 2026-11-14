@@ -55,7 +55,11 @@
     {{-- Caption --}}
     <a href="{{ $url }}" class="block px-3.5 pb-4 pt-1.5">
         @if($product->min_price !== null)
-            <span class="block font-display text-[18px] font-bold tnum text-ink">TZS {{ number_format($product->min_price) }}</span>
+            @prices
+                <span class="block font-display text-[18px] font-bold tnum text-ink">TZS {{ number_format($product->min_price) }}</span>
+            @else
+                <span class="block text-[13px] font-semibold text-success">In stock at {{ $product->sellers_count }} {{ \Illuminate\Support\Str::plural('store', (int) $product->sellers_count) }}</span>
+            @endprices
         @elseif($product->sellers_count)
             <span class="block text-[13px] font-semibold text-ruby">Out of stock</span>
         @else

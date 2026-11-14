@@ -90,6 +90,7 @@ class AiSearchTest extends TestCase
 
     public function test_ai_picks_are_shown_in_ai_order_with_live_prices(): void
     {
+        PlatformSetting::set(PlatformSetting::MARKET_SHOW_PRICES, true);
         $this->enable();
         $this->fakeAi($this->answer(['Tilapia Floating Feed', 'Chicken Starter']));
 

@@ -3,6 +3,7 @@
 namespace App\Livewire\Market;
 
 use App\Livewire\Concerns\AddsToCart;
+use App\Models\PlatformSetting;
 use App\Models\Product;
 use App\Services\MarketplaceSearch;
 use App\Support\MarketLocation;
@@ -45,6 +46,11 @@ class ProductShow extends Component
         if (! $from && $this->sort === MarketplaceSearch::SORT_NEAREST) {
             $this->sort = MarketplaceSearch::SORT_PRICE;
         }
+        $showPrices = PlatformSetting::showPrices();
+        if (! $showPrices && $this->sort === MarketplaceSearch::SORT_PRICE) {
+            $this->sort = MarketplaceSearch::SORT_AVAILABILITY;
+        }
+
         $allOffers = $search->offersFor($this->product, $from, $this->sort);
         $packs = $allOffers->pluck('variant')->filter()->unique('id')->sortBy('sort_order')->values();
         $offers = $this->pack ? $allOffers->where('product_variant_id', $this->pack)->values() : $allOffers;
@@ -58,7 +64,7 @@ class ProductShow extends Component
                 'lat' => $o->branch->latitude,
                 'lng' => $o->branch->longitude,
                 'name' => $o->branch->name,
-                'note' => $o->is_available ? 'TZS '.number_format($o->unit_price).' · '.rtrim(rtrim((string) $o->marketplace_quantity, '0'), '.').' '.$o->sellingUnit() : 'Out of stock',
+                'note' => $o->is_available ? ($showPrices ? 'TZS '.number_format($o->unit_price).' · ' : '').rtrim(rtrim((string) $o->marketplace_quantity, '0'), '.').' '.$o->sellingUnit() : 'Out of stock',
                 'url' => route('market.store', $o->branch_id),
             ])->values(),
         ])->title($this->product->displayName());

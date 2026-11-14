@@ -7,6 +7,7 @@ use App\Livewire\Market\Account;
 use App\Livewire\Market\Home;
 use App\Livewire\Market\LocationBar;
 use App\Livewire\Market\ProductShow;
+use App\Models\PlatformSetting;
 use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Models\User;
@@ -61,6 +62,7 @@ class MarketplaceWebTest extends TestCase
 
     public function test_search_and_filters_on_home(): void
     {
+        PlatformSetting::set(PlatformSetting::MARKET_SHOW_PRICES, true);
         Livewire::test(Home::class)
             ->assertSet('sort', 'price') // no location yet
             ->set('q', 'tilapia')
@@ -151,5 +153,20 @@ class MarketplaceWebTest extends TestCase
             ->assertDontSee('Create a customer account');
 
         $this->get('/')->assertSee(route('login', ['as' => 'seller']), false);
+    }
+
+    public function test_prices_stay_hidden_until_the_admin_shows_them(): void
+    {
+        $product = $this->chickenStarter();
+
+        $this->get(route('market.home'))->assertOk()->assertDontSee('TZS 43,500')->assertSee('In stock at 3 stores');
+        $this->get(route('market.product', $product->slug))->assertOk()->assertDontSee('TZS 43,500');
+        $this->getJson('/api/v1/market/settings')->assertExactJson(['show_prices' => false]);
+
+        PlatformSetting::set(PlatformSetting::MARKET_SHOW_PRICES, true);
+
+        $this->get(route('market.home'))->assertOk()->assertSee('TZS 43,500');
+        $this->get(route('market.product', $product->slug))->assertOk()->assertSee('TZS 43,500');
+        $this->getJson('/api/v1/market/settings')->assertExactJson(['show_prices' => true]);
     }
 }

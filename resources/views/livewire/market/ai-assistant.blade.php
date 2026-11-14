@@ -75,7 +75,7 @@
                                         <div class="flex-1 min-w-0">
                                             <a href="{{ route('market.product', $line['product_slug']) }}" class="text-[14px] font-medium text-ink hover:text-primary-deep">{{ $line['name'] }}</a>
                                             <p class="text-[12px] text-ink-mute">{{ $line['store'] }}@if($line['distance']) · {{ $line['distance'] }}@endif</p>
-                                            <p class="text-[12px] text-ink-mute tnum">TZS {{ number_format($line['unit_price']) }} / {{ $line['unit'] }} · {{ rtrim(rtrim(number_format($line['available'], 2, '.', ''), '0'), '.') }} available</p>
+                                            <p class="text-[12px] text-ink-mute tnum">@prices TZS {{ number_format($line['unit_price']) }} / {{ $line['unit'] }} · @endprices{{ rtrim(rtrim(number_format($line['available'], 2, '.', ''), '0'), '.') }} available</p>
                                             @if($line['note'])<p class="text-[12px] text-ruby">{{ $line['note'] }}</p>@endif
                                         </div>
                                         <div class="flex flex-col items-end gap-1">
@@ -87,10 +87,12 @@
                                     </div>
                                 @endforeach
                             </div>
-                            <div class="px-3.5 py-2.5 border-t border-hairline flex items-center justify-between">
-                                <p class="text-[13px] text-ink-mute">Total</p>
-                                <p class="text-[17px] font-medium tnum">TZS {{ number_format($total) }}</p>
-                            </div>
+                            @prices
+                                <div class="px-3.5 py-2.5 border-t border-hairline flex items-center justify-between">
+                                    <p class="text-[13px] text-ink-mute">Total</p>
+                                    <p class="text-[17px] font-medium tnum">TZS {{ number_format($total) }}</p>
+                                </div>
+                            @endprices
                             @error('basket')<p class="px-3.5 pb-2 text-[12px] text-ruby">{{ $message }}</p>@enderror
                             <div class="px-3.5 pb-3.5">
                                 <button type="button" wire:click="addToCart" wire:loading.attr="disabled" wire:target="addToCart"
