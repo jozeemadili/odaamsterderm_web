@@ -35,6 +35,7 @@ class AmsterdamCatalogueImporter
         'database/data/amsterdam-catalogue.json',
         'database/data/silverlands-catalogue.json',
         'database/data/ricagrovet-catalogue.json',
+        'database/data/harsho-catalogue.json',
     ];
 
     /** Pack photos of every catalogue file. */
@@ -150,8 +151,8 @@ class AmsterdamCatalogueImporter
             'producer_id' => $producer->id,
             'brand' => $producer->name,
             'animal_type_id' => $animals[0],
-            'form' => $row['form'],
-            'inclusion_or_dosage' => $row['dosage'],
+            'form' => $row['form'] ?? null,
+            'inclusion_or_dosage' => $row['dosage'] ?? null,
             'crude_protein_pct' => $row['crude_protein'] ?? null,
             'country_of_origin' => $row['country'] ?? $maker->country,
             'search_keywords' => isset($row['keywords']) ? Str::lower($row['keywords']) : null,

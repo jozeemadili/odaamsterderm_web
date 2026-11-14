@@ -51,7 +51,7 @@ class AmsterdamCatalogueImportTest extends TestCase
         // A front for each of the 14 products plus the backs of Vitamix Chick/Plus, Clear Heat and the pig concentrate.
         // Amsterdam: 14 products, 27 packs, 18 photos. Silverlands: 8 products, 12 packs, 6 photos.
         // RIC Agrovet: 10 products, 20 packs, 10 photos (and 2 producers, RIC Agrovet and Medisel).
-        $this->assertSame(['producers' => 5, 'products' => 32, 'product_variants' => 59, 'photos_added' => 34], $counts);
+        $this->assertSame(['producers' => 6, 'products' => 34, 'product_variants' => 61, 'photos_added' => 35], $counts);
 
         $chick->refresh();
         $this->assertSame(['P034-30G', 'P034-100G', 'P034-250G', 'P034-1KG'], $chick->variants()->orderBy('sort_order')->pluck('sku')->all());
@@ -90,8 +90,8 @@ class AmsterdamCatalogueImportTest extends TestCase
         // Re-running changes nothing and adds no second photo.
         $again = app(AmsterdamCatalogueImporter::class)->import();
         $this->assertSame(0, $again['photos_added']);
-        $this->assertSame(139, Product::count());
-        $this->assertSame(190, ProductVariant::count());
+        $this->assertSame(140, Product::count());
+        $this->assertSame(191, ProductVariant::count());
 
         $this->get(route('market.product', $alpha->slug))->assertOk();
     }

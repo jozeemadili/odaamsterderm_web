@@ -1,0 +1,52 @@
+{
+  "source": "Harsho Group website (www.harshotz.com: Harsho Chick page, FAQ and contacts) and the Harsho Chicks poster supplied by Amsterdam Group, November 2026",
+  "show_under_owner": false,
+  "producers": [
+    {
+      "code": "BR-HARS",
+      "name": "Harsho Chicks",
+      "role": "Hatchery (Ross 308 day-old broiler chicks), Harsho Group, Moshi",
+      "country": "Tanzania",
+      "logo": "harsho/logo.png"
+    }
+  ],
+  "products": [
+    {
+      "code": "P096",
+      "name": "Ross 308 Broiler Day-old Chicks",
+      "producer": "BR-HARS",
+      "category": "C7010",
+      "animals": ["AN-CHK"],
+      "life_stages": ["LS-POU-STR"],
+      "form": "live",
+      "tagline": "Vifaranga vya kuku wa nyama (Ross 308) kutoka Harsho Chicks, Moshi.",
+      "description": "Day-old Ross 308 broiler chicks from the Harsho hatchery in Moshi, hatched from Harsho's own broiler breeder flock.\n\n• Vaccinated against Marek's disease and Newcastle disease at the hatchery, with a health certificate for every batch\n• Fresh hatch every Friday: book at least one week ahead\n• Minimum order 50 chicks\n• Delivered in ventilated chick boxes, or collected from Harsho\n• Ready for market in about 35–42 days with good management\n\nAsk the farm assistant how to prepare the house, brooding temperatures, feeding and lighting: it answers from the Ross Broiler Handbook.",
+      "dosage": null,
+      "keywords": "harsho|harsho chicks|ross 308|ross|vifaranga|kifaranga|vifaranga vya kuku wa nyama|kuku wa nyama|broiler chicks|day old chicks|doc",
+      "country": "Tanzania",
+      "use_cases": ["brooding", "breeding"],
+      "variants": [
+        {"sku": "P096-1B", "name": "Per chick", "value": null, "unit": null, "selling_unit": "bird"}
+      ],
+      "photo": "harsho-ross-308-chicks.jpg"
+    },
+    {
+      "code": "P140",
+      "name": "Ross 308 Broiler Hatching Eggs",
+      "producer": "BR-HARS",
+      "category": "C7010",
+      "animals": ["AN-CHK"],
+      "life_stages": ["LS-POU-BRD"],
+      "form": null,
+      "tagline": "Mayai ya kutotolesha ya kuku wa nyama (Ross 308) kutoka shamba la wazazi la Harsho.",
+      "description": "Fertile Ross 308 broiler hatching eggs from Harsho's own broiler breeder flock in Moshi, for farmers and hatcheries with their own incubators. Harsho reports a fertility rate above 90%. Incubation takes 21 days.\n\nBook ahead with Harsho; collection or delivery is arranged with the hatchery.",
+      "dosage": null,
+      "keywords": "harsho|ross 308|hatching eggs|mayai ya kutotolesha|mayai ya kuangua|incubator|kutotolesha",
+      "country": "Tanzania",
+      "use_cases": ["hatching", "breeding"],
+      "variants": [
+        {"sku": "P140-1E", "name": "Per egg", "value": null, "unit": null, "selling_unit": "egg"}
+      ]
+    }
+  ]
+}

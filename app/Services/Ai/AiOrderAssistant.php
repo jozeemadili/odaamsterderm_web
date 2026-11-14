@@ -52,6 +52,7 @@ class AiOrderAssistant
         private readonly AiClient $ai,
         private readonly MarketplaceSearch $search,
         private readonly AiUsage $usage,
+        private readonly FarmGuides $guides,
     ) {}
 
     /** Whether the admin has switched the "Use AI to place order" button on. */
@@ -80,7 +81,7 @@ class AiOrderAssistant
         $started = microtime(true);
 
         try {
-            $response = $this->ai->structured($this->systemPrompt($offers, $from, $customer, $this->catalogue(), $this->search->stores($from, self::STORE_LIMIT)), $messages, $this->schema(), 6000);
+            $response = $this->ai->structured($this->systemPrompt($offers, $from, $customer, $this->catalogue(), $this->search->stores($from, self::STORE_LIMIT), $this->guideQuestion($messages)), $messages, $this->schema(), 6000);
         } catch (AiUnavailableException $e) {
             $this->usage->recordFailure(AiRequest::FEATURE_ORDER, $question, $customer, $ip, $started, $e->getMessage());
 
@@ -94,7 +95,7 @@ class AiOrderAssistant
             return $this->result(self::STATUS_REFUSED);
         }
 
-        return $this->result(self::STATUS_OK, Str::limit(trim((string) ($response->data['reply'] ?? '')), 1500), $basket);
+        return $this->result(self::STATUS_OK, Str::limit(trim((string) ($response->data['reply'] ?? '')), 2500), $basket);
     }
 
     /**
@@ -190,8 +191,10 @@ class AiOrderAssistant
      * @param  Collection<int, Product>  $catalogue
      * @param  Collection<int, Branch>  $stores
      */
-    protected function systemPrompt(Collection $offers, ?GeoPoint $from, User $customer, Collection $catalogue, Collection $stores): string
+    protected function systemPrompt(Collection $offers, ?GeoPoint $from, User $customer, Collection $catalogue, Collection $stores, string $guideQuestion = ''): string
     {
+        $guides = $this->guides->promptSection($guideQuestion);
+
         $lines = $offers->map(fn (InventoryItem $o) => implode(' | ', [
             $o->id,
             $o->product->displayName(),
@@ -239,7 +242,7 @@ class AiOrderAssistant
         - Questions about products: what a product is for, which animal and stage it suits, its use rate or dosage and its pack sizes, using only the catalogue below. Compare products when asked.
         - Questions about the stores: where they are, opening hours, phone and WhatsApp, pickup and delivery, using only the store list below.
         - How buying works here: build a basket, press "Add to cart", confirm in the cart, collect at the store.
-        - General animal husbandry: feeding programmes, housing, biosecurity, heat stress, vaccination schedules in general terms.
+        - Animal husbandry: how to raise chicks and chickens (brooding, temperature, feed and water, lighting, space, vaccination, expected weights and egg production) from the farm guides below, and other animals in general terms.
         - Building a basket from the offers below when the customer wants to buy.
 
         Building a basket:
@@ -257,6 +260,8 @@ class AiOrderAssistant
 
         The customer is {$customer->name}. {$location}
 
+        {$guides}
+
         Catalogue (product | brand | animals | category | pack sizes | use rate | description):
         {$products}
 
@@ -266,6 +271,19 @@ class AiOrderAssistant
         Offers you can put in a basket (offer id | product | brand | animal | category | store (seller) | price | units online | distance):
         {$lines}
         PROMPT;
+    }
+
+    /**
+     * What to look up in the farm guides: the customer's latest message,
+     * with the one before it for follow-ups ("na wiki ya pili?").
+     *
+     * @param  list<array{role:string, content:string}>  $messages
+     */
+    protected function guideQuestion(array $messages): string
+    {
+        $asked = array_values(array_filter($messages, fn (array $m) => $m['role'] === 'user'));
+
+        return implode(' ', array_map(fn (array $m) => $m['content'], array_slice($asked, -2)));
     }
 
     /** @return array<string, mixed> */
