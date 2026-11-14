@@ -159,7 +159,11 @@ class AmsterdamCatalogueImporter
             'unit' => $row['variants'][0]['selling_unit'],
             'is_demo' => false,
         ], fn ($value) => $value !== null));
-        $product->pack_size = count($row['variants']) === 1 ? $row['variants'][0]['name'] : null;
+        // A single pack of known size names the product ("… 500 ml bottle");
+        // a pack whose size is still unknown leaves the name alone.
+        $product->pack_size = count($row['variants']) === 1 && ($row['variants'][0]['value'] ?? null) !== null
+            ? $row['variants'][0]['name']
+            : null;
         $product->save();
 
         $product->animalTypes()->sync($animals);

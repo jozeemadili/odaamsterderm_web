@@ -68,7 +68,7 @@
       "variants": [
         {
           "sku": "P130-PACK",
-          "name": "Pack (size to confirm)",
+          "name": "Pack",
           "value": null,
           "unit": null,
           "selling_unit": "pack"
@@ -163,7 +163,7 @@
       "variants": [
         {
           "sku": "P133-PACK",
-          "name": "Pack (size to confirm)",
+          "name": "Pack",
           "value": null,
           "unit": null,
           "selling_unit": "pack"

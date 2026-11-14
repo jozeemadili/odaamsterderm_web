@@ -117,6 +117,9 @@ class AmsterdamCatalogueImportTest extends TestCase
         $this->assertSame(['10% · 100 ml bottle', '10% · 250 ml bottle', '20% · 100 ml bottle'],
             Product::where('code', 'P131')->sole()->variants()->orderBy('sort_order')->pluck('name')->all());
 
+        // A pack of unknown size doesn't change the product's name.
+        $this->assertSame('RIC Neoxy Plus', Product::where('code', 'P130')->sole()->displayName());
+
         // Running again changes nothing (same files, same photos and logos).
         $again = app(AmsterdamCatalogueImporter::class)->import();
         $this->assertSame(0, $again['photos_added']);
