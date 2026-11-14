@@ -16,7 +16,7 @@ use Illuminate\Support\Str;
 class FarmGuides
 {
     /** Pages handed to the model per question. */
-    public const PAGE_LIMIT = 5;
+    public const PAGE_LIMIT = 6;
 
     /** Characters of one page handed to the model. */
     private const PAGE_CHARS = 3000;
@@ -33,10 +33,10 @@ class FarmGuides
         'vifaranga' => ['chick', 'brooding', 'placement'], 'kifaranga' => ['chick', 'brooding'], 'chicks' => ['chick'],
         'kulea' => ['brooding', 'management'], 'brooder' => ['brooding'], 'brood' => ['brooding'],
         'joto' => ['temperature', 'heat'], 'baridi' => ['cold', 'temperature'], 'unyevu' => ['humidity'], 'hot' => ['heat', 'temperature'],
-        'chakula' => ['feed', 'feeding'], 'lishe' => ['feed', 'nutrition'], 'kula' => ['feed', 'intake'], 'feeding' => ['feed'],
+        'chakula' => ['feed', 'feeding', 'intake'], 'wale' => ['feed', 'intake'], 'wanakula' => ['feed', 'intake'], 'lishe' => ['feed', 'nutrition'], 'kula' => ['feed', 'intake'], 'feeding' => ['feed'],
         'maji' => ['water', 'drinker'], 'kunywa' => ['water', 'drinker'], 'drinking' => ['water'],
         'mwanga' => ['light', 'lighting'], 'taa' => ['light', 'lighting'], 'giza' => ['dark', 'lighting'],
-        'uzito' => ['weight', 'body'], 'kilo' => ['weight'], 'gramu' => ['weight'], 'weigh' => ['weight'],
+        'uzito' => ['weight', 'body', 'objective'], 'kilo' => ['weight'], 'gramu' => ['weight'], 'weigh' => ['weight'],
         'banda' => ['house', 'housing'], 'nyumba' => ['house'], 'matandazo' => ['litter'], 'maranda' => ['litter', 'shavings'],
         'hewa' => ['ventilation', 'air'], 'nafasi' => ['space', 'density', 'stocking'], 'msongamano' => ['stocking', 'density'],
         'chanjo' => ['vaccination', 'vaccine'], 'chanja' => ['vaccination'], 'ugonjwa' => ['disease', 'health'], 'magonjwa' => ['disease', 'health'],
@@ -91,15 +91,25 @@ class FarmGuides
             return collect();
         }
 
+        // Ages and amounts asked about ("10 weeks", "wiki ya 3"): pages with
+        // a table row for that number answer them.
+        preg_match_all('/\b(\d{1,3})\b/', $question, $numbers);
+        $numbers = array_unique($numbers[1]);
         $wantsLayers = (bool) array_intersect(['layer', 'laying', 'egg'], $terms);
         $wantsBroilers = in_array('broiler', $terms, true);
 
         return $pages
-            ->map(function (array $p) use ($weights, $wantsLayers, $wantsBroilers) {
+            ->map(function (array $p) use ($weights, $numbers, $wantsLayers, $wantsBroilers) {
                 $score = 0.0;
                 foreach ($weights as $term => $weight) {
                     $hits = substr_count($p['lower'], $term);
-                    $score += $hits > 0 ? $weight * (1 + log($hits)) : 0;
+                    $score += $hits > 0 ? $weight * (1 + 0.25 * log($hits)) : 0;
+                }
+                foreach ($numbers as $n) {
+                    if (preg_match('/\ntable rows:\n(?:.*\n)*?'.$n.' \|/', $p['lower'])) {
+                        $score *= 1.8;
+                        break;
+                    }
                 }
                 // Layer questions go to the layer guide, broiler ones to the broiler handbook.
                 $isLayerGuide = str_contains($p['slug'], 'layer');
@@ -165,6 +175,8 @@ class FarmGuides
         foreach (self::SYNONYMS as $word => $mapped) {
             if (str_contains($word, ' ') && str_contains($text, " {$word} ")) {
                 array_push($terms, ...$mapped);
+                // "kuku wa mayai" means layers, not a question about eggs.
+                $text = str_replace(" {$word} ", ' ', $text);
             }
         }
         foreach (preg_split('/[^\pL\pN\-]+/u', $text, -1, PREG_SPLIT_NO_EMPTY) as $word) {
