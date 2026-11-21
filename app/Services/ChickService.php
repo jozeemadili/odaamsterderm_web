@@ -7,6 +7,7 @@ use App\Models\Branch;
 use App\Models\ChickContract;
 use App\Models\ChickType;
 use App\Models\HatchSchedule;
+use App\Models\InventoryItem;
 use App\Models\LifeStage;
 use App\Models\Merchant;
 use App\Models\Order;
@@ -326,14 +327,19 @@ class ChickService
      * Books whole boxes of chicks on an order day, for pickup at one of the
      * agent's stores for that contract. The day row is locked while the free
      * boxes are counted, so two customers can't book the same last box.
+     * Suggested products the customer added ($extras: offer id => packs)
+     * join the same order and their stock is reserved, so everything is
+     * collected together.
+     *
+     * @param  array<int, int|float>  $extras
      */
-    public function placeOrder(User $customer, int $scheduleId, int $boxes, int $storeId, ?string $phone = null, ?string $note = null): Order
+    public function placeOrder(User $customer, int $scheduleId, int $boxes, int $storeId, ?string $phone = null, ?string $note = null, array $extras = []): Order
     {
         if ($boxes < 1) {
             throw ValidationException::withMessages(['boxes' => 'Book at least one box.']);
         }
 
-        $order = DB::transaction(function () use ($customer, $scheduleId, $boxes, $storeId, $phone, $note) {
+        $order = DB::transaction(function () use ($customer, $scheduleId, $boxes, $storeId, $phone, $note, $extras) {
             /** @var HatchSchedule|null $schedule */
             $schedule = HatchSchedule::with(['producer', 'chickType', 'contract', 'merchant'])->lockForUpdate()->find($scheduleId);
 
@@ -381,7 +387,42 @@ class ChickService
                 'line_total' => $chicks * $price,
             ]);
 
-            $order->update(['total' => $chicks * $price, 'items_count' => 1]);
+            $total = $chicks * $price;
+            $count = 1;
+            foreach ($extras as $offerId => $packs) {
+                $packs = (float) $packs;
+                if ($packs <= 0) {
+                    continue;
+                }
+                $offer = InventoryItem::with(['product', 'variant'])->find((int) $offerId);
+                if (! $offer || $offer->branch_id !== $store->id) {
+                    throw ValidationException::withMessages(['extras' => 'One of the added products is not at this store.']);
+                }
+                try {
+                    app(InventoryService::class)->reserve($offer, $packs, [
+                        'reference' => 'marketplace_order',
+                        'notes' => "Order {$order->reference}",
+                        'recorded_by' => $customer->id,
+                    ]);
+                } catch (ValidationException $e) {
+                    throw ValidationException::withMessages(['extras' => collect($e->errors())->flatten()->first()]);
+                }
+                $line = $packs * (float) $offer->unit_price;
+                $order->items()->create([
+                    'inventory_item_id' => $offer->id,
+                    'product_id' => $offer->product_id,
+                    'source' => 'care_plan',
+                    'name' => $offer->offerName(),
+                    'unit' => $offer->sellingUnit(),
+                    'unit_price' => (float) $offer->unit_price,
+                    'quantity' => $packs,
+                    'line_total' => $line,
+                ]);
+                $total += $line;
+                $count++;
+            }
+
+            $order->update(['total' => $total, 'items_count' => $count]);
             $order->events()->create([
                 'status' => Order::PENDING,
                 'note' => "Chicks booked: {$boxes} ".Str::plural('box', $boxes)." ({$chicks} chicks), arriving {$schedule->hatch_date->toDateString()}",

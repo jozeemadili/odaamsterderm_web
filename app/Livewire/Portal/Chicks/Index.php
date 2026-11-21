@@ -7,6 +7,7 @@ use App\Models\ChickContract;
 use App\Models\ChickType;
 use App\Models\HatchSchedule;
 use App\Models\Merchant;
+use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Producer;
 use App\Services\ChickService;
@@ -322,7 +323,24 @@ class Index extends Component
             ? OrderItem::where('hatch_schedule_id', $this->bookingsFor)->with('order.branch')->latest()->get()
             : collect();
 
+        // Suggestions at work: chick bookings in the last 30 days that took add-ons.
+        $addons = null;
+        if ($merchant) {
+            $bookings = Order::where('merchant_id', $merchant->id)->where('created_at', '>=', now()->subDays(30))
+                ->whereNotIn('status', [Order::CANCELLED, Order::REJECTED])
+                ->whereHas('items', fn ($q) => $q->whereNotNull('hatch_schedule_id'));
+            $total = (clone $bookings)->count();
+            $withAddons = (clone $bookings)->whereHas('items', fn ($q) => $q->where('source', 'care_plan'))->count();
+            $addons = [
+                'bookings' => $total,
+                'with_addons' => $withAddons,
+                'rate' => $total ? round(100 * $withAddons / $total) : 0,
+                'value' => (float) OrderItem::where('source', 'care_plan')->whereIn('order_id', (clone $bookings)->select('id'))->sum('line_total'),
+            ];
+        }
+
         return view('livewire.portal.chicks.index', [
+            'addons' => $addons,
             'merchant' => $merchant,
             'agents' => Auth::user()->isInternal() ? Merchant::marketplaceApproved()->orderBy('business_name')->get(['id', 'business_name']) : collect(),
             'contracts' => $contracts,

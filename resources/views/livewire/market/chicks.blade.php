@@ -140,13 +140,35 @@
                         @error('boxes') <p class="text-ruby text-[12px] mt-1">{{ $message }}</p> @enderror
                     </div>
 
-                    <x-ui.select wire:model="storeId" label="Collect at" id="chick_store" :error="$errors->first('storeId')">
+                    <x-ui.select wire:model.live="storeId" label="Collect at" id="chick_store" :error="$errors->first('storeId')">
                         @foreach($chosenHatchery['pickup_stores'] as $s)<option value="{{ $s['id'] }}">{{ $s['name'] }}{{ $km($s['distance_km']) ? ' — '.$km($s['distance_km']) : '' }}</option>@endforeach
                     </x-ui.select>
                     <div class="grid sm:grid-cols-2 gap-4">
                         <x-ui.input wire:model="phone" label="Your phone" id="chick_phone" :error="$errors->first('phone')" />
                         <x-ui.input wire:model="note" label="Note (optional)" id="chick_note" placeholder="e.g. I'll come in the morning" />
                     </div>
+
+                    @if($suggestions)
+                        {{-- What these chicks will need first, from the same store. Quiet, nothing pre-ticked. --}}
+                        <div class="rounded-[14px] border border-hairline bg-canvas-soft/60 p-3.5">
+                            <p class="text-[13.5px] font-semibold text-ink">Ready for their first days</p>
+                            <p class="text-[12px] text-ink-mute">Sized for {{ number_format(max(0, (int) $boxes) * $boxSize) }} chicks, collected with them.</p>
+                            <div class="mt-2 divide-y divide-hairline">
+                                @foreach($suggestions as $s)
+                                    <label class="flex items-start gap-3 py-2.5 cursor-pointer" wire:key="sg-{{ $s['offer_id'] }}">
+                                        <input type="checkbox" wire:model.live="extras.{{ $s['offer_id'] }}" class="mt-1 rounded border-hairline-input text-primary focus:ring-primary">
+                                        <span class="min-w-0 flex-1">
+                                            <span class="block text-[14px] font-medium text-ink">{{ $s['quantity'] }} × {{ $s['name'] }}</span>
+                                            <span class="block text-[12px] text-ink-mute">{{ $s['reason'] }}{{ $s['amount'] ? ' · '.$s['amount'] : '' }}</span>
+                                        </span>
+                                        @prices
+                                            @if($s['line_total'] !== null)<span class="shrink-0 text-[13px] tnum text-ink-secondary">TZS {{ number_format($s['line_total']) }}</span>@endif
+                                        @endprices
+                                    </label>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
 
                     @error('book') <div class="rounded-lg bg-ruby/10 text-ruby px-4 py-2.5 text-[14px]">{{ $message }}</div> @enderror
 

@@ -49,6 +49,7 @@ Route::prefix('v1')->group(function () {
     Route::prefix('market')->group(function () {
         Route::get('/settings', [MarketplaceController::class, 'settings']);
         Route::get('/chicks', [ChickController::class, 'index']);
+        Route::get('/chicks/suggestions', [ChickController::class, 'suggestions']);
         Route::get('/filters', [MarketplaceController::class, 'filters']);
         Route::get('/products', [MarketplaceController::class, 'products']);
         Route::get('/products/{product}', [MarketplaceController::class, 'product']);
@@ -83,6 +84,7 @@ Route::prefix('v1')->group(function () {
             Route::put('/cart/items/{offer}', [CustomerOrderController::class, 'setQuantity']);
             Route::post('/checkout', [CustomerOrderController::class, 'checkout']);
             Route::post('/chick-orders', [ChickController::class, 'order']);
+            Route::get('/orders/{order}/suggestions', [ChickController::class, 'orderSuggestions']);
             Route::get('/orders', [CustomerOrderController::class, 'index']);
             Route::get('/orders/{order}', [CustomerOrderController::class, 'show']);
             Route::post('/orders/{order}/cancel', [CustomerOrderController::class, 'cancel']);

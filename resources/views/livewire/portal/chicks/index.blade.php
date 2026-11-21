@@ -15,6 +15,10 @@
         </div>
     @endif
 
+    @if($addons && $addons['bookings'] > 0)
+        <p class="text-[13px] text-ink-secondary">Last 30 days: <strong class="tnum">{{ $addons['bookings'] }}</strong> chick {{ \Illuminate\Support\Str::plural('booking', $addons['bookings']) }}, <strong class="tnum">{{ $addons['with_addons'] }}</strong> ({{ $addons['rate'] }}%) added suggested feed, vaccines or vitamins @if($addons['value'] > 0), worth <strong class="tnum">TZS {{ number_format($addons['value']) }}</strong>@endif.</p>
+    @endif
+
     @if(session('status'))
         <div class="rounded-lg bg-success-subtle border border-success/20 text-success px-4 py-2.5 text-[14px]">{{ session('status') }}</div>
     @endif

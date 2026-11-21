@@ -3,6 +3,7 @@
 namespace App\Livewire\Market;
 
 use App\Models\HatchSchedule;
+use App\Services\CareSuggestions;
 use App\Services\ChickService;
 use App\Support\MarketLocation;
 use Illuminate\Support\Facades\Auth;
@@ -36,6 +37,9 @@ class Chicks extends Component
 
     public string $note = '';
 
+    /** Suggested products the customer ticked: offer id => true. Nothing is ticked for them. */
+    public array $extras = [];
+
     public function mount(): void
     {
         $this->phone = (string) Auth::user()?->phone;
@@ -61,6 +65,7 @@ class Chicks extends Component
         $this->scheduleId = $id;
         $this->boxes = 1;
         $this->storeId = '';
+        $this->extras = [];
         $this->resetErrorBag();
     }
 
@@ -73,7 +78,7 @@ class Chicks extends Component
         };
     }
 
-    public function book(ChickService $chicks)
+    public function book(ChickService $chicks, CareSuggestions $care)
     {
         $user = Auth::user();
 
@@ -96,8 +101,14 @@ class Chicks extends Component
             'note' => ['nullable', 'string', 'max:1000'],
         ], [], ['storeId' => 'pickup store']);
 
+        // Ticked suggestions, at the quantity sized for the boxes being booked.
+        $extras = collect($this->suggestions($care))
+            ->filter(fn ($s) => ! empty($this->extras[$s['offer_id']]))
+            ->mapWithKeys(fn ($s) => [$s['offer_id'] => $s['quantity']])
+            ->all();
+
         try {
-            $order = $chicks->placeOrder($user, (int) $this->scheduleId, $this->boxes, (int) $this->storeId, $this->phone, $this->note);
+            $order = $chicks->placeOrder($user, (int) $this->scheduleId, $this->boxes, (int) $this->storeId, $this->phone, $this->note, $extras);
         } catch (ValidationException $e) {
             $this->addError('book', collect($e->errors())->flatten()->first());
 
@@ -107,6 +118,16 @@ class Chicks extends Component
         session()->flash('status', "Chicks booked — order {$order->reference}. The store will tell you when they are ready to collect.");
 
         return $this->redirectRoute('market.order', $order);
+    }
+
+    /** @return list<array<string, mixed>> */
+    protected function suggestions(CareSuggestions $care): array
+    {
+        $day = $this->scheduleId ? HatchSchedule::with('chickType')->find($this->scheduleId) : null;
+
+        return $day && $this->storeId !== '' && (int) $this->boxes > 0
+            ? $care->forBooking($day, (int) $this->boxes, (int) $this->storeId)
+            : [];
     }
 
     public function render(ChickService $chicks)
@@ -129,7 +150,10 @@ class Chicks extends Component
             $this->storeId = (string) ($hatchery['pickup_stores'][0]['id'] ?? '');
         }
 
+        $suggestions = $day && $this->storeId !== '' ? $this->suggestions(app(CareSuggestions::class)) : [];
+
         return view('livewire.market.chicks', [
+            'suggestions' => $suggestions,
             'types' => $types,
             'chosenType' => $type,
             'chosenAgent' => $agent,

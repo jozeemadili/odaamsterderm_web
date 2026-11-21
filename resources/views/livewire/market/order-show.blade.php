@@ -87,6 +87,27 @@
         </div>
     </x-ui.card>
 
+    @if($suggestions)
+        {{-- Quiet: what the chicks will need first, from the same store. --}}
+        <x-ui.card>
+            <p class="text-[15px] font-medium">Want these ready when you collect?</p>
+            <p class="text-[12px] text-ink-mute">Sized for your chicks, at {{ $order->branch->name }}.</p>
+            @if($cartMessage)<p class="mt-2 text-[13px] text-success">{{ $cartMessage }} <a href="{{ route('market.cart') }}" class="text-primary underline">Open cart</a></p>@endif
+            @error('cart') <p class="mt-2 text-[13px] text-ruby">{{ $message }}</p> @enderror
+            <div class="mt-2 divide-y divide-hairline">
+                @foreach($suggestions as $s)
+                    <div class="flex flex-wrap items-center gap-3 py-2.5" wire:key="osg-{{ $s['offer_id'] }}">
+                        <div class="min-w-0 flex-1">
+                            <p class="text-[14px] font-medium text-ink">{{ $s['quantity'] }} × {{ $s['name'] }}</p>
+                            <p class="text-[12px] text-ink-mute">{{ $s['reason'] }}{{ $s['amount'] ? ' · '.$s['amount'] : '' }}</p>
+                        </div>
+                        <x-ui.button size="sm" variant="secondary" wire:click="addSuggestion({{ $s['offer_id'] }}, {{ $s['quantity'] }})" target="addSuggestion({{ $s['offer_id'] }}, {{ $s['quantity'] }})">Add to cart</x-ui.button>
+                    </div>
+                @endforeach
+            </div>
+        </x-ui.card>
+    @endif
+
     @if($order->canBeCancelledByCustomer())
         <x-ui.card>
             @if($confirmingCancel)
