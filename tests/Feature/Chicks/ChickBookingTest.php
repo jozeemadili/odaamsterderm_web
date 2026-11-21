@@ -170,4 +170,27 @@ class ChickBookingTest extends TestCase
         $this->assertSame(2, $schedule->fresh()->boxesAvailable());
         $this->assertSame($this->stores['A']->id, Order::latest('id')->first()->branch_id);
     }
+
+    public function test_sample_hatch_dates_are_added_once_and_removed_unless_booked(): void
+    {
+        $this->hatchery->chickTypes()->sync(ChickType::whereIn('code', ['broiler', 'tanbro'])->pluck('id'));
+
+        $this->artisan('chicks:seed-samples', ['--weeks' => 2])->assertSuccessful();
+        $this->artisan('chicks:seed-samples', ['--weeks' => 2])->assertSuccessful();
+        $this->assertSame(4, HatchSchedule::where('is_sample', true)->count());
+
+        $booked = HatchSchedule::where('is_sample', true)->first();
+        app(ChickService::class)->placeOrder($this->customer, $booked->id, 1, $this->stores['A']->id);
+
+        $this->artisan('chicks:seed-samples', ['--remove' => true])->assertSuccessful();
+        $this->assertSame([$booked->id], HatchSchedule::pluck('id')->all());
+    }
+
+    public function test_the_chick_seller_is_found_by_name_when_it_has_no_code(): void
+    {
+        $this->stores['A']->merchant->update(['code' => null, 'business_name' => 'Amsterdam Group']);
+        config(['hub.chick_seller' => 'SEL-NONE', 'hub.chick_seller_name' => 'Amsterdam Group']);
+
+        $this->assertSame($this->stores['A']->merchant_id, app(ChickService::class)->seller()?->id);
+    }
 }

@@ -17,7 +17,7 @@ use Spatie\Activitylog\Support\LogOptions;
  * from orders (cancelled and rejected ones give their chicks back), so the
  * count can never drift.
  */
-#[Fillable(['producer_id', 'chick_type_id', 'product_id', 'hatch_date', 'order_cutoff_date', 'capacity', 'price_per_chick', 'is_closed', 'notes', 'created_by'])]
+#[Fillable(['producer_id', 'chick_type_id', 'product_id', 'hatch_date', 'order_cutoff_date', 'capacity', 'price_per_chick', 'is_closed', 'is_sample', 'notes', 'created_by'])]
 class HatchSchedule extends Model
 {
     use LogsActivity;
@@ -42,6 +42,7 @@ class HatchSchedule extends Model
             'capacity' => 'integer',
             'price_per_chick' => 'decimal:2',
             'is_closed' => 'boolean',
+            'is_sample' => 'boolean',
         ];
     }
 

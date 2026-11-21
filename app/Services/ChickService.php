@@ -34,10 +34,20 @@ class ChickService
     /** Catalogue category of day-old chicks and hatching eggs. */
     public const CATEGORY = 'C7010';
 
-    /** The seller that sells and manages chicks, or null if not set up. */
+    /**
+     * The seller that sells and manages chicks: the one with the configured
+     * code, or else the approved seller with that business name and live
+     * stores (sellers created in the portal have no code). Null if neither.
+     */
     public function seller(): ?Merchant
     {
-        return Merchant::where('code', config('hub.chick_seller'))->first();
+        return once(fn () => Merchant::where('code', config('hub.chick_seller'))->first()
+            ?? Merchant::where('business_name', config('hub.chick_seller_name'))
+                ->where('kyc_status', Merchant::KYC_APPROVED)
+                ->whereHas('branches', fn ($q) => $q->where('is_marketplace_enabled', true))
+                ->withCount(['branches as live_stores' => fn ($q) => $q->where('is_marketplace_enabled', true)])
+                ->orderByDesc('live_stores')
+                ->first());
     }
 
     /** Whether this user may manage hatcheries and hatch dates. */
