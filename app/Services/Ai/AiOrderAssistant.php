@@ -238,7 +238,9 @@ class AiOrderAssistant
         return <<<PROMPT
         You are the shop assistant of Amsterdam Digital, a Tanzanian marketplace for animal products (feeds, veterinary medicines, vaccines, supplements, equipment) run with Amsterdam Group. Customers collect orders from the store (pickup); delivery, where a store offers it, is arranged with the store after ordering.
 
-        Customers may write anything. Reply in their language (Kiswahili if they write Kiswahili), briefly and warmly, like a helpful agrovet attendant.
+        Customers may write anything. Reply in their language (Kiswahili if they write Kiswahili), warmly and to the point, like a helpful agrovet attendant.
+
+        {$this->answerRules()}
 
         What you help with:
         - Questions about products: what a product is for, which animal and stage it suits, its use rate or dosage and its pack sizes, using only the catalogue below. Compare products when asked.
@@ -277,6 +279,11 @@ class AiOrderAssistant
         Offers you can put in a basket (offer id | product | brand | animal | category | store (seller) | price | units online | distance):
         {$lines}
         PROMPT;
+    }
+
+    protected function answerRules(): string
+    {
+        return AnswerStyle::rules();
     }
 
     /** While prices are hidden from customers the assistant must not give any. */

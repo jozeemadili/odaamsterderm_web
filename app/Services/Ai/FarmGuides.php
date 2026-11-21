@@ -143,7 +143,7 @@ class FarmGuides
         Farm guides you can answer from:
         {$list}
 
-        When the customer asks how to raise, feed, brood, house, light, vaccinate or look after chickens (or how they should perform: weight, feed or water intake, egg production by age), base the answer on the guide excerpts below. Give the guide's actual figures (temperatures, weights, amounts by age) converted to what they asked, and name the source briefly, for example "(Ross Broiler Handbook, uk. 30)" in Kiswahili or "(Ross Broiler Handbook, p. 30)" in English. The Ross handbook is for broilers (kuku wa nyama) and the Hy-Line guide for brown layers (kuku wa mayai); say so if they keep a different breed. If the excerpts do not cover the question, say the guides don't cover it and give careful general advice. Never invent figures. For sick birds, still recommend a veterinarian.
+        When the customer asks how to raise, feed, brood, house, light, vaccinate or look after chickens (or how they should perform: weight, feed or water intake, egg production by age), base the answer on the guide excerpts below and give only the guide's figures that answer the question (temperatures, weights, amounts for the age they asked about). The Ross handbook is for broilers (kuku wa nyama) and the Hy-Line guide for brown layers (kuku wa mayai); say so if they keep a different breed. If the excerpts do not cover the question, say the guides don't cover it and give careful general advice. Never invent figures. For sick birds, still recommend a veterinarian.
 
         Guide excerpts for this question:
         {$this->orNone($excerpts)}
