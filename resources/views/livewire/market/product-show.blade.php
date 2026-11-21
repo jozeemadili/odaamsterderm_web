@@ -8,6 +8,12 @@
                 <p class="text-[12px] uppercase tracking-wide text-ink-mute">{{ $product->animalTypes->pluck('name')->join(', ') ?: $product->animalType?->fullName() }} · {{ $product->category?->fullName() }}</p>
                 <h1 class="text-[26px] sm:text-[30px] font-light tracking-tight leading-tight mt-1">{{ $product->displayName() }}</h1>
                 <x-market.producer :product="$product" size="lg" class="mt-2" />
+                @if($product->isVerified())
+                    <p class="mt-2 inline-flex items-center gap-1.5 rounded-pill bg-success-subtle px-2.5 py-1 text-[12.5px] font-semibold text-success" title="{{ $product->verified_source === 'producer' ? 'Details come from the producer' : 'Details checked against the product label' }}">
+                        <svg class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M16.7 5.3a1 1 0 0 1 0 1.4l-8 8a1 1 0 0 1-1.4 0l-4-4a1 1 0 1 1 1.4-1.4L8 12.6l7.3-7.3a1 1 0 0 1 1.4 0z" clip-rule="evenodd"/></svg>
+                        Verified details
+                    </p>
+                @endif
                 <p class="text-[13px] text-ink-mute mt-1">
                     Sold per {{ $product->unit }}@if($product->producer?->country) · Made in {{ $product->producer->country }}@endif
                 </p>

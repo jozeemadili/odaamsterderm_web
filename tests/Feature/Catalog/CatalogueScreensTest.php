@@ -112,7 +112,7 @@ class CatalogueScreensTest extends TestCase
                     'animal_codes' => ['AN-CHK'], 'life_stage_codes' => [], 'form' => 'powder',
                     'pack_sizes' => [['name' => '100 g sachet', 'value' => 100, 'unit' => 'g', 'selling_unit' => 'sachet']],
                     'description' => null, 'active_ingredients' => 'Vitamins A, D3, E', 'dosage' => '1 g per 2 L for 5 days',
-                    'administration_route' => [], 'use_cases' => [], 'disease_target' => [],
+                    'administration_route' => ['drinking_water'], 'use_cases' => [], 'disease_target' => [],
                     'withdrawal_meat_days' => 0, 'withdrawal_eggs_days' => null, 'withdrawal_milk_days' => null,
                     'registration_no' => null, 'storage' => null, 'prescription_required' => false, 'doubts' => null,
                 ], 'fake');

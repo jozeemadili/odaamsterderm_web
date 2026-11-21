@@ -56,6 +56,26 @@ class ProductForm extends Form
 
     public string $description = '';
 
+    public string $form = '';
+
+    public string $inclusion_or_dosage = '';
+
+    public array $administration_route = [];
+
+    public array $disease_target = [];
+
+    public string $storage = '';
+
+    public string $registration_no = '';
+
+    public string $crude_protein_pct = '';
+
+    public string $capacity = '';
+
+    public string $power_source = '';
+
+    public string $breed_strain = '';
+
     public $image;
 
     public $backImage;
@@ -82,6 +102,16 @@ class ProductForm extends Form
         $this->search_keywords = (string) $product->search_keywords;
         $this->product_category_id = (string) $product->product_category_id;
         $this->description = (string) $product->description;
+        $this->form = (string) $product->form;
+        $this->inclusion_or_dosage = (string) $product->inclusion_or_dosage;
+        $this->administration_route = $product->administration_route ?? [];
+        $this->disease_target = $product->disease_target ?? [];
+        $this->storage = (string) $product->storage;
+        $this->registration_no = (string) $product->registration_no;
+        $this->crude_protein_pct = $product->crude_protein_pct !== null ? rtrim(rtrim((string) $product->crude_protein_pct, '0'), '.') : '';
+        $this->capacity = (string) $product->capacity;
+        $this->power_source = (string) $product->power_source;
+        $this->breed_strain = (string) $product->breed_strain;
         $this->image = null;
         $this->backImage = null;
     }
@@ -109,6 +139,18 @@ class ProductForm extends Form
             'search_keywords' => ['nullable', 'string', 'max:1000'],
             'product_category_id' => ['required', Rule::exists('product_categories', 'id')->where('is_active', true)],
             'description' => ['nullable', 'string', 'max:5000'],
+            'form' => ['nullable', Rule::in(array_keys(ProductAttribute::options('form')))],
+            'inclusion_or_dosage' => ['nullable', 'string', 'max:1000'],
+            'administration_route' => ['array'],
+            'administration_route.*' => [Rule::in(array_keys(ProductAttribute::options('administration_route')))],
+            'disease_target' => ['array'],
+            'disease_target.*' => ['string', 'max:60'],
+            'storage' => ['nullable', 'string', 'max:255'],
+            'registration_no' => ['nullable', 'string', 'max:100'],
+            'crude_protein_pct' => ['nullable', 'numeric', 'between:0,100'],
+            'capacity' => ['nullable', 'string', 'max:100'],
+            'power_source' => ['nullable', Rule::in(array_keys(ProductAttribute::options('power_source')))],
+            'breed_strain' => ['nullable', 'string', 'max:100'],
             'image' => ['nullable', 'image', 'max:4096'],
             'backImage' => ['nullable', 'image', 'max:4096'],
         ];
@@ -152,6 +194,16 @@ class ProductForm extends Form
             'withdrawal_eggs_days' => $this->withdrawal_eggs_days !== '' ? (int) $this->withdrawal_eggs_days : null,
             'withdrawal_milk_days' => $this->withdrawal_milk_days !== '' ? (int) $this->withdrawal_milk_days : null,
             'search_keywords' => mb_strtolower(trim($this->search_keywords)) ?: null,
+            'form' => $this->form ?: null,
+            'inclusion_or_dosage' => trim($this->inclusion_or_dosage) ?: null,
+            'administration_route' => array_values($this->administration_route) ?: null,
+            'disease_target' => array_values($this->disease_target) ?: null,
+            'storage' => trim($this->storage) ?: null,
+            'registration_no' => trim($this->registration_no) ?: null,
+            'crude_protein_pct' => $this->crude_protein_pct !== '' ? (float) $this->crude_protein_pct : null,
+            'capacity' => trim($this->capacity) ?: null,
+            'power_source' => $this->power_source ?: null,
+            'breed_strain' => trim($this->breed_strain) ?: null,
         ] + $extra;
 
         if ($this->product) {
@@ -177,6 +229,7 @@ class ProductForm extends Form
                 ->toMediaCollection(Product::BACK_PHOTO);
         }
 
+        $product->refreshQuality();
         $this->reset();
 
         return $product;

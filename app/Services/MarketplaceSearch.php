@@ -121,7 +121,8 @@ class MarketplaceSearch
         match ($sort === self::SORT_NEAREST && ! $from ? self::SORT_PRICE : $sort) {
             self::SORT_RELEVANCE => $ids
                 ? $results->orderByRaw('CASE products.id '.collect($ids)->map(fn (int $id, int $i) => "WHEN {$id} THEN {$i}")->implode(' ').' ELSE '.count($ids).' END')
-                : $results->orderBy('products.name'),
+                // Verified, then fully described products first: buyers see the trustworthy ones.
+                : $results->orderByRaw('products.verified_at IS NULL')->orderByRaw('products.missing_required > 0')->orderBy('products.name'),
             self::SORT_NEAREST => $results->orderByRaw('nearest_km IS NULL, nearest_km'),
             self::SORT_PRICE => $results->orderByRaw('min_price IS NULL, min_price'),
             self::SORT_AVAILABILITY => $results->orderByDesc('available_quantity'),

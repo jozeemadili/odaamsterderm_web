@@ -105,6 +105,7 @@ class LabelReader
         Uses (what it is for / treats): {$opt('use_cases')}
         Diseases it protects against: {$opt('disease_target')}
         How to give it: {$opt('administration_route')}
+        Power sources (equipment): {$opt('power_source')}
         PROMPT;
     }
 
@@ -151,12 +152,18 @@ class LabelReader
                 'registration_no' => $str,
                 'storage' => $str,
                 'prescription_required' => $nullable('boolean'),
+                'cold_chain_required' => $nullable('boolean'),
+                'crude_protein_pct' => $nullable('number'),
+                'capacity' => $str,
+                'power_source' => $str,
+                'breed_strain' => $str,
                 'doubts' => $str,
             ],
             'required' => [
                 'name', 'producer_name', 'category_code', 'animal_codes', 'life_stage_codes', 'form', 'pack_sizes', 'description',
                 'active_ingredients', 'dosage', 'administration_route', 'use_cases', 'disease_target', 'withdrawal_meat_days',
-                'withdrawal_eggs_days', 'withdrawal_milk_days', 'registration_no', 'storage', 'prescription_required', 'doubts',
+                'withdrawal_eggs_days', 'withdrawal_milk_days', 'registration_no', 'storage', 'prescription_required',
+                'cold_chain_required', 'crude_protein_pct', 'capacity', 'power_source', 'breed_strain', 'doubts',
             ],
             'additionalProperties' => false,
         ];

@@ -16,6 +16,8 @@ class ProductResource extends JsonResource
             'pack_size' => $this->pack_size,
             'unit' => $this->unit,
             'brand' => $this->brand,
+            'verified' => $this->verified_at !== null,
+            'completeness' => (int) $this->completeness,
             'producer' => $this->makerSummary(),
             'description' => $this->description,
             'status' => $this->status,

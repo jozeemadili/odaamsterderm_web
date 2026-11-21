@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\ProductRequirements;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -11,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\Support\LogOptions;
 use Spatie\MediaLibrary\HasMedia;
@@ -29,6 +31,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
     'disease_target', 'administration_route', 'form', 'active_ingredients', 'crude_protein_pct', 'inclusion_or_dosage',
     'withdrawal_meat_days', 'withdrawal_eggs_days', 'withdrawal_milk_days', 'storage', 'registration_no',
     'capacity', 'power_source', 'breed_strain', 'country_of_origin', 'search_keywords', 'is_demo',
+    'completeness', 'missing_required', 'verified_at', 'verified_by', 'verified_source',
 ])]
 class Product extends Model implements HasMedia
 {
@@ -43,6 +46,16 @@ class Product extends Model implements HasMedia
 
     public const STATUS_REJECTED = 'rejected';
 
+    /** Label facts: changing any of them means the product needs checking again. */
+    public const LABEL_FACTS = [
+        'name', 'producer_id', 'brand', 'product_category_id', 'form', 'active_ingredients', 'inclusion_or_dosage',
+        'administration_route', 'disease_target', 'withdrawal_meat_days', 'withdrawal_eggs_days', 'withdrawal_milk_days',
+        'storage', 'registration_no', 'prescription_required', 'cold_chain_required', 'crude_protein_pct',
+        'capacity', 'power_source', 'breed_strain',
+    ];
+
+    public const VERIFIED_SOURCES = ['label' => 'Checked against the label', 'producer' => 'From the producer'];
+
     public const UNITS = [
         'bag', 'kg', 'g', 'litre', 'ml', 'bottle', 'sachet', 'box', 'vial', 'tin', 'piece', 'pack', 'dose',
         'bale', 'set', 'bird', 'head', 'straw', 'jerrycan', 'drum',
@@ -52,6 +65,9 @@ class Product extends Model implements HasMedia
     {
         return [
             'reviewed_at' => 'datetime',
+            'verified_at' => 'datetime',
+            'completeness' => 'integer',
+            'missing_required' => 'integer',
             'prescription_required' => 'boolean',
             'cold_chain_required' => 'boolean',
             'is_demo' => 'boolean',
@@ -75,6 +91,15 @@ class Product extends Model implements HasMedia
         static::creating(function (Product $product) {
             if (! $product->slug) {
                 $product->slug = static::uniqueSlug(trim($product->displayName().' '.$product->brand));
+            }
+        });
+
+        // A verified product whose label facts are edited needs checking again.
+        static::updating(function (Product $product) {
+            if ($product->verified_at && ! $product->isDirty('verified_at') && $product->isDirty(self::LABEL_FACTS)) {
+                $product->verified_at = null;
+                $product->verified_by = null;
+                $product->verified_source = null;
             }
         });
 
@@ -226,6 +251,49 @@ class Product extends Model implements HasMedia
     public function isApproved(): bool
     {
         return $this->status === self::STATUS_APPROVED;
+    }
+
+    public function isVerified(): bool
+    {
+        return $this->verified_at !== null;
+    }
+
+    /**
+     * Recomputes the completeness score and missing-required count. Call after
+     * changing photos, pack sizes or animal/stage tags (they don't touch the row).
+     *
+     * @return array{score:int, required:list<array{key:string,label:string,ok:bool}>, recommended:list<array{key:string,label:string,ok:bool}>, missing:list<string>}
+     */
+    public function refreshQuality(): array
+    {
+        $this->unsetRelation('media')->unsetRelation('variants')->unsetRelation('animalTypes')->unsetRelation('lifeStages');
+        $check = ProductRequirements::check($this);
+        $this->forceFill(['completeness' => $check['score'], 'missing_required' => count($check['missing'])]);
+        if ($this->isDirty(['completeness', 'missing_required'])) {
+            $this->saveQuietly();
+        }
+
+        return $check;
+    }
+
+    /** Marks the product as checked against the real label or the producer's data. */
+    public function markVerified(User $by, string $source = 'label'): void
+    {
+        $missing = $this->refreshQuality()['missing'];
+        if ($missing) {
+            throw ValidationException::withMessages(['verified' => 'Fill these first: '.implode(', ', $missing).'.']);
+        }
+        $this->forceFill(['verified_at' => now(), 'verified_by' => $by->id, 'verified_source' => array_key_exists($source, self::VERIFIED_SOURCES) ? $source : 'label'])->saveQuietly();
+    }
+
+    public function clearVerified(): void
+    {
+        $this->forceFill(['verified_at' => null, 'verified_by' => null, 'verified_source' => null])->saveQuietly();
+    }
+
+    public function verifier(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'verified_by');
     }
 
     public function isPending(): bool

@@ -183,6 +183,11 @@ class Index extends Component
             'registration_no' => $d['registration_no'] ?? '',
             'storage' => $d['storage'] ?? '',
             'prescription_required' => (bool) ($d['prescription_required'] ?? false),
+            'cold_chain_required' => (bool) ($d['cold_chain_required'] ?? false),
+            'crude_protein_pct' => $d['crude_protein_pct'] ?? '',
+            'capacity' => $d['capacity'] ?? '',
+            'power_source' => $d['power_source'] ?? '',
+            'breed_strain' => $d['breed_strain'] ?? '',
             'keywords' => '',
         ];
     }

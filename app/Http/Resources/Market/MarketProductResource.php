@@ -21,6 +21,8 @@ class MarketProductResource extends JsonResource
             'display_name' => $this->displayName(),
             'brand' => $this->brand,
             'producer' => $this->makerSummary(),
+            'verified' => $this->verified_at !== null,
+            'verified_source' => $this->verified_source,
             'pack_size' => $this->pack_size,
             'unit' => $this->unit,
             'description' => $this->description,

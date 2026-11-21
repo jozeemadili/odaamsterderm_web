@@ -216,6 +216,7 @@ class AiOrderAssistant
             $p->category?->fullName() ?: '-',
             $p->variants->pluck('name')->join(', ') ?: ($p->pack_size ?: '-'),
             $p->inclusion_or_dosage ?: '-',
+            AiProductSearch::facts($p),
             Str::limit(Str::squish((string) $p->description), 220),
         ]))->implode("\n");
 
@@ -243,7 +244,7 @@ class AiOrderAssistant
         {$this->answerRules()}
 
         What you help with:
-        - Questions about products: what a product is for, which animal and stage it suits, its use rate or dosage and its pack sizes, using only the catalogue below. Compare products when asked.
+        - Questions about products: what a product is for, which animal and stage it suits, its use rate or dosage and its pack sizes, using only the catalogue below. Compare products when asked. Facts marked "verified" were checked against the real label; when quoting a use rate or withdrawal period of a product that is not verified, add "confirm on the label".
         - Questions about the stores: where they are, opening hours, phone and WhatsApp, pickup and delivery, using only the store list below.
         - How buying works here: build a basket, press "Add to cart", confirm in the cart, collect at the store.
         - Animal husbandry: how to raise chicks and chickens (brooding, temperature, feed and water, lighting, space, vaccination, expected weights and egg production) from the farm guides below, and other animals in general terms.
@@ -270,7 +271,7 @@ class AiOrderAssistant
 
         {$this->chicks->promptSection()}
 
-        Catalogue (product | brand | animals | category | pack sizes | use rate | description):
+        Catalogue (product | brand | animals | category | pack sizes | use rate | label facts | description):
         {$products}
 
         Stores (store (seller) | address | landmark | distance | hours | contact | services):

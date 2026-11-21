@@ -157,7 +157,7 @@
                                 <p class="mt-1 text-[12px] text-ink-mute">The agent's stock links to the first pack size.</p>
                             </div>
 
-                            <details class="rounded-[12px] border border-hairline p-3" @if(($form['active_ingredients'] ?? '') !== '' || ($form['dosage'] ?? '') !== '') open @endif>
+                            <details class="rounded-[12px] border border-hairline p-3" @if(($form['active_ingredients'] ?? '') !== '' || ($form['dosage'] ?? '') !== '' || $errors->has('product')) open @endif>
                                 <summary class="cursor-pointer text-[13px] font-medium">Label details (ingredients, dosage, withdrawal…)</summary>
                                 <div class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <x-ui.textarea wire:model="form.description" label="Description" id="f_desc" rows="2" />
@@ -171,7 +171,17 @@
                                         <x-ui.input type="number" min="0" wire:model="form.withdrawal_eggs_days" label="Eggs (days)" id="f_we" />
                                         <x-ui.input type="number" min="0" wire:model="form.withdrawal_milk_days" label="Milk (days)" id="f_wk" />
                                     </div>
-                                    <label class="flex items-center gap-2 text-[13px] self-end"><input type="checkbox" wire:model="form.prescription_required" class="rounded border-hairline-input text-primary focus:ring-primary"> Prescription required</label>
+                                    <div class="flex flex-wrap gap-4 self-end">
+                                        <label class="flex items-center gap-2 text-[13px]"><input type="checkbox" wire:model="form.prescription_required" class="rounded border-hairline-input text-primary focus:ring-primary"> Prescription required</label>
+                                        <label class="flex items-center gap-2 text-[13px]"><input type="checkbox" wire:model="form.cold_chain_required" class="rounded border-hairline-input text-primary focus:ring-primary"> Keep cold (2–8 °C)</label>
+                                    </div>
+                                    <x-ui.input type="number" step="any" min="0" wire:model="form.crude_protein_pct" label="Crude protein % (feeds)" id="f_protein" />
+                                    <x-ui.input wire:model="form.breed_strain" label="Breed / strain (live animals)" id="f_breed" />
+                                    <x-ui.input wire:model="form.capacity" label="Capacity (equipment)" id="f_capacity" placeholder="e.g. 10 L, 500 eggs" />
+                                    <x-ui.select wire:model="form.power_source" label="Power source (equipment)" id="f_power">
+                                        <option value="">—</option>
+                                        @foreach($options('power_source') as $code => $label)<option value="{{ $code }}">{{ $label }}</option>@endforeach
+                                    </x-ui.select>
                                 </div>
                                 @foreach(['use_cases' => 'Used for', 'disease_target' => 'Treats / prevents', 'administration_route' => 'Given by'] as $key => $label)
                                     @php($opts = $options($key))
@@ -188,6 +198,9 @@
                                 @endforeach
                             </details>
 
+                            @error('product')
+                                <div class="rounded-lg bg-ruby/10 text-ruby px-3 py-2 text-[13px]">{{ $message }} Open “Label details” to fill them.</div>
+                            @enderror
                             <x-ui.button type="submit" target="approve">Add to catalogue &amp; link the agent's stock</x-ui.button>
                         </form>
                     </x-ui.card>

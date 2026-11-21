@@ -121,6 +121,11 @@ class ProductRequests
                 'registration_no' => ($data['registration_no'] ?? '') ?: null,
                 'storage' => ($data['storage'] ?? '') ?: null,
                 'prescription_required' => (bool) ($data['prescription_required'] ?? false),
+                'cold_chain_required' => (bool) ($data['cold_chain_required'] ?? false),
+                'crude_protein_pct' => is_numeric($data['crude_protein_pct'] ?? null) ? (float) $data['crude_protein_pct'] : null,
+                'capacity' => ($data['capacity'] ?? '') ?: null,
+                'power_source' => ($data['power_source'] ?? '') ?: null,
+                'breed_strain' => ($data['breed_strain'] ?? '') ?: null,
                 'search_keywords' => Str::lower(trim(($data['keywords'] ?? '').'|'.$request->name, '|')),
                 'status' => Product::STATUS_APPROVED,
                 'proposed_by_merchant_id' => $request->merchant_id,
@@ -151,6 +156,13 @@ class ProductRequests
             if ($back = $request->getFirstMedia(ProductRequest::BACK)) {
                 $back->copy($product, Product::BACK_PHOTO);
             }
+
+            // Nothing a buyer relies on may be missing; built from the label, it counts as verified.
+            $missing = $product->refreshQuality()['missing'];
+            if ($missing) {
+                throw ValidationException::withMessages(['product' => 'Still needed for this category: '.implode(', ', $missing).'.']);
+            }
+            $product->markVerified($reviewer, 'label');
 
             $this->finish($request, ProductRequest::APPROVED, $product, $variant, $reviewer, $data['review_notes'] ?? null);
 

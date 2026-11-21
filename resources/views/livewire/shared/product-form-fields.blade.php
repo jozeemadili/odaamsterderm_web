@@ -101,6 +101,35 @@
         <x-ui.input wire:model="form.withdrawal_eggs_days" type="number" min="0" label="Eggs (days)" id="product_withdrawal_eggs" :error="$errors->first('form.withdrawal_eggs_days')" />
         <x-ui.input wire:model="form.withdrawal_milk_days" type="number" min="0" label="Milk (days)" id="product_withdrawal_milk" :error="$errors->first('form.withdrawal_milk_days')" />
     </div>
+    <x-ui.select wire:model="form.form" label="Form" id="product_form" :error="$errors->first('form.form')">
+        <option value="">— Not set —</option>
+        @foreach(\App\Models\ProductAttribute::options('form') as $code => $label)<option value="{{ $code }}">{{ $label }}</option>@endforeach
+    </x-ui.select>
+    <div class="md:col-span-3">
+        <x-ui.input wire:model="form.inclusion_or_dosage" label="Dosage / use rate (as on the label)" id="product_dosage" placeholder="e.g. 1 g per 2 L of drinking water for 5 days" :error="$errors->first('form.inclusion_or_dosage')" />
+    </div>
+    <x-ui.input wire:model="form.registration_no" label="TVLA registration no." id="product_reg" :error="$errors->first('form.registration_no')" />
+    <x-ui.input wire:model="form.storage" label="Storage" id="product_storage" placeholder="e.g. Below 25 °C, dry" :error="$errors->first('form.storage')" />
+    <x-ui.input type="number" step="any" min="0" max="100" wire:model="form.crude_protein_pct" label="Crude protein % (feeds)" id="product_protein" :error="$errors->first('form.crude_protein_pct')" />
+    <x-ui.input wire:model="form.breed_strain" label="Breed / strain (live animals)" id="product_breed" :error="$errors->first('form.breed_strain')" />
+    <x-ui.input wire:model="form.capacity" label="Capacity (equipment)" id="product_capacity" placeholder="e.g. 10 L, 500 eggs" :error="$errors->first('form.capacity')" />
+    <x-ui.select wire:model="form.power_source" label="Power source (equipment)" id="product_power" :error="$errors->first('form.power_source')">
+        <option value="">— Not set —</option>
+        @foreach(\App\Models\ProductAttribute::options('power_source') as $code => $label)<option value="{{ $code }}">{{ $label }}</option>@endforeach
+    </x-ui.select>
+    @foreach(['administration_route' => 'How it is given', 'disease_target' => 'Diseases it treats / prevents'] as $key => $title)
+        <div class="md:col-span-4">
+            <p class="text-[13px] text-ink-mute mb-1.5">{{ $title }}</p>
+            <div class="flex flex-wrap gap-2">
+                @foreach(\App\Models\ProductAttribute::options($key) as $code => $label)
+                    <label class="{{ $checkboxClass }}">
+                        <input type="checkbox" wire:model="form.{{ $key }}" value="{{ $code }}" class="rounded-sm"> {{ $label }}
+                    </label>
+                @endforeach
+            </div>
+        </div>
+    @endforeach
+
     <div class="md:col-span-4">
         <x-ui.input wire:model="form.search_keywords" label="Search words (separate with |, Kiswahili first)" id="product_keywords" placeholder="e.g. dawa ya minyoo|minyoo|dewormer" :error="$errors->first('form.search_keywords')" />
     </div>

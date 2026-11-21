@@ -128,7 +128,7 @@ class CentralCatalogueTest extends TestCase
             'animal_codes' => ['AN-CHK'], 'life_stage_codes' => ['LS-POU-STR'], 'form' => 'powder',
             'pack_sizes' => [['name' => '100 g sachet', 'value' => 100, 'unit' => 'g', 'selling_unit' => 'sachet']],
             'active_ingredients' => 'Vitamins A, D3, E', 'dosage' => '1 g per 2 L of drinking water for 5 days',
-            'withdrawal_meat_days' => 0, 'use_cases' => ['early_growth'],
+            'withdrawal_meat_days' => 0, 'use_cases' => ['early_growth'], 'administration_route' => ['drinking_water'],
         ], $admin);
 
         $this->assertTrue($product->isApproved());

@@ -14,6 +14,8 @@ use App\Models\User;
 use Database\Seeders\AnimalCatalogSeeder;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -184,6 +186,18 @@ class AdminCatalogTest extends TestCase
         ];
         $good = Product::create($base + ['name' => 'Calf Starter', 'pack_size' => '25KG']);
         $dup = Product::create($base + ['name' => 'Dairy Meal', 'pack_size' => '70KG']);
+
+        // Missing what buyers rely on: approval waits until it's filled.
+        Livewire::actingAs($this->admin)->test(ProductsIndex::class)
+            ->call('approve', $good->id)
+            ->assertSee('Not approved yet');
+        $this->assertTrue($good->fresh()->isPending());
+
+        Storage::fake('public');
+        $good->update(['brand' => 'Shamba Feeds', 'form' => 'pellets', 'crude_protein_pct' => 18]);
+        $good->syncDefaultVariant();
+        $good->lifeStages()->sync(LifeStage::limit(1)->pluck('id'));
+        $good->addMedia(UploadedFile::fake()->image('front.jpg'))->toMediaCollection('image');
 
         Livewire::actingAs($this->admin)->test(ProductsIndex::class)
             ->assertSet('status', 'pending')

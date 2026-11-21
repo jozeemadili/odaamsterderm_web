@@ -2,6 +2,9 @@
     @if(session('status'))
         <div class="rounded-lg bg-success-subtle border border-success/20 text-success px-4 py-2.5 text-[14px]">{{ session('status') }}</div>
     @endif
+    @if(session('error'))
+        <div class="rounded-lg bg-ruby/10 border border-ruby/20 text-ruby px-4 py-2.5 text-[14px]">{{ session('error') }}</div>
+    @endif
 
     <div class="flex flex-wrap items-center justify-between gap-3">
         <div class="flex flex-wrap gap-2">
@@ -35,6 +38,41 @@
                     <p class="text-[12px] text-ink-mute">Choose new files below to replace them.</p>
                 </div>
             @endif
+            @if($check)
+                @php($p = $form->product)
+                <div class="mb-4 rounded-[14px] border border-hairline p-4">
+                    <div class="flex flex-wrap items-center justify-between gap-3">
+                        <div class="flex items-center gap-3">
+                            <span class="font-display text-[22px] font-bold tnum {{ $check['missing'] ? 'text-ruby' : 'text-success' }}">{{ $check['score'] }}%</span>
+                            <span class="text-[13px] text-ink-secondary">complete{{ $check['missing'] ? ' · '.count($check['missing']).' required '.\Illuminate\Support\Str::plural('detail', count($check['missing'])).' missing' : ' · all required details filled' }}</span>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-2 text-[12.5px]">
+                            @if($p->isVerified())
+                                <x-ui.badge tone="success">✓ Verified · {{ \App\Models\Product::VERIFIED_SOURCES[$p->verified_source] ?? 'checked' }}</x-ui.badge>
+                                <span class="text-ink-mute">{{ $p->verifier?->name }} {{ $p->verified_at->diffForHumans() }}</span>
+                                <button type="button" wire:click="unverify({{ $p->id }})" class="text-ink-mute hover:text-ruby">remove</button>
+                            @elseif(! $check['missing'])
+                                <span class="text-ink-mute">Mark verified:</span>
+                                <button type="button" wire:click="verify({{ $p->id }}, 'label')" class="rounded-pill border border-hairline px-2.5 py-1 hover:border-primary/40">Checked against the label</button>
+                                <button type="button" wire:click="verify({{ $p->id }}, 'producer')" class="rounded-pill border border-hairline px-2.5 py-1 hover:border-primary/40">From the producer</button>
+                            @else
+                                <span class="text-ink-mute">Fill the required details to verify it.</span>
+                            @endif
+                        </div>
+                    </div>
+                    <div class="mt-3 flex flex-wrap gap-1.5 text-[12px]">
+                        @foreach($check['required'] as $f)
+                            <span class="rounded-pill px-2 py-0.5 {{ $f['ok'] ? 'bg-success-subtle text-success' : 'bg-ruby/10 text-ruby font-semibold' }}">{{ $f['ok'] ? '✓' : '•' }} {{ $f['label'] }}</span>
+                        @endforeach
+                        @foreach($check['recommended'] as $f)
+                            <span class="rounded-pill px-2 py-0.5 {{ $f['ok'] ? 'bg-canvas-soft text-ink-mute' : 'border border-dashed border-hairline text-ink-mute' }}">{{ $f['ok'] ? '✓' : '+' }} {{ $f['label'] }}</span>
+                        @endforeach
+                    </div>
+                    @if($p->isVerified())
+                        <p class="mt-2 text-[12px] text-ink-mute">Changing a label fact (dosage, withdrawal, ingredients…) removes the verified mark until it's checked again.</p>
+                    @endif
+                </div>
+            @endif
             <form wire:submit="save" class="space-y-4">
                 @include('livewire.shared.product-form-fields')
                 <div class="flex gap-2">
@@ -44,6 +82,17 @@
             </form>
         </x-ui.card>
     @endif
+
+    <div class="flex flex-wrap items-center gap-2 text-[12.5px]">
+        <span class="text-ink-mute">Data quality:</span>
+        @foreach(['' => 'Any', 'missing' => 'Missing required details ('.$qualityCounts['missing'].')', 'unverified' => 'Not verified', 'verified' => 'Verified ('.$qualityCounts['verified'].')'] as $key => $label)
+            <button wire:click="$set('quality', '{{ $key }}')" class="px-3 py-1 rounded-pill border {{ $quality === $key ? 'bg-brand-dark text-white border-brand-dark' : 'border-hairline text-ink-secondary hover:border-primary/40' }}">{{ $label }}</button>
+        @endforeach
+        <select wire:model.live="sort" class="ml-auto rounded-pill border border-hairline bg-canvas px-3 py-1 text-[12.5px]" aria-label="Sort">
+            <option value="name">Sort by name</option>
+            <option value="least_complete">Least complete first</option>
+        </select>
+    </div>
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
         <x-ui.input wire:model.live.debounce.300ms="search" placeholder="Search name or brand…" id="catalog_search" />
@@ -109,6 +158,11 @@
                         <td class="px-5 py-3 tnum text-ink-secondary">{{ $product->sellers_count }}</td>
                         <td class="px-5 py-3">
                             <x-ui.badge :tone="['approved' => 'success', 'pending' => 'warning', 'rejected' => 'danger'][$product->status] ?? 'neutral'">{{ ucfirst($product->status) }}</x-ui.badge>
+                            <div class="mt-1.5 flex items-center gap-1.5" title="{{ $product->missing_required ? $product->missing_required.' required details missing' : 'All required details filled' }}">
+                                <span class="h-1.5 w-12 rounded-full bg-canvas-soft overflow-hidden"><span class="block h-full {{ $product->missing_required ? 'bg-ruby' : 'bg-success' }}" style="width: {{ $product->completeness }}%"></span></span>
+                                <span class="text-[11px] tnum {{ $product->missing_required ? 'text-ruby' : 'text-ink-mute' }}">{{ $product->completeness }}%</span>
+                                @if($product->verified_at)<span class="text-[11px] text-success font-semibold" title="Verified">✓</span>@endif
+                            </div>
                         </td>
                         <td class="px-5 py-3 text-right whitespace-nowrap">
                             <button wire:click="startEditing({{ $product->id }})" class="text-[12px] text-ink-mute hover:text-ink mr-3">Edit</button>

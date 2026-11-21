@@ -8,6 +8,7 @@ use App\Models\Product;
 use App\Models\ProductCategory;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Url;
 use Livewire\Component;
@@ -36,6 +37,14 @@ class Index extends Component
     #[Url]
     public string $categoryFilter = '';
 
+    /** '' | 'missing' (required details empty) | 'unverified' | 'verified' */
+    #[Url]
+    public string $quality = '';
+
+    /** 'name' | 'least_complete' */
+    #[Url]
+    public string $sort = 'name';
+
     public ?int $reviewingId = null;
 
     public string $reviewNotes = '';
@@ -51,7 +60,7 @@ class Index extends Component
 
     public function updating(string $name): void
     {
-        if (in_array($name, ['status', 'search', 'animalFilter', 'categoryFilter'], true)) {
+        if (in_array($name, ['status', 'search', 'animalFilter', 'categoryFilter', 'quality', 'sort'], true)) {
             $this->resetPage();
         }
     }
@@ -91,6 +100,29 @@ class Index extends Component
         session()->flash('status', $isNew ? 'Product added to the catalog.' : 'Product updated.');
     }
 
+    /** Marks the product as checked against its label or the producer's own data. */
+    public function verify(int $id, string $source = 'label'): void
+    {
+        abort_unless(Auth::user()->can('manage-catalog'), 403);
+        $product = Product::findOrFail($id);
+        try {
+            $product->markVerified(Auth::user(), $source);
+        } catch (ValidationException $e) {
+            session()->flash('error', collect($e->errors())->flatten()->first());
+
+            return;
+        }
+        $this->form->product?->refresh();
+        session()->flash('status', "\"{$product->name}\" marked as verified.");
+    }
+
+    public function unverify(int $id): void
+    {
+        abort_unless(Auth::user()->can('manage-catalog'), 403);
+        Product::findOrFail($id)->clearVerified();
+        $this->form->product?->refresh();
+    }
+
     public function startReview(int $id): void
     {
         $this->reviewingId = $id;
@@ -99,6 +131,12 @@ class Index extends Component
 
     public function approve(int $id): void
     {
+        $missing = Product::findOrFail($id)->refreshQuality()['missing'];
+        if ($missing) {
+            session()->flash('error', 'Not approved yet: fill '.implode(', ', $missing).'. Edit the product, then approve.');
+
+            return;
+        }
         $this->review($id, Product::STATUS_APPROVED);
         session()->flash('status', 'Product approved — sellers can now list it on the marketplace.');
     }
@@ -138,6 +176,10 @@ class Index extends Component
                 ->orWhere('search_keywords', 'like', "%{$this->search}%")))
             ->forAnimal($this->animalFilter)
             ->when($categoryIds, fn ($q) => $q->whereIn('product_category_id', $categoryIds))
+            ->when($this->quality === 'missing', fn ($q) => $q->where('missing_required', '>', 0))
+            ->when($this->quality === 'unverified', fn ($q) => $q->whereNull('verified_at'))
+            ->when($this->quality === 'verified', fn ($q) => $q->whereNotNull('verified_at'))
+            ->when($this->sort === 'least_complete', fn ($q) => $q->orderBy('completeness')->orderByDesc('missing_required'))
             ->orderBy('name')
             ->paginate(20);
 
@@ -145,6 +187,11 @@ class Index extends Component
 
         return view('livewire.admin.products.index', [
             'products' => $products,
+            'check' => $this->showForm && $this->form->product ? $this->form->product->refreshQuality() : null,
+            'qualityCounts' => [
+                'missing' => Product::where('status', '!=', Product::STATUS_REJECTED)->where('missing_required', '>', 0)->count(),
+                'verified' => Product::whereNotNull('verified_at')->count(),
+            ],
             'counts' => Product::selectRaw('status, count(*) as total')->groupBy('status')->pluck('total', 'status'),
             'animalGroups' => $animalGroups,
             'filterCategories' => ProductCategory::whereNull('parent_id')->with('children')->orderBy('sort_order')->get(),

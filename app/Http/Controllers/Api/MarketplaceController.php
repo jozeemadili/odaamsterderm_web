@@ -100,6 +100,8 @@ class MarketplaceController extends Controller
                 'brand' => $product->brand,
                 'producer' => $product->makerSummary(),
                 'producer_description' => $product->producer?->description,
+                'verified' => $product->isVerified(),
+                'verified_source' => $product->verified_source,
                 'pack_size' => $product->pack_size,
                 'unit' => $product->unit,
                 'description' => $product->description,
