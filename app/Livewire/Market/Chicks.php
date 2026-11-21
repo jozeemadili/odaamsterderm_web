@@ -4,15 +4,17 @@ namespace App\Livewire\Market;
 
 use App\Models\HatchSchedule;
 use App\Services\ChickService;
+use App\Support\MarketLocation;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\On;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 
 /**
- * Day-old chicks for customers, in four steps: chick type → hatchery →
- * hatch date → boxes and pickup store.
+ * Day-old chicks for customers, in four steps: chick type → agent near
+ * them → hatchery and the day chicks arrive → boxes and pickup store.
  */
 #[Layout('layouts.market', ['title' => 'Day-old chicks'])]
 class Chicks extends Component
@@ -21,9 +23,9 @@ class Chicks extends Component
     public string $type = '';
 
     #[Url]
-    public string $hatchery = '';
+    public string $agent = '';
 
-    #[Url(as: 'date')]
+    #[Url(as: 'day')]
     public ?int $scheduleId = null;
 
     public int $boxes = 1;
@@ -34,28 +36,31 @@ class Chicks extends Component
 
     public string $note = '';
 
-    public function mount(ChickService $chicks): void
+    public function mount(): void
     {
         $this->phone = (string) Auth::user()?->phone;
-        $this->storeId = (string) ($chicks->pickupStores()->first()?->id ?? '');
     }
+
+    #[On('market-location-updated')]
+    public function locationUpdated(): void {}
 
     public function chooseType(string $code): void
     {
         $this->type = $code;
-        $this->reset(['hatchery', 'scheduleId']);
+        $this->reset(['agent', 'scheduleId']);
     }
 
-    public function chooseHatchery(string $slug): void
+    public function chooseAgent(int $id): void
     {
-        $this->hatchery = $slug;
+        $this->agent = (string) $id;
         $this->scheduleId = null;
     }
 
-    public function chooseDate(int $id): void
+    public function chooseDay(int $id): void
     {
         $this->scheduleId = $id;
         $this->boxes = 1;
+        $this->storeId = '';
         $this->resetErrorBag();
     }
 
@@ -63,7 +68,7 @@ class Chicks extends Component
     {
         match (true) {
             $this->scheduleId !== null => $this->scheduleId = null,
-            $this->hatchery !== '' => $this->hatchery = '',
+            $this->agent !== '' => $this->agent = '',
             default => $this->type = '',
         };
     }
@@ -106,19 +111,32 @@ class Chicks extends Component
 
     public function render(ChickService $chicks)
     {
-        $types = collect($chicks->catalogue());
+        $from = MarketLocation::current();
+        $types = collect($chicks->catalogue($from));
         $type = $types->firstWhere('code', $this->type);
-        $hatchery = $type ? collect($type['hatcheries'])->firstWhere('slug', $this->hatchery) : null;
-        $date = $hatchery && $this->scheduleId ? collect($hatchery['dates'])->firstWhere('id', $this->scheduleId) : null;
+        $agent = $type ? collect($type['agents'])->firstWhere('id', (int) $this->agent) : null;
+
+        $day = null;
+        $hatchery = null;
+        if ($agent && $this->scheduleId) {
+            foreach ($agent['hatcheries'] as $h) {
+                if ($found = collect($h['dates'])->firstWhere('id', $this->scheduleId)) {
+                    [$day, $hatchery] = [$found, $h];
+                }
+            }
+        }
+        if ($hatchery && ($this->storeId === '' || ! collect($hatchery['pickup_stores'])->contains('id', (int) $this->storeId))) {
+            $this->storeId = (string) ($hatchery['pickup_stores'][0]['id'] ?? '');
+        }
 
         return view('livewire.market.chicks', [
             'types' => $types,
             'chosenType' => $type,
+            'chosenAgent' => $agent,
             'chosenHatchery' => $hatchery,
-            'chosenDate' => $date,
-            'stores' => $chicks->pickupStores(),
+            'chosenDay' => $day,
             'boxSize' => HatchSchedule::boxSize(),
-            'sw' => app()->getLocale() === 'sw',
+            'hasLocation' => $from !== null,
         ]);
     }
 }

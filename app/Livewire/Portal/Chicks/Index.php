@@ -2,161 +2,287 @@
 
 namespace App\Livewire\Portal\Chicks;
 
+use App\Models\Branch;
+use App\Models\ChickContract;
 use App\Models\ChickType;
 use App\Models\HatchSchedule;
+use App\Models\Merchant;
 use App\Models\OrderItem;
 use App\Models\Producer;
 use App\Services\ChickService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
-use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Url;
 use Livewire\Component;
-use Livewire\WithFileUploads;
 
 /**
- * Day-old chicks for the seller that sells them (Amsterdam Group): the
- * hatcheries and the chick types they produce, and the hatch dates
- * customers book boxes against, with each date's bookings.
+ * An agent's day-old chick sales: the hatcheries it has contracts with
+ * (chick type, pickup stores, arrival weekdays, cap of boxes, price) and
+ * the order days generated from them, with each day's bookings. Platform
+ * staff see the same page for any agent.
  */
 #[Layout('layouts.portal', ['title' => 'Day-old chicks'])]
 class Index extends Component
 {
-    use WithFileUploads;
+    #[Url]
+    public string $tab = 'days';
+
+    /** Platform staff: the agent being managed. */
+    #[Url]
+    public string $agent = '';
 
     #[Url]
-    public string $tab = 'dates';
-
-    #[Url]
-    public string $type = '';
-
-    #[Url]
-    public string $hatchery = '';
+    public string $contract = '';
 
     #[Url]
     public bool $showPast = false;
 
-    /** Hatch date form */
-    public bool $showDateForm = false;
+    /** Contract form */
+    public bool $showContractForm = false;
 
-    public ?int $editingDateId = null;
+    public ?int $editingContractId = null;
 
     public string $producer_id = '';
 
+    public string $new_hatchery = '';
+
     public string $chick_type_id = '';
 
-    public string $hatch_date = '';
+    public array $branch_ids = [];
 
-    public string $order_cutoff_date = '';
+    public array $weekdays = ['1', '4'];
 
-    public string $capacity = '';
+    public string $cap_boxes = '100';
 
-    public string $price_per_chick = '';
+    public string $contract_price = '';
 
-    public string $notes = '';
+    public bool $is_active = true;
 
-    /** CSV import */
-    public $csv;
+    /** Order day form (an extra day, or changes to one) */
+    public bool $showDayForm = false;
 
-    public array $importErrors = [];
+    public ?int $editingDayId = null;
 
-    /** Bookings of one date */
+    public string $day_contract_id = '';
+
+    public string $day_date = '';
+
+    public string $day_cap = '';
+
+    public string $day_price = '';
+
+    public string $day_notes = '';
+
+    /** Bookings of one day */
     public ?int $bookingsFor = null;
-
-    /** Hatchery form */
-    public bool $showHatcheryForm = false;
-
-    public ?int $editingHatcheryId = null;
-
-    public string $name = '';
-
-    public string $deals_in = Producer::DEALS_CHICKS;
-
-    public string $phone = '';
-
-    public string $location = '';
-
-    public string $description = '';
-
-    public array $types = [];
-
-    public $logo;
 
     public function mount(ChickService $chicks): void
     {
         abort_unless($chicks->canManage(Auth::user()), 403);
-    }
 
-    // --- Hatch dates -----------------------------------------------------
-
-    public function newDate(): void
-    {
-        $this->resetDateForm();
-        $this->producer_id = $this->hatchery;
-        $this->chick_type_id = $this->type ? (string) ChickType::where('code', $this->type)->value('id') : '';
-        $this->showDateForm = true;
-    }
-
-    public function editDate(int $id): void
-    {
-        $s = HatchSchedule::findOrFail($id);
-        $this->resetDateForm();
-        $this->editingDateId = $s->id;
-        $this->producer_id = (string) $s->producer_id;
-        $this->chick_type_id = (string) $s->chick_type_id;
-        $this->hatch_date = $s->hatch_date->toDateString();
-        $this->order_cutoff_date = $s->order_cutoff_date->toDateString();
-        $this->capacity = (string) $s->capacity;
-        $this->price_per_chick = $s->price_per_chick !== null ? rtrim(rtrim((string) $s->price_per_chick, '0'), '.') : '';
-        $this->notes = (string) $s->notes;
-        $this->showDateForm = true;
-    }
-
-    /** When the hatch date changes, suggest the usual cut-off. */
-    public function updatedHatchDate(): void
-    {
-        if ($this->hatch_date !== '') {
-            $this->order_cutoff_date = now()->parse($this->hatch_date)->subDays(HatchSchedule::cutoffDays())->toDateString();
+        if (! Auth::user()->isInternal()) {
+            $this->agent = (string) Auth::user()->merchant_id;
+        } elseif ($this->agent === '') {
+            $this->agent = (string) ($chicks->platformAgent()?->id ?? Merchant::marketplaceApproved()->orderBy('business_name')->value('id') ?? '');
         }
     }
 
-    public function saveDate(ChickService $chicks): void
+    protected function merchant(): Merchant
     {
-        $data = $this->validate([
-            'producer_id' => ['required', Rule::exists('producers', 'id')],
+        $id = Auth::user()->isInternal() ? (int) $this->agent : Auth::user()->merchant_id;
+
+        return Merchant::findOrFail($id);
+    }
+
+    protected function ownContract(int $id): ChickContract
+    {
+        return ChickContract::where('merchant_id', $this->merchant()->id)->findOrFail($id);
+    }
+
+    protected function ownDay(int $id): HatchSchedule
+    {
+        return HatchSchedule::where('merchant_id', $this->merchant()->id)->findOrFail($id);
+    }
+
+    public function updatedAgent(): void
+    {
+        abort_unless(Auth::user()->isInternal(), 403);
+        $this->reset(['contract', 'bookingsFor', 'showContractForm', 'showDayForm']);
+    }
+
+    // --- Contracts ---------------------------------------------------------
+
+    public function newContract(): void
+    {
+        $this->resetContractForm();
+        $this->showContractForm = true;
+    }
+
+    public function editContract(int $id): void
+    {
+        $c = $this->ownContract($id);
+        $this->resetContractForm();
+        $this->editingContractId = $c->id;
+        $this->producer_id = (string) $c->producer_id;
+        $this->chick_type_id = (string) $c->chick_type_id;
+        $this->branch_ids = array_map('strval', $c->branch_ids ?? []);
+        $this->weekdays = array_map('strval', $c->weekdays);
+        $this->cap_boxes = (string) $c->cap_boxes;
+        $this->contract_price = $c->price_per_chick !== null ? rtrim(rtrim((string) $c->price_per_chick, '0'), '.') : '';
+        $this->is_active = $c->is_active;
+        $this->showContractForm = true;
+    }
+
+    public function saveContract(ChickService $chicks): void
+    {
+        $this->validate([
+            'producer_id' => ['nullable'],
+            'new_hatchery' => ['nullable', 'string', 'max:255'],
             'chick_type_id' => ['required', Rule::exists('chick_types', 'id')],
-            'hatch_date' => ['required', 'date', $this->editingDateId ? 'date' : 'after_or_equal:today'],
-            'order_cutoff_date' => ['nullable', 'date'],
-            'capacity' => ['required', 'integer', 'min:1', 'max:10000000'],
-            'price_per_chick' => ['nullable', 'numeric', 'min:0'],
-            'notes' => ['nullable', 'string', 'max:500'],
-        ], [], ['producer_id' => 'hatchery', 'chick_type_id' => 'chick type', 'capacity' => 'number of chicks']);
+            'weekdays' => ['required', 'array', 'min:1'],
+            'cap_boxes' => ['required', 'integer', 'min:1', 'max:100000'],
+            'contract_price' => ['nullable', 'numeric', 'min:0'],
+        ], ['weekdays.required' => 'Choose the days the chicks arrive.'],
+            ['chick_type_id' => 'chick type', 'cap_boxes' => 'cap']);
 
-        $chicks->saveSchedule($data, $this->editingDateId ? HatchSchedule::findOrFail($this->editingDateId) : null, Auth::user());
+        $isNew = $this->producer_id === 'new' || $this->producer_id === '';
+        if ($isNew && trim($this->new_hatchery) === '') {
+            $this->addError('producer_id', 'Choose the hatchery, or type the name of a new one.');
 
-        session()->flash('status', $this->editingDateId ? 'Hatch date updated.' : 'Hatch date added. Customers can book it now.');
-        $this->resetDateForm();
+            return;
+        }
+        $producerId = $isNew ? $this->createHatchery() : (int) $this->producer_id;
+
+        $chicks->saveContract($this->merchant(), [
+            'producer_id' => $producerId,
+            'chick_type_id' => (int) $this->chick_type_id,
+            'branch_ids' => $this->branch_ids,
+            'weekdays' => $this->weekdays,
+            'cap_boxes' => (int) $this->cap_boxes,
+            'price_per_chick' => $this->contract_price,
+            'is_active' => $this->is_active,
+        ], $this->editingContractId ? $this->ownContract($this->editingContractId) : null);
+
+        session()->flash('status', $this->editingContractId ? 'Contract updated. Upcoming order days follow it.' : 'Contract added. Order days are ready for customers to book.');
+        $this->resetContractForm();
+    }
+
+    /** A hatchery not on the platform yet, typed in by the agent. */
+    protected function createHatchery(): int
+    {
+        $name = trim($this->new_hatchery);
+        $existing = Producer::whereRaw('LOWER(name) = ?', [Str::lower($name)])->first();
+        if ($existing) {
+            return $existing->id;
+        }
+
+        $base = Str::slug($name) ?: 'hatchery';
+        $slug = $base;
+        for ($i = 2; Producer::where('slug', $slug)->exists(); $i++) {
+            $slug = "{$base}-{$i}";
+        }
+
+        return Producer::create([
+            'name' => $name,
+            'slug' => $slug,
+            'role' => 'Hatchery (day-old chicks)',
+            'deals_in' => Producer::DEALS_CHICKS,
+            'country' => 'Tanzania',
+            'is_active' => true,
+        ])->id;
+    }
+
+    public function toggleContract(int $id, ChickService $chicks): void
+    {
+        $c = $this->ownContract($id);
+        $chicks->saveContract($this->merchant(), [
+            'producer_id' => $c->producer_id, 'chick_type_id' => $c->chick_type_id, 'branch_ids' => $c->branch_ids,
+            'weekdays' => $c->weekdays, 'cap_boxes' => $c->cap_boxes, 'price_per_chick' => $c->price_per_chick === null ? '' : (string) $c->price_per_chick,
+            'is_active' => ! $c->is_active,
+        ], $c);
+        session()->flash('status', $c->is_active ? 'Contract paused; its upcoming days are closed.' : 'Contract resumed.');
+    }
+
+    protected function resetContractForm(): void
+    {
+        $this->reset(['showContractForm', 'editingContractId', 'producer_id', 'new_hatchery', 'chick_type_id', 'branch_ids', 'contract_price']);
+        $this->weekdays = ['1', '4'];
+        $this->cap_boxes = '100';
+        $this->is_active = true;
+        $this->resetErrorBag();
+    }
+
+    // --- Order days --------------------------------------------------------
+
+    public function newDay(): void
+    {
+        $this->resetDayForm();
+        $this->day_contract_id = $this->contract;
+        $this->showDayForm = true;
+    }
+
+    public function editDay(int $id): void
+    {
+        $d = $this->ownDay($id);
+        $this->resetDayForm();
+        $this->editingDayId = $d->id;
+        $this->day_contract_id = (string) $d->chick_contract_id;
+        $this->day_date = $d->hatch_date->toDateString();
+        $this->day_cap = (string) $d->capBoxes();
+        $this->day_price = $d->price_per_chick !== null ? rtrim(rtrim((string) $d->price_per_chick, '0'), '.') : '';
+        $this->day_notes = (string) $d->notes;
+        $this->showDayForm = true;
+    }
+
+    public function updatedDayContractId(): void
+    {
+        if (! $this->editingDayId && $this->day_contract_id !== '') {
+            $c = $this->ownContract((int) $this->day_contract_id);
+            $this->day_cap = (string) $c->cap_boxes;
+            $this->day_price = $c->price_per_chick !== null ? rtrim(rtrim((string) $c->price_per_chick, '0'), '.') : '';
+        }
+    }
+
+    public function saveDay(ChickService $chicks): void
+    {
+        $this->validate([
+            'day_contract_id' => ['required'],
+            'day_date' => ['required', 'date'],
+            'day_cap' => ['required', 'integer', 'min:1', 'max:100000'],
+            'day_price' => ['nullable', 'numeric', 'min:0'],
+            'day_notes' => ['nullable', 'string', 'max:500'],
+        ], [], ['day_contract_id' => 'hatchery', 'day_date' => 'day', 'day_cap' => 'cap']);
+
+        $chicks->saveOrderDay($this->ownContract((int) $this->day_contract_id), [
+            'hatch_date' => $this->day_date,
+            'cap_boxes' => (int) $this->day_cap,
+            'price_per_chick' => $this->day_price,
+            'notes' => $this->day_notes,
+        ], $this->editingDayId ? $this->ownDay($this->editingDayId) : null);
+
+        session()->flash('status', $this->editingDayId ? 'Order day updated.' : 'Order day added.');
+        $this->resetDayForm();
     }
 
     public function toggleClosed(int $id): void
     {
-        $s = HatchSchedule::findOrFail($id);
-        $s->update(['is_closed' => ! $s->is_closed]);
-        session()->flash('status', $s->is_closed ? 'Booking closed for that hatch date.' : 'Booking reopened for that hatch date.');
+        $d = $this->ownDay($id);
+        $d->update(['is_closed' => ! $d->is_closed]);
+        session()->flash('status', $d->is_closed ? 'Booking closed for that day.' : 'Booking reopened for that day.');
     }
 
-    public function deleteDate(int $id): void
+    public function deleteDay(int $id): void
     {
-        $s = HatchSchedule::findOrFail($id);
-        if ($s->orderItems()->exists()) {
-            session()->flash('error', 'This hatch date has bookings, so it can\'t be deleted. Close it instead.');
+        $d = $this->ownDay($id);
+        if ($d->orderItems()->exists()) {
+            session()->flash('error', 'This day has bookings, so it can\'t be deleted. Close it instead.');
 
             return;
         }
-        $s->delete();
-        session()->flash('status', 'Hatch date deleted.');
+        $d->delete();
+        session()->flash('status', 'Order day deleted. It will not come back.');
     }
 
     public function showBookings(int $id): void
@@ -164,172 +290,49 @@ class Index extends Component
         $this->bookingsFor = $this->bookingsFor === $id ? null : $id;
     }
 
-    /**
-     * CSV columns: hatchery, chick_type, hatch_date, chicks, and optionally
-     * price_per_chick, order_cutoff_date, notes. A header row is skipped.
-     */
-    public function importCsv(ChickService $chicks): void
+    protected function resetDayForm(): void
     {
-        $this->validate(['csv' => ['required', 'file', 'mimes:csv,txt', 'max:1024']]);
-        $this->importErrors = [];
-
-        $rows = array_map('str_getcsv', file($this->csv->getRealPath(), FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES));
-        $producers = Producer::hatcheries()->get();
-        $types = ChickType::all();
-        $saved = 0;
-
-        foreach ($rows as $i => $row) {
-            $line = $i + 1;
-            $row = array_map(fn ($v) => trim((string) $v), $row);
-            if ($i === 0 && ! preg_match('/\d{4}-\d{2}-\d{2}|\d{1,2}\/\d{1,2}\/\d{2,4}/', $row[2] ?? '')) {
-                continue; // header
-            }
-
-            $producer = $producers->first(fn ($p) => in_array(Str::lower($row[0] ?? ''), [Str::lower($p->name), Str::lower((string) $p->code)], true));
-            $type = $types->first(fn ($t) => in_array(Str::lower($row[1] ?? ''), [$t->code, Str::lower($t->name), rtrim($t->code, 's')], true));
-
-            if (! $producer || ! $type) {
-                $this->importErrors[] = "Line {$line}: ".(! $producer ? "unknown hatchery '{$row[0]}'" : "unknown chick type '{$row[1]}'");
-
-                continue;
-            }
-
-            try {
-                $existing = HatchSchedule::where('producer_id', $producer->id)->where('chick_type_id', $type->id)->whereDate('hatch_date', now()->parse($row[2]))->first();
-                $chicks->saveSchedule([
-                    'producer_id' => $producer->id,
-                    'chick_type_id' => $type->id,
-                    'hatch_date' => $row[2],
-                    'capacity' => (int) str_replace(',', '', $row[3] ?? '0'),
-                    'price_per_chick' => str_replace(',', '', $row[4] ?? ''),
-                    'order_cutoff_date' => $row[5] ?? '',
-                    'notes' => $row[6] ?? '',
-                ], $existing, Auth::user());
-                $saved++;
-            } catch (ValidationException $e) {
-                $this->importErrors[] = "Line {$line}: ".collect($e->errors())->flatten()->first();
-            } catch (\Throwable) {
-                $this->importErrors[] = "Line {$line}: could not read this row.";
-            }
-        }
-
-        $this->reset('csv');
-        session()->flash('status', "{$saved} hatch ".Str::plural('date', $saved).' imported.');
-    }
-
-    protected function resetDateForm(): void
-    {
-        $this->reset(['showDateForm', 'editingDateId', 'producer_id', 'chick_type_id', 'hatch_date', 'order_cutoff_date', 'capacity', 'price_per_chick', 'notes']);
+        $this->reset(['showDayForm', 'editingDayId', 'day_contract_id', 'day_date', 'day_cap', 'day_price', 'day_notes']);
         $this->resetErrorBag();
     }
 
-    // --- Hatcheries ------------------------------------------------------
-
-    public function newHatchery(): void
+    public function render(ChickService $chicks)
     {
-        $this->resetHatcheryForm();
-        $this->showHatcheryForm = true;
-    }
+        $chicks->ensureUpcoming();
+        $merchant = $this->agent !== '' ? $this->merchant() : null;
 
-    public function editHatchery(int $id): void
-    {
-        $p = Producer::findOrFail($id);
-        $this->resetHatcheryForm();
-        $this->editingHatcheryId = $p->id;
-        $this->name = $p->name;
-        $this->deals_in = $p->deals_in ?? Producer::DEALS_CHICKS;
-        $this->phone = (string) $p->phone;
-        $this->location = (string) $p->location;
-        $this->description = (string) $p->description;
-        $this->types = $p->chickTypes()->pluck('chick_types.id')->map(fn ($id) => (string) $id)->all();
-        $this->showHatcheryForm = true;
-    }
+        $contracts = $merchant
+            ? ChickContract::where('merchant_id', $merchant->id)->with(['producer.media', 'chickType'])
+                ->withCount(['orderDays as upcoming_days' => fn ($q) => $q->whereDate('hatch_date', '>=', today())])
+                ->orderByDesc('is_active')->get()->sortBy(fn ($c) => $c->producer->name.' '.$c->chickType->sort_order)->values()
+            : collect();
 
-    public function saveHatchery(): void
-    {
-        $this->validate([
-            'name' => ['required', 'string', 'max:255', Rule::unique('producers', 'name')->ignore($this->editingHatcheryId)],
-            'deals_in' => ['required', Rule::in([Producer::DEALS_CHICKS, Producer::DEALS_CHICKS_FEED])],
-            'phone' => ['nullable', 'string', 'max:40'],
-            'location' => ['nullable', 'string', 'max:255'],
-            'description' => ['nullable', 'string', 'max:1000'],
-            'types' => ['array', 'min:1'],
-            'types.*' => [Rule::exists('chick_types', 'id')],
-            'logo' => ['nullable', 'image', 'max:2048'],
-        ], ['types.min' => 'Tick at least one chick type this hatchery produces.']);
-
-        $producer = $this->editingHatcheryId
-            ? Producer::findOrFail($this->editingHatcheryId)
-            : new Producer(['is_active' => true, 'country' => 'Tanzania', 'role' => 'Hatchery (day-old chicks)', 'slug' => $this->uniqueSlug($this->name)]);
-
-        $producer->fill([
-            'name' => $this->name,
-            'deals_in' => $this->deals_in,
-            'phone' => $this->phone ?: null,
-            'location' => $this->location ?: null,
-            'description' => $this->description ?: null,
-        ])->save();
-        $producer->chickTypes()->sync($this->types);
-
-        if ($this->logo) {
-            $producer->addMedia($this->logo->getRealPath())
-                ->usingFileName($this->logo->getClientOriginalName())
-                ->toMediaCollection('logo');
-        }
-
-        session()->flash('status', $this->editingHatcheryId ? 'Hatchery updated.' : 'Hatchery added. You can now add its hatch dates.');
-        $this->resetHatcheryForm();
-    }
-
-    public function toggleHatchery(int $id): void
-    {
-        $p = Producer::findOrFail($id);
-        $p->update(['is_active' => ! $p->is_active]);
-    }
-
-    protected function resetHatcheryForm(): void
-    {
-        $this->reset(['showHatcheryForm', 'editingHatcheryId', 'name', 'phone', 'location', 'description', 'types', 'logo']);
-        $this->deals_in = Producer::DEALS_CHICKS;
-        $this->resetErrorBag();
-    }
-
-    protected function uniqueSlug(string $name): string
-    {
-        $base = Str::slug($name) ?: 'hatchery';
-        $slug = $base;
-        for ($i = 2; Producer::where('slug', $slug)->exists(); $i++) {
-            $slug = "{$base}-{$i}";
-        }
-
-        return $slug;
-    }
-
-    public function render()
-    {
-        $chickTypes = ChickType::active()->get();
-        $hatcheries = Producer::hatcheries()->with(['chickTypes', 'media'])->withCount(['hatchSchedules as upcoming_dates' => fn ($q) => $q->whereDate('hatch_date', '>=', today())])->orderBy('name')->get();
-
-        $dates = HatchSchedule::query()
-            ->withBooked()
-            ->with(['producer.media', 'chickType'])
-            ->when(! $this->showPast, fn ($q) => $q->whereDate('hatch_date', '>=', today()))
-            ->when($this->type !== '', fn ($q) => $q->whereRelation('chickType', 'code', $this->type))
-            ->when($this->hatchery !== '', fn ($q) => $q->where('producer_id', $this->hatchery))
-            ->orderBy('hatch_date', $this->showPast ? 'desc' : 'asc')
-            ->limit(200)
-            ->get();
+        $days = $merchant
+            ? HatchSchedule::where('merchant_id', $merchant->id)
+                ->withBooked()
+                ->with(['producer', 'chickType', 'contract'])
+                ->when(! $this->showPast, fn ($q) => $q->whereDate('hatch_date', '>=', today()))
+                ->when($this->contract !== '', fn ($q) => $q->where('chick_contract_id', $this->contract))
+                ->orderBy('hatch_date', $this->showPast ? 'desc' : 'asc')
+                ->limit(200)
+                ->get()
+            : collect();
 
         $bookings = $this->bookingsFor
             ? OrderItem::where('hatch_schedule_id', $this->bookingsFor)->with('order.branch')->latest()->get()
             : collect();
 
         return view('livewire.portal.chicks.index', [
-            'chickTypes' => $chickTypes,
-            'hatcheries' => $hatcheries,
-            'dates' => $dates,
+            'merchant' => $merchant,
+            'agents' => Auth::user()->isInternal() ? Merchant::marketplaceApproved()->orderBy('business_name')->get(['id', 'business_name']) : collect(),
+            'contracts' => $contracts,
+            'days' => $days->groupBy(fn ($d) => $d->hatch_date->toDateString()),
             'bookings' => $bookings,
+            'chickTypes' => ChickType::active()->get(),
+            'hatcheries' => Producer::active()->where(fn ($q) => $q->hatcheries()->orWhereHas('chickTypes'))->orderBy('name')->get(['id', 'name']),
+            'stores' => $merchant ? Branch::where('merchant_id', $merchant->id)->where('status', Branch::STATUS_ACTIVE)->orderByDesc('is_primary')->orderBy('name')->get(['id', 'name', 'is_marketplace_enabled']) : collect(),
             'boxSize' => HatchSchedule::boxSize(),
+            'weekdayNames' => ChickContract::WEEKDAYS,
         ]);
     }
 }

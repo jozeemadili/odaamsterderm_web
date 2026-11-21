@@ -36,7 +36,8 @@ return [
     */
     'chick_seller' => env('HUB_CHICK_SELLER', 'SEL-AMS'),
     'chick_seller_name' => env('HUB_CHICK_SELLER_NAME', 'Amsterdam Group'),
-    'chick_box_size' => (int) env('HUB_CHICK_BOX_SIZE', 50),
+    'chick_box_size' => (int) env('HUB_CHICK_BOX_SIZE', 100),
+    'chick_weeks_ahead' => (int) env('HUB_CHICK_WEEKS_AHEAD', 4),
     'chick_order_cutoff_days' => (int) env('HUB_CHICK_ORDER_CUTOFF_DAYS', 3),
 
     /*

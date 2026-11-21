@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\AgentChickController;
 use App\Http\Controllers\Api\AiController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BranchController;
@@ -111,6 +112,15 @@ Route::prefix('v1')->group(function () {
             Route::post('/inventory/{item}/barcode', [InventoryController::class, 'generateBarcode']);
             Route::post('/inventory/{item}/stock-movement', [InventoryController::class, 'stockMovement']);
             Route::patch('/inventory/{item}/marketplace', [InventoryController::class, 'marketplace']);
+
+            // --- Day-old chicks (agent) ---------------------------------
+            Route::get('/chicks', [AgentChickController::class, 'index']);
+            Route::post('/chicks/contracts', [AgentChickController::class, 'storeContract']);
+            Route::put('/chicks/contracts/{contract}', [AgentChickController::class, 'updateContract']);
+            Route::post('/chicks/days', [AgentChickController::class, 'storeDay']);
+            Route::patch('/chicks/days/{day}', [AgentChickController::class, 'updateDay']);
+            Route::delete('/chicks/days/{day}', [AgentChickController::class, 'destroyDay']);
+            Route::get('/chicks/days/{day}/bookings', [AgentChickController::class, 'bookings']);
 
             // --- Marketplace orders (fulfilment) ------------------------
             Route::get('/orders', [SellerOrderController::class, 'index']);

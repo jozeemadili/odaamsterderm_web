@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\AnimalType;
 use App\Models\Branch;
+use App\Models\ChickContract;
 use App\Models\ChickType;
 use App\Models\HatchSchedule;
 use App\Models\LifeStage;
@@ -15,19 +16,22 @@ use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\User;
 use App\Notifications\OrderPlaced;
+use App\Support\GeoPoint;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 /**
- * Day-old chicks: one seller (Amsterdam Group) sells every hatchery's
- * chicks. It publishes hatch dates per hatchery and chick type; customers
- * pick a type, a hatchery and a date, and book whole boxes for pickup at
- * one of the seller's stores. The booking is an ordinary marketplace order
- * whose line points at the hatch date instead of shop stock.
+ * Day-old chicks, sold by agents. Each agent declares contracts with
+ * hatcheries (hatchery + chick type + pickup stores + weekdays + cap);
+ * order days are generated from them (Monday and Thursday by default) a few
+ * weeks ahead. Customers pick a type, an agent near them and an order day,
+ * and book whole boxes; the booking is an ordinary order to that agent
+ * whose line points at the order day instead of shop stock.
  */
 class ChickService
 {
@@ -35,11 +39,24 @@ class ChickService
     public const CATEGORY = 'C7010';
 
     /**
-     * The seller that sells and manages chicks: the one with the configured
-     * code, or else the approved seller with that business name and live
-     * stores (sellers created in the portal have no code). Null if neither.
+     * Whether a user manages chicks: staff of an agent that may sell on the
+     * marketplace (their own agent), or internal staff (every agent).
      */
-    public function seller(): ?Merchant
+    public function canManage(?User $user): bool
+    {
+        if (! $user) {
+            return false;
+        }
+
+        return $user->isInternal() || ($user->merchant_id !== null && (bool) $user->merchant?->canSellOnMarketplace());
+    }
+
+    /**
+     * The platform's own agent (Amsterdam Group): the one with the configured
+     * code, or else the approved seller with that name and live stores. Used
+     * for the sample data and the move from the single-seller setup.
+     */
+    public function platformAgent(): ?Merchant
     {
         return once(fn () => Merchant::where('code', config('hub.chick_seller'))->first()
             ?? Merchant::where('business_name', config('hub.chick_seller_name'))
@@ -50,101 +67,290 @@ class ChickService
                 ->first());
     }
 
-    /** Whether this user may manage hatcheries and hatch dates. */
-    public function canManage(?User $user): bool
+    // --- Contracts and order days -----------------------------------------
+
+    /**
+     * Creates or updates an agent's contract with a hatchery for one chick
+     * type, then brings its order days in line: future days take the new
+     * cap and price, days on dropped weekdays without bookings go, and the
+     * weeks ahead are filled in.
+     */
+    public function saveContract(Merchant $merchant, array $data, ?ChickContract $contract = null): ChickContract
     {
-        if (! $user) {
-            return false;
+        $producer = Producer::findOrFail($data['producer_id']);
+        $type = ChickType::findOrFail($data['chick_type_id']);
+        $weekdays = collect($data['weekdays'] ?? ChickContract::DEFAULT_WEEKDAYS)->map(fn ($d) => (int) $d)->filter(fn ($d) => $d >= 1 && $d <= 7)->unique()->sort()->values()->all();
+        if ($weekdays === []) {
+            throw ValidationException::withMessages(['weekdays' => 'Choose at least one day the chicks arrive.']);
         }
 
-        return $user->isInternal() || ($user->merchant_id !== null && $user->merchant_id === $this->seller()?->id);
-    }
+        $storeIds = collect($data['branch_ids'] ?? [])->map(fn ($id) => (int) $id)->filter()->values();
+        $ownStores = Branch::where('merchant_id', $merchant->id)->pluck('id');
+        if ($storeIds->diff($ownStores)->isNotEmpty()) {
+            throw ValidationException::withMessages(['branch_ids' => 'Choose your own stores.']);
+        }
 
-    /** The seller's stores customers can collect chicks from. */
-    public function pickupStores(): Collection
-    {
-        $seller = $this->seller();
+        $duplicate = ChickContract::where('merchant_id', $merchant->id)->where('producer_id', $producer->id)
+            ->where('chick_type_id', $type->id)->when($contract, fn ($q) => $q->whereKeyNot($contract->id))->exists();
+        if ($duplicate) {
+            throw ValidationException::withMessages(['producer_id' => "You already sell {$producer->name} {$type->name} chicks; edit that one."]);
+        }
 
-        return $seller
-            ? Branch::where('merchant_id', $seller->id)->where('status', Branch::STATUS_ACTIVE)->where('is_marketplace_enabled', true)->orderByDesc('is_primary')->orderBy('name')->get()
-            : collect();
+        $contract ??= new ChickContract(['merchant_id' => $merchant->id]);
+        $weekdaysChanged = $contract->exists && $contract->weekdays !== $weekdays;
+
+        $contract->fill([
+            'producer_id' => $producer->id,
+            'chick_type_id' => $type->id,
+            'branch_ids' => $storeIds->isEmpty() ? null : $storeIds->all(),
+            'weekdays' => $weekdays,
+            'cap_boxes' => max(1, (int) ($data['cap_boxes'] ?? ChickContract::DEFAULT_CAP_BOXES)),
+            'price_per_chick' => ($data['price_per_chick'] ?? '') === '' ? null : (float) $data['price_per_chick'],
+            'is_active' => (bool) ($data['is_active'] ?? true),
+        ])->save();
+
+        $producer->chickTypes()->syncWithoutDetaching([$type->id]);
+        if (! $producer->makesChicks()) {
+            $producer->update(['deals_in' => $producer->deals_in === Producer::DEALS_FEED ? Producer::DEALS_CHICKS_FEED : Producer::DEALS_CHICKS]);
+        }
+
+        // Future days follow the contract (never below what is already booked).
+        foreach ($contract->orderDays()->withBooked()->whereDate('hatch_date', '>=', today())->get() as $day) {
+            if ($weekdaysChanged && ! in_array($day->hatch_date->isoWeekday(), $weekdays, true) && $day->booked() === 0) {
+                $day->delete();
+
+                continue;
+            }
+            $day->update([
+                'capacity' => max($contract->cap_boxes * HatchSchedule::boxSize(), (int) ceil($day->booked() / HatchSchedule::boxSize()) * HatchSchedule::boxSize()),
+                'price_per_chick' => $contract->price_per_chick,
+                'is_closed' => $contract->is_active ? $day->is_closed : true,
+            ]);
+        }
+        if ($weekdaysChanged) {
+            $contract->update(['generated_until' => today()->subDay()]);
+        }
+
+        $this->generateDays($contract->fresh());
+
+        return $contract->fresh();
     }
 
     /**
+     * Fills in order days on the contract's weekdays up to N weeks ahead.
+     * Days already generated are never recreated, so a day the agent
+     * deleted stays gone.
+     */
+    public function generateDays(ChickContract $contract, ?int $weeks = null): int
+    {
+        if (! $contract->is_active) {
+            return 0;
+        }
+
+        $until = today()->addWeeks($weeks ?? (int) config('hub.chick_weeks_ahead', 4));
+        $from = $contract->generated_until && $contract->generated_until->gte(today())
+            ? $contract->generated_until->copy()->addDay()
+            : today();
+        $product = $this->productFor($contract->producer, $contract->chickType);
+        $added = 0;
+
+        for ($day = $from->copy(); $day->lte($until); $day->addDay()) {
+            if (! in_array($day->isoWeekday(), $contract->weekdays, true)) {
+                continue;
+            }
+            $exists = HatchSchedule::where('merchant_id', $contract->merchant_id)->where('producer_id', $contract->producer_id)
+                ->where('chick_type_id', $contract->chick_type_id)->whereDate('hatch_date', $day)->exists();
+            if ($exists) {
+                continue;
+            }
+
+            HatchSchedule::create([
+                'merchant_id' => $contract->merchant_id,
+                'chick_contract_id' => $contract->id,
+                'producer_id' => $contract->producer_id,
+                'chick_type_id' => $contract->chick_type_id,
+                'product_id' => $product->id,
+                'hatch_date' => $day->copy(),
+                'order_cutoff_date' => $day->copy(),
+                'capacity' => $contract->cap_boxes * HatchSchedule::boxSize(),
+                'price_per_chick' => $contract->price_per_chick,
+                'is_sample' => $contract->is_sample,
+                'notes' => $contract->is_sample ? 'Sample order day' : null,
+            ]);
+            $added++;
+        }
+
+        if (! $contract->generated_until || $contract->generated_until->lt($until)) {
+            $contract->update(['generated_until' => $until]);
+        }
+
+        return $added;
+    }
+
+    /** Keeps every active contract's order days filled ahead; runs at most once a day. */
+    public function ensureUpcoming(): void
+    {
+        if (! Cache::add('chicks:days-generated:'.today()->toDateString(), true, now()->endOfDay())) {
+            return;
+        }
+
+        ChickContract::active()->with(['producer', 'chickType'])->each(fn (ChickContract $c) => $this->generateDays($c));
+    }
+
+    /** An extra order day (or changes to one): cap in boxes, price and a note. */
+    public function saveOrderDay(ChickContract $contract, array $data, ?HatchSchedule $day = null): HatchSchedule
+    {
+        $date = Carbon::parse($data['hatch_date'])->startOfDay();
+        if (! $day && $date->lt(today())) {
+            throw ValidationException::withMessages(['hatch_date' => 'Choose today or a later day.']);
+        }
+
+        $duplicate = HatchSchedule::where('merchant_id', $contract->merchant_id)->where('producer_id', $contract->producer_id)
+            ->where('chick_type_id', $contract->chick_type_id)->whereDate('hatch_date', $date)
+            ->when($day, fn ($q) => $q->whereKeyNot($day->id))->exists();
+        if ($duplicate) {
+            throw ValidationException::withMessages(['hatch_date' => "There is already an order day on {$date->format('j M Y')}."]);
+        }
+
+        $capBoxes = max(1, (int) $data['cap_boxes']);
+        if ($day && $capBoxes * HatchSchedule::boxSize() < $day->booked()) {
+            $booked = (int) ceil($day->booked() / HatchSchedule::boxSize());
+            throw ValidationException::withMessages(['cap_boxes' => "{$booked} boxes are already booked; the cap can't be lower."]);
+        }
+
+        $day ??= new HatchSchedule([
+            'merchant_id' => $contract->merchant_id,
+            'chick_contract_id' => $contract->id,
+            'producer_id' => $contract->producer_id,
+            'chick_type_id' => $contract->chick_type_id,
+            'product_id' => $this->productFor($contract->producer, $contract->chickType)->id,
+        ]);
+        $day->fill([
+            'hatch_date' => $date,
+            'order_cutoff_date' => $date,
+            'capacity' => $capBoxes * HatchSchedule::boxSize(),
+            'price_per_chick' => ($data['price_per_chick'] ?? '') === '' ? null : (float) $data['price_per_chick'],
+            'notes' => ($data['notes'] ?? '') ?: null,
+        ])->save();
+
+        return $day;
+    }
+
+    // --- Customers ---------------------------------------------------------
+
+    /**
      * Everything the customer pages need: each active chick type with the
-     * hatcheries that make it and their bookable dates.
+     * agents selling it (nearest first when a location is known), and each
+     * agent's hatcheries with their bookable order days.
      *
      * @return list<array<string, mixed>>
      */
-    public function catalogue(): array
+    public function catalogue(?GeoPoint $from = null): array
     {
+        $this->ensureUpcoming();
         $withPrice = PlatformSetting::showPrices();
-        $schedules = HatchSchedule::query()
+
+        $days = HatchSchedule::query()
             ->bookable()
             ->withBooked()
-            ->whereHas('producer', fn ($q) => $q->active()->hatcheries())
-            ->with('producer.media')
+            ->whereNotNull('merchant_id')
+            ->whereHas('merchant', fn ($q) => $q->marketplaceApproved())
+            ->whereHas('producer', fn ($q) => $q->active())
+            ->with(['producer.media', 'merchant.media', 'contract'])
             ->orderBy('hatch_date')
             ->get()
             ->groupBy('chick_type_id');
 
-        return ChickType::active()->get()->map(function (ChickType $type) use ($schedules, $withPrice) {
-            $hatcheries = ($schedules[$type->id] ?? collect())
-                ->groupBy('producer_id')
-                ->map(function (Collection $dates) use ($withPrice) {
-                    $producer = $dates->first()->producer;
+        $stores = [];
+        $storesFor = function (HatchSchedule $day) use (&$stores, $from) {
+            $key = $day->chick_contract_id ?? 'm'.$day->merchant_id;
+
+            return $stores[$key] ??= ($day->contract?->pickupStores()
+                ?? Branch::where('merchant_id', $day->merchant_id)->where('status', Branch::STATUS_ACTIVE)->where('is_marketplace_enabled', true)->get())
+                ->map(fn (Branch $b) => [
+                    'id' => $b->id,
+                    'name' => $b->name,
+                    'address' => collect([$b->address, $b->area, $b->city])->filter()->unique()->join(', '),
+                    'distance_km' => $from && $b->latitude !== null && $b->longitude !== null ? round($from->distanceTo((float) $b->latitude, (float) $b->longitude), 1) : null,
+                ])->sortBy(fn ($s) => $s['distance_km'] ?? INF)->values()->all();
+        };
+
+        return ChickType::active()->get()->map(function (ChickType $type) use ($days, $withPrice, $storesFor) {
+            $agents = ($days[$type->id] ?? collect())
+                ->groupBy('merchant_id')
+                ->map(function (Collection $agentDays) use ($withPrice, $storesFor) {
+                    $merchant = $agentDays->first()->merchant;
+                    $hatcheries = $agentDays->groupBy('producer_id')->map(function (Collection $hDays) use ($withPrice, $storesFor) {
+                        $producer = $hDays->first()->producer;
+
+                        return [
+                            'id' => $producer->id,
+                            'name' => $producer->name,
+                            'slug' => $producer->slug,
+                            'logo_url' => $producer->logoUrl(),
+                            'location' => $producer->location,
+                            'description' => $producer->description,
+                            'boxes_available' => $hDays->sum(fn (HatchSchedule $s) => $s->boxesAvailable()),
+                            'pickup_stores' => $storesFor($hDays->first()),
+                            'dates' => $hDays->map(fn (HatchSchedule $s) => $s->summaryArray($withPrice))->values()->all(),
+                        ];
+                    })->values();
+
+                    $stores = $hatcheries->flatMap(fn ($h) => $h['pickup_stores'])->unique('id')->sortBy(fn ($s) => $s['distance_km'] ?? INF)->values();
 
                     return [
-                        'id' => $producer->id,
-                        'name' => $producer->name,
-                        'slug' => $producer->slug,
-                        'logo_url' => $producer->logoUrl(),
-                        'location' => $producer->location,
-                        'description' => $producer->description,
-                        'boxes_available' => $dates->sum(fn (HatchSchedule $s) => $s->boxesAvailable()),
-                        'next_hatch_date' => $dates->first(fn (HatchSchedule $s) => $s->boxesAvailable() > 0)?->hatch_date->toDateString(),
-                        'dates' => $dates->map(fn (HatchSchedule $s) => $s->summaryArray($withPrice))->values()->all(),
+                        'id' => $merchant->id,
+                        'name' => $merchant->business_name,
+                        'logo_url' => $merchant->getFirstMediaUrl('logo') ?: null,
+                        'nearest_km' => $stores->first()['distance_km'] ?? null,
+                        'nearest_store' => $stores->first()['name'] ?? null,
+                        'stores_count' => $stores->count(),
+                        'boxes_available' => $hatcheries->sum('boxes_available'),
+                        'next_date' => $agentDays->first(fn (HatchSchedule $s) => $s->boxesAvailable() > 0)?->hatch_date->toDateString(),
+                        'hatcheries' => $hatcheries->all(),
                     ];
                 })
-                ->sortBy([['next_hatch_date', 'asc'], ['name', 'asc']])
+                ->sortBy([fn ($a, $b) => ($a['nearest_km'] ?? INF) <=> ($b['nearest_km'] ?? INF), ['next_date', 'asc'], ['name', 'asc']])
                 ->values()
                 ->all();
 
             return $type->summaryArray() + [
-                'hatcheries' => $hatcheries,
-                'hatcheries_count' => count($hatcheries),
-                'boxes_available' => array_sum(array_column($hatcheries, 'boxes_available')),
+                'agents' => $agents,
+                'agents_count' => count($agents),
+                'boxes_available' => array_sum(array_column($agents, 'boxes_available')),
             ];
         })->all();
     }
 
     /**
-     * Books whole boxes of chicks against a hatch date, for pickup at one
-     * of the seller's stores. The date row is locked while the free chicks
-     * are counted, so two customers can't book the same last box.
+     * Books whole boxes of chicks on an order day, for pickup at one of the
+     * agent's stores for that contract. The day row is locked while the free
+     * boxes are counted, so two customers can't book the same last box.
      */
     public function placeOrder(User $customer, int $scheduleId, int $boxes, int $storeId, ?string $phone = null, ?string $note = null): Order
     {
-        $store = $this->pickupStores()->firstWhere('id', $storeId)
-            ?? throw ValidationException::withMessages(['store' => 'Choose one of the stores where chicks can be collected.']);
-
         if ($boxes < 1) {
             throw ValidationException::withMessages(['boxes' => 'Book at least one box.']);
         }
 
-        $order = DB::transaction(function () use ($customer, $scheduleId, $boxes, $store, $phone, $note) {
+        $order = DB::transaction(function () use ($customer, $scheduleId, $boxes, $storeId, $phone, $note) {
             /** @var HatchSchedule|null $schedule */
-            $schedule = HatchSchedule::with(['producer', 'chickType'])->lockForUpdate()->find($scheduleId);
+            $schedule = HatchSchedule::with(['producer', 'chickType', 'contract', 'merchant'])->lockForUpdate()->find($scheduleId);
 
-            if (! $schedule || $schedule->status() === HatchSchedule::PAST || $schedule->status() === HatchSchedule::CLOSED) {
-                throw ValidationException::withMessages(['hatch_date' => 'Booking for this hatch date has closed. Choose another date.']);
+            if (! $schedule || ! $schedule->merchant_id || in_array($schedule->status(), [HatchSchedule::PAST, HatchSchedule::CLOSED], true)) {
+                throw ValidationException::withMessages(['hatch_date' => 'Booking for this day has closed. Choose another day.']);
             }
+
+            $stores = $schedule->contract?->pickupStores()
+                ?? Branch::where('merchant_id', $schedule->merchant_id)->where('status', Branch::STATUS_ACTIVE)->where('is_marketplace_enabled', true)->get();
+            $store = $stores->firstWhere('id', $storeId)
+                ?? throw ValidationException::withMessages(['store' => 'Choose one of the stores where these chicks arrive.']);
 
             $free = $schedule->boxesAvailable();
             if ($boxes > $free) {
                 throw ValidationException::withMessages(['boxes' => $free === 0
-                    ? 'This hatch date is full. Choose another date.'
-                    : "Only {$free} ".Str::plural('box', $free).' left for this hatch date.']);
+                    ? 'This day is full. Choose another day.'
+                    : "Only {$free} ".Str::plural('box', $free).' left for this day.']);
             }
 
             $product = $schedule->product ?? $this->productFor($schedule->producer, $schedule->chickType);
@@ -157,7 +363,7 @@ class ChickService
             $order = Order::create([
                 'reference' => Order::newReference(),
                 'user_id' => $customer->id,
-                'merchant_id' => $store->merchant_id,
+                'merchant_id' => $schedule->merchant_id,
                 'branch_id' => $store->id,
                 'status' => Order::PENDING,
                 'customer_name' => $customer->name,
@@ -168,7 +374,7 @@ class ChickService
             $order->items()->create([
                 'product_id' => $product->id,
                 'hatch_schedule_id' => $schedule->id,
-                'name' => "{$schedule->chickType->name} day-old chicks · {$schedule->producer->name} · hatch {$schedule->hatch_date->format('D j M Y')}",
+                'name' => "{$schedule->chickType->name} day-old chicks · {$schedule->producer->name} · arrive {$schedule->hatch_date->format('D j M Y')}",
                 'unit' => 'chick',
                 'unit_price' => $price,
                 'quantity' => $chicks,
@@ -178,7 +384,7 @@ class ChickService
             $order->update(['total' => $chicks * $price, 'items_count' => 1]);
             $order->events()->create([
                 'status' => Order::PENDING,
-                'note' => "Chicks booked: {$boxes} ".Str::plural('box', $boxes)." ({$chicks} chicks), hatch {$schedule->hatch_date->toDateString()}",
+                'note' => "Chicks booked: {$boxes} ".Str::plural('box', $boxes)." ({$chicks} chicks), arriving {$schedule->hatch_date->toDateString()}",
                 'user_id' => $customer->id,
                 'created_at' => now(),
             ]);
@@ -195,47 +401,7 @@ class ChickService
         return $order;
     }
 
-    /** Creates or updates a hatch date; the order cut-off defaults to N days before. */
-    public function saveSchedule(array $data, ?HatchSchedule $schedule = null, ?User $by = null): HatchSchedule
-    {
-        $producer = Producer::findOrFail($data['producer_id']);
-        $type = ChickType::findOrFail($data['chick_type_id']);
-        $hatch = Carbon::parse($data['hatch_date'])->startOfDay();
-        $cutoff = ! empty($data['order_cutoff_date'])
-            ? Carbon::parse($data['order_cutoff_date'])->startOfDay()
-            : $hatch->copy()->subDays(HatchSchedule::cutoffDays());
-
-        if ($cutoff->gt($hatch)) {
-            throw ValidationException::withMessages(['order_cutoff_date' => 'The last day to order must be on or before the hatch date.']);
-        }
-
-        $duplicate = HatchSchedule::where('producer_id', $producer->id)->where('chick_type_id', $type->id)
-            ->whereDate('hatch_date', $hatch)->when($schedule, fn ($q) => $q->whereKeyNot($schedule->id))->exists();
-        if ($duplicate) {
-            throw ValidationException::withMessages(['hatch_date' => "{$producer->name} already has a {$type->name} hatch on {$hatch->format('j M Y')}."]);
-        }
-
-        if ($schedule && (int) $data['capacity'] < $schedule->booked()) {
-            throw ValidationException::withMessages(['capacity' => "{$schedule->booked()} chicks are already booked; the number of chicks can't be lower."]);
-        }
-
-        $schedule ??= new HatchSchedule(['created_by' => $by?->id]);
-        $schedule->fill([
-            'producer_id' => $producer->id,
-            'chick_type_id' => $type->id,
-            'product_id' => $this->productFor($producer, $type)->id,
-            'hatch_date' => $hatch,
-            'order_cutoff_date' => $cutoff,
-            'capacity' => (int) $data['capacity'],
-            'price_per_chick' => ($data['price_per_chick'] ?? '') === '' ? null : (float) $data['price_per_chick'],
-            'notes' => ($data['notes'] ?? '') ?: null,
-        ])->save();
-
-        // Producing this type now, whatever was ticked before.
-        $producer->chickTypes()->syncWithoutDetaching([$type->id]);
-
-        return $schedule;
-    }
+    // --- Catalogue products ------------------------------------------------
 
     /**
      * The catalogue product for one hatchery's chick type ("Interchick
@@ -320,7 +486,36 @@ class ChickService
         return ['products' => $linked, 'hatcheries' => count($hatcheries)];
     }
 
-    /** What the AI assistants know about day-old chicks: types and open hatch dates. */
+    /**
+     * Moves hatch dates from the earlier single-seller setup to agents:
+     * unbooked samples are removed; any other date goes to the platform's
+     * agent under a contract for its hatchery and type. Safe to re-run.
+     *
+     * @return array{removed: int, moved: int, contracts: int}
+     */
+    public function moveToAgents(): array
+    {
+        $removed = HatchSchedule::whereNull('merchant_id')->where('is_sample', true)->whereDoesntHave('orderItems')->delete();
+        $agent = $this->platformAgent();
+        $moved = 0;
+        $contracts = [];
+
+        if ($agent) {
+            foreach (HatchSchedule::whereNull('merchant_id')->get() as $day) {
+                $contract = ChickContract::firstOrCreate(
+                    ['merchant_id' => $agent->id, 'producer_id' => $day->producer_id, 'chick_type_id' => $day->chick_type_id],
+                    ['weekdays' => ChickContract::DEFAULT_WEEKDAYS, 'cap_boxes' => ChickContract::DEFAULT_CAP_BOXES, 'price_per_chick' => $day->price_per_chick, 'generated_until' => today()->subDay()],
+                );
+                $contracts[$contract->id] = true;
+                $day->update(['merchant_id' => $agent->id, 'chick_contract_id' => $contract->id, 'order_cutoff_date' => $day->hatch_date]);
+                $moved++;
+            }
+        }
+
+        return ['removed' => $removed, 'moved' => $moved, 'contracts' => count($contracts)];
+    }
+
+    /** What the AI assistants know about day-old chicks: types, agents and open order days. */
     public function promptSection(): string
     {
         $types = collect($this->catalogue());
@@ -329,24 +524,23 @@ class ChickService
         }
 
         $box = HatchSchedule::boxSize();
-        $seller = $this->seller()?->business_name ?? 'the marketplace';
         $typeLines = $types->map(fn ($t) => "- {$t['name']} ({$t['name_sw']}): {$t['summary']}")->implode("\n");
-        $dateLines = $types->flatMap(fn ($t) => collect($t['hatcheries'])->flatMap(fn ($h) => collect($h['dates'])
+        $dayLines = $types->flatMap(fn ($t) => collect($t['agents'])->flatMap(fn ($a) => collect($a['hatcheries'])->flatMap(fn ($h) => collect($h['dates'])
             ->filter(fn ($d) => $d['status'] === HatchSchedule::OPEN)
-            ->map(fn ($d) => "{$t['name']} | {$h['name']} | hatch {$d['hatch_date']} | order by {$d['order_cutoff_date']} | {$d['boxes_available']} boxes left")))
+            ->map(fn ($d) => "{$t['name']} | {$a['name']} | {$h['name']} | arrive {$d['hatch_date']} | {$d['boxes_available']} boxes left | collect at: ".collect($h['pickup_stores'])->pluck('name')->join(', ')))))
             ->take(60)->implode("\n");
 
         return <<<CHICKS
-        Day-old chicks (vifaranga): {$seller} sells chicks from several hatcheries. Customers book them on the "Day-old chicks / Vifaranga" page of the website or app: choose the type, the hatchery and a hatch date, then book whole boxes of {$box} chicks and collect them at a {$seller} store on hatch day. Chick bookings never go in your basket; send customers to that page and tell them which dates suit them. Round chick numbers up to whole boxes of {$box}.
+        Day-old chicks (vifaranga): agents on the marketplace sell chicks from the hatcheries they work with. Customers book them on the "Day-old chicks / Vifaranga" page of the website or app: choose the type, an agent near them and the day the chicks arrive, then book whole boxes of {$box} chicks and collect them at that agent's store on that day. Booking stays open until a day is full or has passed. Chick bookings never go in your basket; send customers to that page and tell them which agents and days suit them. Round chick numbers up to whole boxes of {$box}.
         Chick types:
         {$typeLines}
-        Open hatch dates (type | hatchery | hatch date | last day to order | boxes left):
-        {$this->orNone($dateLines)}
+        Open order days (type | agent | hatchery | day chicks arrive | boxes left | stores):
+        {$this->orNone($dayLines)}
         CHICKS;
     }
 
     private function orNone(string $lines): string
     {
-        return $lines !== '' ? $lines : '(no hatch dates open right now)';
+        return $lines !== '' ? $lines : '(no order days open right now)';
     }
 }

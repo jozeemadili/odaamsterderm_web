@@ -4,38 +4,28 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Market\OrderResource;
-use App\Models\Branch;
 use App\Models\HatchSchedule;
 use App\Models\PlatformSetting;
 use App\Services\ChickService;
+use App\Support\GeoPoint;
 use Illuminate\Http\Request;
 
-/** Day-old chicks: types, hatcheries and hatch dates, and booking boxes. */
+/** Day-old chicks for customers: types, agents and order days, and booking boxes. */
 class ChickController extends Controller
 {
     public function __construct(private readonly ChickService $chicks) {}
 
-    /** Everything the chick pages need, in one call (public). */
-    public function index()
+    /** Everything the chick pages need, in one call (public). Pass lat/lng for nearest agents first. */
+    public function index(Request $request)
     {
         return response()->json([
             'box_size' => HatchSchedule::boxSize(),
-            'order_cutoff_days' => HatchSchedule::cutoffDays(),
             'show_prices' => PlatformSetting::showPrices(),
-            'seller' => $this->chicks->seller()?->business_name,
-            'types' => $this->chicks->catalogue(),
-            'pickup_stores' => $this->chicks->pickupStores()->map(fn (Branch $b) => [
-                'id' => $b->id,
-                'name' => $b->name,
-                'address' => collect([$b->address, $b->area, $b->city])->filter()->unique()->join(', '),
-                'phone' => $b->phone,
-                'latitude' => $b->latitude !== null ? (float) $b->latitude : null,
-                'longitude' => $b->longitude !== null ? (float) $b->longitude : null,
-            ])->values(),
+            'types' => $this->chicks->catalogue(GeoPoint::tryFrom($request->input('lat'), $request->input('lng'))),
         ]);
     }
 
-    /** A signed-in customer books whole boxes against a hatch date. */
+    /** A signed-in customer books whole boxes on an order day. */
     public function order(Request $request)
     {
         $data = $request->validate([

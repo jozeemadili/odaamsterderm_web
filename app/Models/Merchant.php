@@ -254,4 +254,10 @@ class Merchant extends Model implements HasMedia
     {
         return $this->belongsTo(User::class, 'reviewed_by');
     }
+
+    /** Hatcheries this agent sells day-old chicks for. */
+    public function chickContracts(): HasMany
+    {
+        return $this->hasMany(ChickContract::class);
+    }
 }

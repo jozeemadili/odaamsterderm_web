@@ -11,13 +11,14 @@ use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\Support\LogOptions;
 
 /**
- * One hatch date of one hatchery for one chick type, with the number of
- * chicks it will give. Customers book whole boxes of BOX_SIZE chicks until
- * the date is full or its order cut-off passes. Booked chicks are counted
- * from orders (cancelled and rejected ones give their chicks back), so the
- * count can never drift.
+ * An order day: the day one agent's chicks of one type from one hatchery
+ * arrive at its stores for pickup (hatch_date), with the cap of chicks it
+ * will take (capacity, whole boxes). Customers book whole boxes until the
+ * day is full or has passed — they can still book on the day itself.
+ * Booked chicks are counted from orders (cancelled and rejected ones give
+ * their chicks back), so the count can never drift.
  */
-#[Fillable(['producer_id', 'chick_type_id', 'product_id', 'hatch_date', 'order_cutoff_date', 'capacity', 'price_per_chick', 'is_closed', 'is_sample', 'notes', 'created_by'])]
+#[Fillable(['merchant_id', 'chick_contract_id', 'producer_id', 'chick_type_id', 'product_id', 'hatch_date', 'order_cutoff_date', 'capacity', 'price_per_chick', 'is_closed', 'is_sample', 'notes', 'created_by'])]
 class HatchSchedule extends Model
 {
     use LogsActivity;
@@ -59,9 +60,15 @@ class HatchSchedule extends Model
         return (int) config('hub.chick_box_size', 50);
     }
 
-    public static function cutoffDays(): int
+    /** The agent selling this order day. */
+    public function merchant(): BelongsTo
     {
-        return (int) config('hub.chick_order_cutoff_days', 3);
+        return $this->belongsTo(Merchant::class);
+    }
+
+    public function contract(): BelongsTo
+    {
+        return $this->belongsTo(ChickContract::class, 'chick_contract_id');
     }
 
     public function producer(): BelongsTo
@@ -92,12 +99,10 @@ class HatchSchedule extends Model
         )], 'quantity');
     }
 
-    /** Dates customers can still book (not closed, cut-off not passed). */
+    /** Order days customers can still book: not closed, and today or later. */
     public function scopeBookable(Builder $query): Builder
     {
-        return $query->where('is_closed', false)
-            ->whereDate('order_cutoff_date', '>=', today())
-            ->whereDate('hatch_date', '>=', today());
+        return $query->where('is_closed', false)->whereDate('hatch_date', '>=', today());
     }
 
     public function booked(): int
@@ -113,6 +118,11 @@ class HatchSchedule extends Model
     }
 
     /** Whole boxes still free. */
+    public function capBoxes(): int
+    {
+        return intdiv($this->capacity, static::boxSize());
+    }
+
     public function boxesAvailable(): int
     {
         return intdiv($this->available(), static::boxSize());
@@ -122,7 +132,7 @@ class HatchSchedule extends Model
     {
         return match (true) {
             $this->hatch_date->lt(today()) => self::PAST,
-            $this->is_closed || $this->order_cutoff_date->lt(today()) => self::CLOSED,
+            $this->is_closed => self::CLOSED,
             $this->boxesAvailable() === 0 => self::FULL,
             default => self::OPEN,
         };
@@ -139,8 +149,7 @@ class HatchSchedule extends Model
         return [
             'id' => $this->id,
             'hatch_date' => $this->hatch_date->toDateString(),
-            'order_cutoff_date' => $this->order_cutoff_date->toDateString(),
-            'capacity' => $this->capacity,
+            'cap_boxes' => $this->capBoxes(),
             'available_chicks' => $this->available(),
             'boxes_available' => $this->boxesAvailable(),
             'status' => $this->status(),
