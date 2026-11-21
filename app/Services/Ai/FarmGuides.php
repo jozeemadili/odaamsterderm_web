@@ -27,7 +27,7 @@ class FarmGuides
      * @var array<string, list<string>>
      */
     private const SYNONYMS = [
-        'kuku wa nyama' => ['broiler'], 'nyama' => ['broiler'], 'broilers' => ['broiler'], 'ross' => ['broiler'],
+        'kuku wa nyama' => ['broiler'], 'nyama' => ['broiler'], 'broilers' => ['broiler'], 'ross' => ['broiler'], 'cobb' => ['broiler'], 'cobb800' => ['broiler'], 'cobb500' => ['broiler'],
         'kuku wa mayai' => ['layer', 'laying'], 'layers' => ['layer', 'laying'], 'hy-line' => ['layer'], 'hyline' => ['layer'],
         'mayai' => ['egg', 'production', 'layer'], 'yai' => ['egg'], 'kutaga' => ['laying', 'production', 'egg'], 'eggs' => ['egg'],
         'vifaranga' => ['chick', 'brooding', 'placement'], 'kifaranga' => ['chick', 'brooding'], 'chicks' => ['chick'],
@@ -95,11 +95,14 @@ class FarmGuides
         // a table row for that number answer them.
         preg_match_all('/\b(\d{1,3})\b/', $question, $numbers);
         $numbers = array_unique($numbers[1]);
+        // A breed the farmer names ("Cobb", "Ross", "Hy-Line") points to its own guide.
+        $lowerQuestion = mb_strtolower($question);
+        $brands = array_values(array_filter(['ross', 'cobb', 'hy-line'], fn ($b) => str_contains($lowerQuestion, $b) || ($b === 'hy-line' && str_contains($lowerQuestion, 'hyline'))));
         $wantsLayers = (bool) array_intersect(['layer', 'laying', 'egg'], $terms);
         $wantsBroilers = in_array('broiler', $terms, true);
 
         return $pages
-            ->map(function (array $p) use ($weights, $numbers, $wantsLayers, $wantsBroilers) {
+            ->map(function (array $p) use ($weights, $numbers, $wantsLayers, $wantsBroilers, $brands) {
                 $score = 0.0;
                 foreach ($weights as $term => $weight) {
                     $hits = substr_count($p['lower'], $term);
@@ -115,6 +118,9 @@ class FarmGuides
                 $isLayerGuide = str_contains($p['slug'], 'layer');
                 if (($wantsLayers && ! $isLayerGuide && ! $wantsBroilers) || ($wantsBroilers && $isLayerGuide && ! $wantsLayers)) {
                     $score *= 0.4;
+                }
+                if ($brands) {
+                    $score *= collect($brands)->contains(fn ($b) => str_contains($p['slug'], $b)) ? 1.6 : 0.6;
                 }
 
                 return ['guide' => $p['guide'], 'title' => $p['title'], 'page' => $p['page'], 'section' => $p['section'], 'text' => $p['text'], 'score' => round($score, 3)];
@@ -143,7 +149,7 @@ class FarmGuides
         Farm guides you can answer from:
         {$list}
 
-        When the customer asks how to raise, feed, brood, house, light, vaccinate or look after chickens (or how they should perform: weight, feed or water intake, egg production by age), base the answer on the guide excerpts below and give only the guide's figures that answer the question (temperatures, weights, amounts for the age they asked about). The Ross handbook is for broilers (kuku wa nyama) and the Hy-Line guide for brown layers (kuku wa mayai); say so if they keep a different breed. If the excerpts do not cover the question, say the guides don't cover it and give careful general advice. Never invent figures. For sick birds, still recommend a veterinarian.
+        When the customer asks how to raise, feed, brood, house, light, vaccinate or look after chickens (or how they should perform: weight, feed or water intake, egg production by age), base the answer on the guide excerpts below and give only the guide's figures that answer the question (temperatures, weights, amounts for the age they asked about). The Ross and Cobb guides are for broilers (kuku wa nyama) and the Hy-Line guide for brown layers (kuku wa mayai); use the guide for the breed the farmer keeps, and say so if their breed has no guide here. If the excerpts do not cover the question, say the guides don't cover it and give careful general advice. Never invent figures. For sick birds, still recommend a veterinarian.
 
         Guide excerpts for this question:
         {$this->orNone($excerpts)}

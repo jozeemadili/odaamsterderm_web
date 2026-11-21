@@ -33,4 +33,12 @@ class FarmGuidesTest extends TestCase
         $this->assertCount(0, $this->guides()->relevant('Who won the football match?'));
         $this->assertStringContainsString('(none matched this question)', $this->guides()->promptSection('hello'));
     }
+
+    public function test_a_named_breed_uses_its_own_guide(): void
+    {
+        $pages = $this->guides()->relevant('Nina vifaranga vya Cobb, maji yawe na joto gani?');
+
+        $this->assertSame('Cobb800 Broiler Guide', $pages[0]['guide']);
+        $this->assertStringNotContainsString("\u{FB01}", $pages[0]['text']); // ligatures normalised ("first", not "ﬁrst")
+    }
 }
