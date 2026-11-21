@@ -102,7 +102,7 @@ class ProducerTest extends TestCase
             ->assertJsonPath('offers.0.producer.name', 'Silverlands');
     }
 
-    public function test_sellers_can_propose_a_product_for_a_listed_producer(): void
+    public function test_sellers_see_listed_producers_and_request_instead_of_proposing(): void
     {
         $producer = Producer::create(['name' => 'Silverlands']);
         Producer::create(['name' => 'Old Mill', 'is_active' => false]);
@@ -114,16 +114,8 @@ class ProducerTest extends TestCase
         $this->getJson('/api/v1/catalog/producers')->assertOk()
             ->assertJsonCount(1, 'data')->assertJsonPath('data.0.name', 'Silverlands');
 
-        $this->postJson('/api/v1/catalog/products', [
-            'name' => 'Chicken Finisher',
-            'pack_size' => '50KG',
-            'unit' => 'bag',
-            'producer_id' => $producer->id,
-            'animal_type_id' => AnimalType::where('slug', 'chicken')->value('id'),
-            'product_category_id' => ProductCategory::where('code', 'C1010')->value('id'),
-        ])->assertCreated()
-            ->assertJsonPath('data.producer.name', 'Silverlands')
-            ->assertJsonPath('data.brand', 'Silverlands')
-            ->assertJsonPath('data.status', 'pending');
+        // Sellers no longer create catalogue products; they request them with label photos.
+        $this->postJson('/api/v1/catalog/products', ['name' => 'Chicken Finisher'])
+            ->assertStatus(410)->assertJsonPath('use', '/api/v1/product-requests');
     }
 }

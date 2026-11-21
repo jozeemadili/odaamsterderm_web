@@ -129,6 +129,9 @@
                     <a href="{{ route('portal.catalog.index') }}" class="icon-dock-item {{ request()->routeIs('portal.catalog.*') ? 'is-active' : '' }}">
                         <x-icon.barcode class="h-4 w-4 shrink-0" /> Product Catalog
                     </a>
+                    <a href="{{ route('portal.product-requests.index') }}" class="icon-dock-item {{ request()->routeIs('portal.product-requests.*') ? 'is-active' : '' }}">
+                        <x-icon.bell class="h-4 w-4 shrink-0" /> Product requests
+                    </a>
                     <a href="{{ route('portal.expenses.index') }}" class="icon-dock-item {{ request()->routeIs('portal.expenses.*') ? 'is-active' : '' }}">
                         <x-icon.expenses class="h-4 w-4 shrink-0" /> Expenses
                     </a>

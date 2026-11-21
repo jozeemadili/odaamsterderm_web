@@ -80,6 +80,7 @@ Route::middleware(['auth', 'internal'])->prefix('admin')->name('admin.')->group(
     Route::get('/catalog/animal-types', Admin\AnimalTypes\Index::class)->name('animal-types.index');
     Route::get('/catalog/categories', Admin\ProductCategories\Index::class)->name('product-categories.index');
     Route::get('/catalog/producers', Admin\Producers\Index::class)->name('producers.index');
+    Route::get('/catalog/requests', Admin\ProductRequests\Index::class)->name('product-requests.index');
     Route::get('/chicks', Admin\Chicks\Index::class)->name('chicks.index');
     Route::get('/audit-log', Admin\AuditLog\Index::class)->name('audit-log.index');
     Route::get('/settings/ai', Admin\Settings\Ai::class)->name('settings.ai');
@@ -96,6 +97,8 @@ Route::middleware(['auth', 'merchant'])->prefix('portal')->name('portal.')->grou
     Route::get('/expenses', Portal\Expenses\Index::class)->name('expenses.index');
     Route::get('/inventory', Portal\Inventory\Index::class)->name('inventory.index');
     Route::get('/inventory/barcodes', Portal\Inventory\Barcodes::class)->name('inventory.barcodes');
+    Route::get('/inventory/add', Portal\Inventory\AddFromCatalogue::class)->name('inventory.add');
+    Route::get('/product-requests', Portal\ProductRequests\Index::class)->name('product-requests.index');
     Route::get('/inventory/{item}', Portal\Inventory\Show::class)->name('inventory.show');
     Route::get('/marketplace', Portal\Marketplace\Index::class)->name('marketplace.index');
     Route::get('/chicks', Portal\Chicks\Index::class)->name('chicks.index');

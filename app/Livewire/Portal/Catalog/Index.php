@@ -2,7 +2,6 @@
 
 namespace App\Livewire\Portal\Catalog;
 
-use App\Livewire\Forms\ProductForm;
 use App\Models\AnimalType;
 use App\Models\Product;
 use App\Models\ProductCategory;
@@ -24,10 +23,6 @@ class Index extends Component
     use WithFileUploads;
     use WithPagination;
 
-    public ProductForm $form;
-
-    public bool $showForm = false;
-
     #[Url]
     public string $search = '';
 
@@ -36,7 +31,10 @@ class Index extends Component
 
     public function mount(): void
     {
-        $this->showForm = request()->boolean('propose');
+        // Agents no longer propose products by hand; old links go to requests.
+        if (request()->boolean('propose')) {
+            $this->redirectRoute('portal.product-requests.index');
+        }
     }
 
     public function updatingSearch(): void
@@ -47,19 +45,6 @@ class Index extends Component
     public function updatingAnimalFilter(): void
     {
         $this->resetPage();
-    }
-
-    public function propose(): void
-    {
-        $merchantId = Auth::user()->merchant_id;
-
-        $this->form->save([
-            'status' => Product::STATUS_PENDING,
-            'proposed_by_merchant_id' => $merchantId,
-        ]);
-
-        $this->showForm = false;
-        session()->flash('status', 'Product proposed. You can link it to your inventory now — it goes live on the marketplace once an admin approves it.');
     }
 
     public function render()

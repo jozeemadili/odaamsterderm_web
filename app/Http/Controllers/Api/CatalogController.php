@@ -9,9 +9,7 @@ use App\Models\Producer;
 use App\Models\Product;
 use App\Models\ProductCategory;
 use Illuminate\Http\Request;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\Rule;
 
 /**
  * Shared catalog for sellers: the animal/category trees, approved products
@@ -90,36 +88,16 @@ class CatalogController extends Controller
         );
     }
 
+    /**
+     * Retired: agents no longer create catalogue products. A missing product
+     * is requested with photos of its label (POST /product-requests) and the
+     * data team adds it.
+     */
     public function propose(Request $request)
     {
-        $data = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'pack_size' => ['nullable', 'string', 'max:50'],
-            'unit' => ['required', Rule::in(Product::UNITS)],
-            'producer_id' => ['nullable', Rule::exists('producers', 'id')->where('is_active', true)],
-            'brand' => ['nullable', 'string', 'max:255'],
-            'animal_type_id' => ['required', Rule::exists('animal_types', 'id')->where('is_active', true)],
-            'animal_type_ids' => ['nullable', 'array'],
-            'animal_type_ids.*' => [Rule::exists('animal_types', 'id')->where('is_active', true)],
-            'product_category_id' => ['required', Rule::exists('product_categories', 'id')->where('is_active', true)],
-            'description' => ['nullable', 'string', 'max:5000'],
-        ]);
-
-        if (! empty($data['producer_id'])) {
-            $data['brand'] = Producer::whereKey($data['producer_id'])->value('name');
-        }
-
-        $otherAnimals = array_map('intval', Arr::pull($data, 'animal_type_ids') ?? []);
-
-        $product = Product::create($data + [
-            'slug' => Product::uniqueSlug($data['name'].' '.($data['pack_size'] ?? '').' '.($data['brand'] ?? '')),
-            'status' => Product::STATUS_PENDING,
-            'proposed_by_merchant_id' => Auth::user()->merchant_id,
-        ]);
-
-        $product->animalTypes()->syncWithoutDetaching($otherAnimals);
-        $product->syncDefaultVariant();
-
-        return (new ProductResource($product->load(['animalType', 'animalTypes', 'category.parent'])))->response()->setStatusCode(201);
+        return response()->json([
+            'message' => 'Products are no longer added by hand. Send a product request with photos of the label instead.',
+            'use' => '/api/v1/product-requests',
+        ], 410);
     }
 }

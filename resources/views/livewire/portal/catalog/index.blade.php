@@ -5,19 +5,11 @@
 
     <div class="flex flex-wrap items-center justify-between gap-3">
         <p class="text-[13px] text-ink-mute max-w-2xl">The shared catalog lets customers compare the same product across sellers. Link your inventory items to catalog products to sell them on the marketplace.</p>
-        <x-ui.button wire:click="$toggle('showForm')">{{ $showForm ? 'Cancel' : '+ Propose a product' }}</x-ui.button>
+        <div class="flex gap-2">
+            <a href="{{ route('portal.inventory.add') }}" class="inline-flex items-center rounded-pill bg-primary text-white px-4 py-2 text-[14px] hover:bg-primary-deep">+ Add from catalogue</a>
+            <a href="{{ route('portal.product-requests.index') }}" class="inline-flex items-center rounded-pill border border-ink/20 bg-canvas px-4 py-2 text-[14px] hover:bg-canvas-soft">Request a missing product</a>
+        </div>
     </div>
-
-    @if($showForm)
-        <x-ui.card>
-            <h2 class="text-[15px] text-ink mb-1">Propose a new catalog product</h2>
-            <p class="text-[12px] text-ink-mute mb-4">Search the catalog first to avoid duplicates. An admin reviews every proposal.</p>
-            <form wire:submit="propose" class="space-y-4">
-                @include('livewire.shared.product-form-fields')
-                <x-ui.button type="submit" target="propose">Submit for review</x-ui.button>
-            </form>
-        </x-ui.card>
-    @endif
 
     @if($proposals->isNotEmpty())
         <x-ui.card padding="p-0">

@@ -7,10 +7,10 @@ use App\Livewire\Portal\Inventory\Index as InventoryIndex;
 use App\Livewire\Portal\Inventory\Show as InventoryShow;
 use App\Livewire\Portal\Marketplace\Index as MarketplaceIndex;
 use App\Livewire\Portal\Stores\Show as StoreShow;
-use App\Models\AnimalType;
 use App\Models\Branch;
+use App\Models\InventoryCategory;
+use App\Models\Merchant;
 use App\Models\Product;
-use App\Models\ProductCategory;
 use App\Services\InventoryService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -66,7 +66,7 @@ class SellerPortalScreensTest extends TestCase
 
     public function test_seller_cannot_open_another_sellers_store(): void
     {
-        $other = \App\Models\Merchant::create(['business_name' => 'Other', 'owner_name' => 'X', 'phone' => '+255711111111']);
+        $other = Merchant::create(['business_name' => 'Other', 'owner_name' => 'X', 'phone' => '+255711111111']);
         $theirs = Branch::create(['merchant_id' => $other->id, 'name' => 'Theirs']);
 
         $this->actingAs($this->owner)->get(route('portal.stores.show', $theirs))->assertForbidden();
@@ -75,7 +75,7 @@ class SellerPortalScreensTest extends TestCase
     public function test_add_item_linked_to_catalog_product_prefills_name_and_unit(): void
     {
         $product = Product::where('name', 'Dairy Meal')->first();
-        $category = \App\Models\InventoryCategory::create(['merchant_id' => $this->merchant->id, 'name' => 'Feeds']);
+        $category = InventoryCategory::create(['merchant_id' => $this->merchant->id, 'name' => 'Feeds']);
 
         Livewire::actingAs($this->owner)->test(InventoryIndex::class)
             ->set('catalogSearch', 'dairy')
@@ -149,22 +149,10 @@ class SellerPortalScreensTest extends TestCase
         $this->assertEquals(18, $item->fresh()->quantity_on_hand);
     }
 
-    public function test_seller_proposes_a_catalog_product(): void
+    public function test_catalog_page_sends_sellers_to_pick_or_request(): void
     {
         Livewire::actingAs($this->owner)->test(CatalogIndex::class)
-            ->set('form.name', 'Calf Milk Replacer')
-            ->set('form.pack_size', '20KG')
-            ->set('form.unit', 'bag')
-            ->set('form.animal_type_id', (string) AnimalType::where('slug', 'cattle')->first()->id)
-            ->set('form.product_category_id', (string) ProductCategory::where('slug', 'feed')->first()->id)
-            ->call('propose')
-            ->assertHasNoErrors()
-            ->assertSee('Waiting for review');
-
-        $this->assertDatabaseHas('products', [
-            'name' => 'Calf Milk Replacer',
-            'status' => 'pending',
-            'proposed_by_merchant_id' => $this->merchant->id,
-        ]);
+            ->assertSee('Add from catalogue')
+            ->assertSee('Request a missing product');
     }
 }

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\AgentCatalogController;
 use App\Http\Controllers\Api\AgentChickController;
 use App\Http\Controllers\Api\AiController;
 use App\Http\Controllers\Api\AuthController;
@@ -134,7 +135,13 @@ Route::prefix('v1')->group(function () {
             Route::get('/catalog/categories', [CatalogController::class, 'categories']);
             Route::get('/catalog/products', [CatalogController::class, 'products']);
             Route::get('/catalog/producers', [CatalogController::class, 'producers']);
-            Route::post('/catalog/products', [CatalogController::class, 'propose']);
+            Route::post('/catalog/products', [CatalogController::class, 'propose']); // retired: answers with a pointer to product requests
+            Route::get('/catalog/pick', [AgentCatalogController::class, 'pick']);
+            Route::get('/catalog/pick/producers', [AgentCatalogController::class, 'producers']);
+            Route::get('/catalog/similar', [AgentCatalogController::class, 'similar']);
+            Route::post('/inventory/from-catalogue', [AgentCatalogController::class, 'addToStock']);
+            Route::get('/product-requests', [AgentCatalogController::class, 'requests']);
+            Route::post('/product-requests', [AgentCatalogController::class, 'storeRequest']);
             Route::get('/catalog/proposals', [CatalogController::class, 'proposals']);
 
             // --- Branches / stores -----------------------------------------

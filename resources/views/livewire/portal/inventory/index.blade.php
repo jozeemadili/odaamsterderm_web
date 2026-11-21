@@ -1,7 +1,8 @@
 <div class="space-y-4">
     <div class="flex flex-col sm:flex-row sm:items-center gap-3">
-        <x-ui.button wire:click="$toggle('showItemForm')" class="shrink-0 self-start">
-            {{ $showItemForm ? 'Cancel' : '+ Add inventory item' }}
+        <a href="{{ route('portal.inventory.add') }}" class="shrink-0 self-start inline-flex items-center justify-center gap-2 rounded-pill leading-none transition bg-primary text-white hover:bg-primary-deep px-4 py-2 text-[15px]">+ Add from catalogue</a>
+        <x-ui.button variant="secondary" wire:click="$toggle('showItemForm')" class="shrink-0 self-start" title="For items you only sell in your shop and that aren't in the catalogue">
+            {{ $showItemForm ? 'Cancel' : '+ Shop-only item' }}
         </x-ui.button>
         <a href="{{ route('portal.inventory.barcodes') }}" class="shrink-0 self-start inline-flex items-center justify-center gap-2 rounded-pill font-normal leading-none transition bg-canvas text-ink border border-ink/20 hover:bg-canvas-soft px-4 py-2 text-[15px]">
             <x-icon.barcode class="h-4 w-4" /> Print barcode labels
@@ -16,7 +17,7 @@
         <x-ui.card>
             <h2 class="text-[15px] text-ink-secondary mb-1">Import inventory from Excel</h2>
             <p class="text-[12px] text-ink-mute mb-4">
-                Every row must be a product from our catalog: download the template and pick each product from the dropdown in the first column (the full list is on the "Catalog" sheet). The name, unit and photos come from the catalog — you only fill in your barcode, prices and quantity. A row whose barcode, or catalog product and pack size, you already stock just adds to that stock, so you won't get duplicates. Missing a product? Add it with "+ Add inventory item" and propose it to the catalog.
+                Every row must be a product from our catalog: download the template and pick each product from the dropdown in the first column (the full list is on the "Catalog" sheet). The name, unit and photos come from the catalog — you only fill in your barcode, prices and quantity. A row whose barcode, or catalog product and pack size, you already stock just adds to that stock, so you won't get duplicates. Missing a product? <a href="{{ route('portal.product-requests.index') }}" class="text-primary hover:text-primary-deep">Request it</a> with photos of its label.
             </p>
 
             <div class="flex flex-wrap gap-3 mb-4">

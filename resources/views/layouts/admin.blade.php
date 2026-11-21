@@ -108,6 +108,10 @@
                     <a href="{{ route('admin.products.index') }}" class="icon-dock-item {{ request()->routeIs('admin.products.*') ? 'is-active' : '' }}">
                         <x-icon.inventory class="h-4 w-4 shrink-0" /> Products
                     </a>
+                    @php($pendingRequests = \App\Models\ProductRequest::pending()->count())
+                    <a href="{{ route('admin.product-requests.index') }}" class="icon-dock-item {{ request()->routeIs('admin.product-requests.*') ? 'is-active' : '' }}">
+                        <x-icon.bell class="h-4 w-4 shrink-0" /> Product requests @if($pendingRequests)<span class="ml-auto rounded-pill bg-lemon text-ink text-[10.5px] font-semibold px-1.5">{{ $pendingRequests }}</span>@endif
+                    </a>
                     <a href="{{ route('admin.animal-types.index') }}" class="icon-dock-item {{ request()->routeIs('admin.animal-types.*') ? 'is-active' : '' }}">
                         <x-icon.target class="h-4 w-4 shrink-0" /> Animal Types
                     </a>

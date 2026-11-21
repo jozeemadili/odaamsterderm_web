@@ -6,7 +6,6 @@ use App\Models\AnimalType;
 use App\Models\Branch;
 use App\Models\Merchant;
 use App\Models\Product;
-use App\Models\ProductCategory;
 use App\Models\StockMovement;
 use App\Services\InventoryService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -146,7 +145,7 @@ class SellerMarketplaceApiTest extends TestCase
             ->assertUnprocessable()->assertJsonValidationErrors('latitude');
     }
 
-    public function test_catalog_lists_approved_products_and_accepts_proposals(): void
+    public function test_catalog_lists_approved_products_and_retires_proposals(): void
     {
         $this->getJson('/api/v1/catalog/animal-types')->assertOk()->assertJsonPath('data.0.name', 'Poultry');
         $this->getJson('/api/v1/catalog/products?search=starter')->assertOk()->assertJsonPath('data.0.display_name', 'Chicken Starter 25KG');
@@ -157,17 +156,8 @@ class SellerMarketplaceApiTest extends TestCase
         $this->assertContains('Vaccines & biologicals', array_column($cats, 'name'));
         $this->assertContains('Live animals & genetics', array_column($cats, 'name'));
 
-        $this->postJson('/api/v1/catalog/products', [
-            'name' => 'Broiler Booster',
-            'pack_size' => '1KG',
-            'unit' => 'sachet',
-            'animal_type_id' => $chicken->id,
-            'product_category_id' => ProductCategory::where('code', 'C2010')->first()->id,
-        ])->assertCreated()->assertJsonPath('data.status', 'pending');
-
-        // The proposer sees their pending proposal; other sellers don't.
-        $this->getJson('/api/v1/catalog/products?search=booster')->assertJsonCount(1, 'data');
-        $this->getJson('/api/v1/catalog/proposals')->assertJsonCount(1, 'data');
+        // Proposing is retired: products are requested with label photos.
+        $this->postJson('/api/v1/catalog/products', ['name' => 'Broiler Booster'])->assertStatus(410);
     }
 
     public function test_dashboard_reports_marketplace_and_stock_metrics(): void
