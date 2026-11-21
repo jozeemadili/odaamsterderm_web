@@ -100,25 +100,50 @@
                 <p class="text-[13px] text-ink-mute">Choose the day the chicks arrive.</p>
             </div>
         </div>
-        @foreach($chosenAgent['hatcheries'] as $h)
-            <div class="space-y-2">
-                <p class="text-[14px] font-semibold text-ink">{{ $h['name'] }} <span class="font-normal text-ink-mute">· collect at {{ count($h['pickup_stores']) > 2 ? 'any of '.count($h['pickup_stores']).' stores' : collect($h['pickup_stores'])->pluck('name')->join(' or ') }}</span></p>
-                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-                    @foreach($h['dates'] as $d)
-                        @php($open = $d['status'] === 'open')
-                        <button @if($open) wire:click="chooseDay({{ $d['id'] }})" @endif @disabled(! $open)
-                            class="text-left rounded-[16px] border p-3.5 transition {{ $open ? 'border-hairline bg-canvas hover:border-primary/40' : 'border-hairline bg-canvas-soft opacity-70 cursor-not-allowed' }}">
-                            <p class="font-display text-[16px] font-bold text-ink">{{ $short($d['hatch_date']) }}</p>
-                            <p class="mt-0.5 text-[12.5px] {{ $open ? 'text-success font-semibold' : 'text-ruby font-semibold' }}">{{ $open ? $d['boxes_available'].' '.\Illuminate\Support\Str::plural('box', $d['boxes_available']).' left' : $d['status_label'] }}</p>
-                            @prices
-                                @if($d['price_per_box'])<p class="mt-0.5 text-[12.5px] font-semibold text-ink tnum">TZS {{ number_format($d['price_per_box']) }} / box</p>@endif
-                            @endprices
-                            @if($d['notes'])<p class="mt-0.5 text-[11.5px] text-ink-secondary">{{ $d['notes'] }}</p>@endif
-                        </button>
-                    @endforeach
-                </div>
+        @php
+            $byDay = collect($chosenAgent['hatcheries'])
+                ->flatMap(fn ($h) => collect($h['dates'])->map(fn ($d) => $d + ['hatchery' => $h]))
+                ->groupBy(fn ($d) => substr($d['hatch_date'], 0, 10))->sortKeys();
+            $firstOpen = $byDay->search(fn ($ds) => $ds->contains('status', 'open')) ?: $byDay->keys()->first();
+        @endphp
+        <div x-data="{ day: @js($firstOpen) }" class="space-y-4">
+            {{-- Days as a compact strip, then who delivers that day --}}
+            <div class="flex gap-2 overflow-x-auto pb-1">
+                @foreach($byDay as $date => $ds)
+                    @php($c = \Illuminate\Support\Carbon::parse($date))
+                    @php($anyOpen = $ds->contains('status', 'open'))
+                    <button type="button" @click="day = @js($date)"
+                        :class="day === @js($date) ? 'bg-primary text-white border-primary' : 'bg-canvas text-ink border-hairline {{ $anyOpen ? '' : 'opacity-50' }}'"
+                        class="shrink-0 w-16 rounded-[14px] border py-2 text-center transition">
+                        <span class="block text-[11.5px] opacity-75">{{ $c->format('D') }}</span>
+                        <span class="block font-display text-[19px] font-extrabold leading-tight">{{ $c->format('j') }}</span>
+                        <span class="block text-[11.5px] opacity-75">{{ $c->format('M') }}</span>
+                    </button>
+                @endforeach
             </div>
-        @endforeach
+            @foreach($byDay as $date => $ds)
+                <div x-show="day === @js($date)" x-cloak class="space-y-2">
+                    <p class="text-[14px] font-semibold text-ink">{{ $short($date) }}</p>
+                    <div class="grid gap-2 sm:grid-cols-2">
+                        @foreach($ds as $d)
+                            @php($open = $d['status'] === 'open')
+                            @php($h = $d['hatchery'])
+                            <button @if($open) wire:click="chooseDay({{ $d['id'] }})" @endif @disabled(! $open)
+                                class="flex items-center gap-3 text-left rounded-[16px] border p-3.5 transition {{ $open ? 'border-hairline bg-canvas hover:border-primary/40' : 'border-hairline bg-canvas-soft opacity-70 cursor-not-allowed' }}">
+                                <span class="min-w-0 flex-1">
+                                    <span class="block font-display text-[15px] font-bold text-ink">{{ $h['name'] }}</span>
+                                    <span class="block text-[12px] text-ink-mute">Collect at {{ count($h['pickup_stores']) > 2 ? 'any of '.count($h['pickup_stores']).' stores' : collect($h['pickup_stores'])->pluck('name')->join(' or ') }}</span>
+                                    @prices
+                                        @if($d['price_per_box'])<span class="block text-[12.5px] font-semibold text-ink tnum">TZS {{ number_format($d['price_per_box']) }} / box</span>@endif
+                                    @endprices
+                                </span>
+                                <span class="shrink-0 rounded-pill px-2.5 py-1 text-[12px] font-semibold {{ $open ? 'bg-success-subtle text-success' : 'bg-ruby/10 text-ruby' }}">{{ $open ? $d['boxes_available'].' '.\Illuminate\Support\Str::plural('box', $d['boxes_available']).' left' : $d['status_label'] }}</span>
+                            </button>
+                        @endforeach
+                    </div>
+                </div>
+            @endforeach
+        </div>
     @endif
 
     {{-- 4. Book --}}
