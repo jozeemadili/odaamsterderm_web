@@ -22,24 +22,15 @@
 
             @php($askAiOn = \App\Services\Ai\AiProductSearch::enabled())
             @php($inAiMode = $askAiOn && request()->filled('ask'))
-            {{-- One search bar with Ask AI inside, like the app: Enter searches,
-                 "Ask AI" sends the same words to the AI as a question. --}}
+            {{-- Plain search; Ask AI is the floating button at the bottom right. --}}
             <form action="{{ route('market.home') }}" method="GET" x-data
                 class="order-3 w-full md:order-none md:w-auto md:flex-1 md:max-w-2xl flex items-center gap-2 rounded-pill bg-white/10 border border-white/15 pl-4 pr-1 py-1 focus-within:border-primary-soft transition">
                 <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="h-[18px] w-[18px] shrink-0 text-white/60"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
                 <label for="market_q" class="sr-only">Search products or ask a question</label>
                 <input id="market_q" x-ref="q" type="search" name="{{ $inAiMode ? 'ask' : 'q' }}" maxlength="300"
                     value="{{ $inAiMode ? request('ask') : request('q') }}"
-                    placeholder="{{ $askAiOn ? 'Search feeds, vaccines, medicines… or ask AI' : 'Search feeds, vaccines, medicines…' }}"
+                    placeholder="Search feeds, vaccines, medicines…"
                     class="min-w-0 flex-1 bg-transparent py-1.5 text-[14px] text-white placeholder:text-white/50 focus:outline-none">
-                @if($askAiOn)
-                    <button type="submit" x-on:click="$refs.q.name = 'ask'"
-                        title="Ask AI: describe what you need in your own words (English or Kiswahili)"
-                        class="shrink-0 inline-flex items-center gap-1.5 rounded-pill bg-primary px-3.5 py-2 text-[13px] font-semibold text-white hover:bg-primary-deep transition">
-                        <svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor" class="h-4 w-4 text-leaf"><path d="M12 3l1.9 4.6L18.5 9.5l-4.6 1.9L12 16l-1.9-4.6L5.5 9.5l4.6-1.9z"/><path d="M19 15l.8 1.9 1.9.8-1.9.8L19 20.4l-.8-1.9-1.9-.8 1.9-.8z"/></svg>
-                        Ask AI
-                    </button>
-                @endif
             </form>
 
             <div class="ml-auto flex items-center gap-3 text-[13px]">
@@ -107,6 +98,32 @@
             </div>
         </div>
     </footer>
+
+    {{-- Ask AI: a floating button on every marketplace page, like the app.
+         The question goes to the marketplace home, where the answer and the
+         matching products appear. --}}
+    @if($askAiOn)
+        <div x-data="{ open: false }" x-on:keydown.escape.window="open = false" class="fixed bottom-5 right-5 z-40 flex flex-col items-end gap-3">
+            <form x-show="open" x-transition x-cloak action="{{ route('market.home') }}" method="GET"
+                class="w-[min(360px,calc(100vw-2.5rem))] rounded-[20px] border border-hairline bg-canvas p-4 shadow-[0_20px_40px_rgba(42,10,15,0.22)]">
+                <label for="ask_ai_fab" class="block text-[14px] font-semibold text-ink">Ask the farm assistant</label>
+                <p class="mt-0.5 text-[12px] text-ink-mute">In English or Kiswahili, e.g. "Nina vifaranga 200 wa nyama, nitumie chakula gani?"</p>
+                <textarea id="ask_ai_fab" name="ask" rows="3" maxlength="300" required x-ref="question"
+                    x-on:keydown.enter.prevent="if (! $event.shiftKey && $el.value.trim()) $el.form.submit()"
+                    class="mt-2 w-full rounded-[12px] border border-hairline-input px-3 py-2 text-[14px] focus:border-primary focus:outline-none"
+                    placeholder="Ask about animals, feeds, medicines, chicks…"></textarea>
+                <div class="mt-2 flex justify-end gap-2">
+                    <button type="button" x-on:click="open = false" class="rounded-pill px-3 py-1.5 text-[13px] text-ink-mute hover:text-ink">Close</button>
+                    <button type="submit" class="rounded-pill bg-primary px-4 py-1.5 text-[13px] font-semibold text-white hover:bg-primary-deep">Ask</button>
+                </div>
+            </form>
+            <button type="button" x-on:click="open = ! open; $nextTick(() => open && $refs.question.focus())" aria-label="Ask AI"
+                class="inline-flex items-center gap-2 rounded-[18px] bg-primary px-5 py-3.5 text-[15px] font-bold text-white shadow-[0_12px_28px_rgba(42,10,15,0.35)] hover:bg-primary-deep transition">
+                <svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5 text-leaf"><path d="M12 3l1.9 4.6L18.5 9.5l-4.6 1.9L12 16l-1.9-4.6L5.5 9.5l4.6-1.9z"/><path d="M19 15l.8 1.9 1.9.8-1.9.8L19 20.4l-.8-1.9-1.9-.8 1.9-.8z"/></svg>
+                Ask AI
+            </button>
+        </div>
+    @endif
 
     @livewireScripts
 </body>
