@@ -12,6 +12,7 @@
                     <p class="mt-3 text-[16px] leading-relaxed text-ink/80 max-w-xl">@prices Compare prices on @else Find @endprices feeds, vaccines, medicines and equipment for poultry, cattle, goats, pigs and fish — from approved agrovets across Tanzania.</p>
                     <div class="mt-6 flex flex-wrap gap-3">
                         <a href="#products" class="rounded-pill bg-primary text-white font-medium px-5 py-2.5 text-[14px] shadow-sm hover:bg-primary-deep transition">Browse products</a>
+                        <a href="{{ route('market.chicks') }}" class="rounded-pill bg-leaf text-ink font-semibold px-5 py-2.5 text-[14px] shadow-sm hover:bg-leaf-deep transition">Book day-old chicks</a>
                         @unless($from)
                             <button type="button" x-data x-on:click="document.querySelector('header [wire\\:click=openPicker]')?.click()" class="rounded-pill border border-primary/40 bg-white/60 text-primary px-5 py-2.5 text-[14px] hover:bg-white transition">Find stores near me</button>
                         @endunless
@@ -80,6 +81,7 @@
         $chipOff = 'border-hairline bg-canvas text-ink hover:border-primary/40';
     @endphp
     <div class="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:none]">
+        <a href="{{ route('market.chicks') }}" class="{{ $chip }} border-leaf-deep bg-leaf/20 text-leaf-deep hover:bg-leaf/30">Vifaranga · Chicks</a>
         <button wire:click="chooseAnimal(null)" class="{{ $chip }} {{ $animal === '' ? $chipOn : $chipOff }}">All animals</button>
         @foreach($animalGroups as $group)
             <button wire:click="chooseAnimal({{ $group->id }})" title="{{ $group->name }}" class="{{ $chip }} {{ $animal === (string) $group->id ? $chipOn : $chipOff }}">{{ $group->shortName() }}</button>

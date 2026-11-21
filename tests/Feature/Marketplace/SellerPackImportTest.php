@@ -32,7 +32,7 @@ class SellerPackImportTest extends TestCase
         $this->assertSame(['ST-HARS-DOD', 'ST-HARS-MSH'], $stores->pluck('code')->all());
         $moshi = $stores->firstWhere('code', 'ST-HARS-MSH');
         $this->assertTrue($moshi->is_primary);
-        $this->assertTrue($moshi->is_marketplace_enabled);
+        $this->assertFalse($moshi->is_marketplace_enabled); // a producer: Amsterdam sells its chicks
         $this->assertSame('Kilimanjaro', $moshi->region->name);
         $this->assertSame(['open' => '08:00', 'close' => '18:00'], $moshi->opening_hours['fri']);
         $this->assertNull($moshi->opening_hours['sun']);

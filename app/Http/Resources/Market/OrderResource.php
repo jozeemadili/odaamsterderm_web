@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Market;
 
+use App\Models\HatchSchedule;
 use App\Models\Order;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -44,6 +45,9 @@ class OrderResource extends JsonResource
                 'unit_price' => (float) $i->unit_price,
                 'quantity' => (float) $i->quantity,
                 'line_total' => (float) $i->line_total,
+                // Day-old chicks booked against a hatch date, in boxes.
+                'hatch_date' => $i->hatch_schedule_id ? $i->hatchSchedule?->hatch_date?->toDateString() : null,
+                'boxes' => $i->hatch_schedule_id ? intdiv((int) $i->quantity, HatchSchedule::boxSize()) : null,
             ])->values()),
             'events' => $this->whenLoaded('events', fn () => $this->events->map(fn ($e) => [
                 'status' => $e->status,

@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', Market\Home::class)->name('market.home');
 Route::get('/products/{product:slug}', Market\ProductShow::class)->name('market.product');
 Route::get('/stores/{store}', Market\StoreShow::class)->name('market.store');
+Route::get('/chicks', Market\Chicks::class)->name('market.chicks');
 Route::get('/privacy', Market\Privacy::class)->name('market.privacy');
 Route::get('/delete-account', Market\DeleteAccountInfo::class)->name('market.delete-account');
 Route::middleware(['auth', 'customer'])->group(function () {
@@ -79,6 +80,7 @@ Route::middleware(['auth', 'internal'])->prefix('admin')->name('admin.')->group(
     Route::get('/catalog/animal-types', Admin\AnimalTypes\Index::class)->name('animal-types.index');
     Route::get('/catalog/categories', Admin\ProductCategories\Index::class)->name('product-categories.index');
     Route::get('/catalog/producers', Admin\Producers\Index::class)->name('producers.index');
+    Route::get('/chicks', Admin\Chicks\Index::class)->name('chicks.index');
     Route::get('/audit-log', Admin\AuditLog\Index::class)->name('audit-log.index');
     Route::get('/settings/ai', Admin\Settings\Ai::class)->name('settings.ai');
 });
@@ -96,6 +98,7 @@ Route::middleware(['auth', 'merchant'])->prefix('portal')->name('portal.')->grou
     Route::get('/inventory/barcodes', Portal\Inventory\Barcodes::class)->name('inventory.barcodes');
     Route::get('/inventory/{item}', Portal\Inventory\Show::class)->name('inventory.show');
     Route::get('/marketplace', Portal\Marketplace\Index::class)->name('marketplace.index');
+    Route::get('/chicks', Portal\Chicks\Index::class)->name('chicks.index');
     Route::get('/orders', Portal\Orders\Index::class)->name('orders.index');
     Route::get('/orders/{order}', Portal\Orders\Show::class)->name('orders.show');
     Route::get('/catalog', Portal\Catalog\Index::class)->name('catalog.index');

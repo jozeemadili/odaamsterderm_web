@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AiController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BranchController;
 use App\Http\Controllers\Api\CatalogController;
+use App\Http\Controllers\Api\ChickController;
 use App\Http\Controllers\Api\CustomerController;
 use App\Http\Controllers\Api\CustomerOrderController;
 use App\Http\Controllers\Api\CustomerProfileController;
@@ -46,6 +47,7 @@ Route::prefix('v1')->group(function () {
     // --- Public marketplace (no sign-in) --------------------------------
     Route::prefix('market')->group(function () {
         Route::get('/settings', [MarketplaceController::class, 'settings']);
+        Route::get('/chicks', [ChickController::class, 'index']);
         Route::get('/filters', [MarketplaceController::class, 'filters']);
         Route::get('/products', [MarketplaceController::class, 'products']);
         Route::get('/products/{product}', [MarketplaceController::class, 'product']);
@@ -79,6 +81,7 @@ Route::prefix('v1')->group(function () {
             Route::post('/cart/items', [CustomerOrderController::class, 'addToCart']);
             Route::put('/cart/items/{offer}', [CustomerOrderController::class, 'setQuantity']);
             Route::post('/checkout', [CustomerOrderController::class, 'checkout']);
+            Route::post('/chick-orders', [ChickController::class, 'order']);
             Route::get('/orders', [CustomerOrderController::class, 'index']);
             Route::get('/orders/{order}', [CustomerOrderController::class, 'show']);
             Route::post('/orders/{order}/cancel', [CustomerOrderController::class, 'cancel']);

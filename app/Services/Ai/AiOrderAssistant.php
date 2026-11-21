@@ -8,6 +8,7 @@ use App\Models\InventoryItem;
 use App\Models\PlatformSetting;
 use App\Models\Product;
 use App\Models\User;
+use App\Services\ChickService;
 use App\Services\MarketplaceSearch;
 use App\Support\GeoPoint;
 use Illuminate\Support\Collection;
@@ -53,6 +54,7 @@ class AiOrderAssistant
         private readonly MarketplaceSearch $search,
         private readonly AiUsage $usage,
         private readonly FarmGuides $guides,
+        private readonly ChickService $chicks,
     ) {}
 
     /** Whether the admin has switched the "Use AI to place order" button on. */
@@ -263,6 +265,8 @@ class AiOrderAssistant
         The customer is {$customer->name}. {$location}
 
         {$guides}
+
+        {$this->chicks->promptSection()}
 
         Catalogue (product | brand | animals | category | pack sizes | use rate | description):
         {$products}

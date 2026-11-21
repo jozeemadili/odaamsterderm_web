@@ -121,6 +121,11 @@
                     <a href="{{ route('portal.marketplace.index') }}" class="icon-dock-item {{ request()->routeIs('portal.marketplace.*') ? 'is-active' : '' }}">
                         <x-icon.target class="h-4 w-4 shrink-0" /> Marketplace
                     </a>
+                    @if(app(\App\Services\ChickService::class)->canManage(auth()->user()))
+                        <a href="{{ route('portal.chicks.index') }}" class="icon-dock-item {{ request()->routeIs('portal.chicks.*') ? 'is-active' : '' }}">
+                            <x-icon.calendar class="h-4 w-4 shrink-0" /> Day-old chicks
+                        </a>
+                    @endif
                     <a href="{{ route('portal.catalog.index') }}" class="icon-dock-item {{ request()->routeIs('portal.catalog.*') ? 'is-active' : '' }}">
                         <x-icon.barcode class="h-4 w-4 shrink-0" /> Product Catalog
                     </a>

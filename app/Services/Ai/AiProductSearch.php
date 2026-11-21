@@ -6,6 +6,7 @@ use App\Models\AiRequest;
 use App\Models\PlatformSetting;
 use App\Models\Product;
 use App\Models\User;
+use App\Services\ChickService;
 use App\Services\MarketplaceSearch;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
@@ -44,6 +45,7 @@ class AiProductSearch
         private readonly MarketplaceSearch $search,
         private readonly AiUsage $usage,
         private readonly FarmGuides $guides,
+        private readonly ChickService $chicks,
     ) {}
 
     /** Whether the admin has switched Ask AI on (the button is shown). */
@@ -202,6 +204,8 @@ class AiProductSearch
         When asked how to use a product, give its use rate from the catalog; if it has none, say to follow the label.
 
         {$guides}
+
+        {$this->chicks->promptSection()}
 
         {$this->priceRule()}
 

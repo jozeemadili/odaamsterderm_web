@@ -130,6 +130,8 @@ class SellerPackImporter
             'vet_advice_on_site' => (bool) ($row['vet_advice_on_site'] ?? false),
             'bio' => $row['bio'] ?? null,
             'bio_sw' => $row['bio_sw'] ?? null,
+            // A seller can be kept in the system but off the marketplace.
+            'is_marketplace_enabled' => (bool) ($row['marketplace'] ?? $store->is_marketplace_enabled ?? true),
         ])->save();
 
         if ($store->is_primary) {

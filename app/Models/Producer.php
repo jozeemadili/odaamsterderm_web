@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
@@ -17,10 +18,23 @@ use Spatie\MediaLibrary\InteractsWithMedia;
  * 25KG by Silverlands"). The same product name from two producers is two
  * catalog products, so buyers and sellers can tell them apart.
  */
-#[Fillable(['code', 'name', 'slug', 'country', 'role', 'website', 'description', 'is_active', 'on_marketplace', 'is_demo'])]
+#[Fillable(['code', 'name', 'slug', 'country', 'role', 'deals_in', 'website', 'phone', 'location', 'description', 'is_active', 'on_marketplace', 'is_demo'])]
 class Producer extends Model implements HasMedia
 {
     use InteractsWithMedia, LogsActivity;
+
+    /** What a company produces: day-old chicks, feeds, or both. */
+    public const DEALS_CHICKS = 'chicks';
+
+    public const DEALS_FEED = 'feed';
+
+    public const DEALS_CHICKS_FEED = 'chicks_feed';
+
+    public const DEALS = [
+        self::DEALS_CHICKS => 'Chicks',
+        self::DEALS_FEED => 'Feed',
+        self::DEALS_CHICKS_FEED => 'Chicks and feed',
+    ];
 
     protected function casts(): array
     {
@@ -67,5 +81,27 @@ class Producer extends Model implements HasMedia
     public function products(): HasMany
     {
         return $this->hasMany(Product::class);
+    }
+
+    /** Chick types this hatchery produces. */
+    public function chickTypes(): BelongsToMany
+    {
+        return $this->belongsToMany(ChickType::class);
+    }
+
+    public function hatchSchedules(): HasMany
+    {
+        return $this->hasMany(HatchSchedule::class);
+    }
+
+    public function makesChicks(): bool
+    {
+        return in_array($this->deals_in, [self::DEALS_CHICKS, self::DEALS_CHICKS_FEED], true);
+    }
+
+    /** Hatcheries: companies that make day-old chicks. */
+    public function scopeHatcheries(Builder $query): Builder
+    {
+        return $query->whereIn('deals_in', [self::DEALS_CHICKS, self::DEALS_CHICKS_FEED]);
     }
 }

@@ -118,6 +118,9 @@
                         <x-icon.store class="h-4 w-4 shrink-0" /> Producers
                     </a>
                     @endcan
+                    <a href="{{ route('admin.chicks.index') }}" class="icon-dock-item {{ request()->routeIs('admin.chicks.*') ? 'is-active' : '' }}">
+                        <x-icon.calendar class="h-4 w-4 shrink-0" /> Day-old chicks
+                    </a>
 
                     @can('manage-platform-settings')
                     <p class="px-3 pt-4 pb-1 text-[10px] uppercase tracking-wider text-white/35">Settings</p>

@@ -23,7 +23,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * compare the same product across sellers.
  */
 #[Fillable([
-    'code', 'name', 'slug', 'animal_type_id', 'product_category_id', 'producer_id', 'brand', 'description', 'unit', 'pack_size',
+    'code', 'name', 'slug', 'animal_type_id', 'product_category_id', 'producer_id', 'chick_type_id', 'brand', 'description', 'unit', 'pack_size',
     'status', 'proposed_by_merchant_id', 'reviewed_by', 'reviewed_at', 'review_notes',
     'regulatory_class', 'prescription_required', 'cold_chain_required', 'production_purpose', 'use_cases',
     'disease_target', 'administration_route', 'form', 'active_ingredients', 'crude_protein_pct', 'inclusion_or_dosage',
@@ -331,6 +331,12 @@ class Product extends Model implements HasMedia
     public function producer(): BelongsTo
     {
         return $this->belongsTo(Producer::class);
+    }
+
+    /** For day-old chick products: Broiler, Layers, Sasso or Tanbro. */
+    public function chickType(): BelongsTo
+    {
+        return $this->belongsTo(ChickType::class);
     }
 
     /** The main animal, shown on cards; animalTypes() holds every animal the label covers. */
