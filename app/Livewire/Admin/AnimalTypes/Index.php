@@ -2,7 +2,10 @@
 
 namespace App\Livewire\Admin\AnimalTypes;
 
+use App\Livewire\Concerns\WithCatalogExcel;
 use App\Models\AnimalType;
+use App\Services\CatalogExcel\AnimalTypeSheet;
+use App\Services\CatalogExcel\CatalogSheet;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
@@ -11,6 +14,8 @@ use Livewire\Component;
 #[Layout('layouts.admin', ['title' => 'Animal Types'])]
 class Index extends Component
 {
+    use WithCatalogExcel;
+
     public bool $showForm = false;
 
     public ?int $editingId = null;
@@ -22,6 +27,11 @@ class Index extends Component
     public string $parent_id = '';
 
     public string $sort_order = '0';
+
+    protected function excelSheet(): CatalogSheet
+    {
+        return new AnimalTypeSheet;
+    }
 
     public function mount(): void
     {

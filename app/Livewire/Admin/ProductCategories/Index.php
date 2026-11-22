@@ -2,7 +2,10 @@
 
 namespace App\Livewire\Admin\ProductCategories;
 
+use App\Livewire\Concerns\WithCatalogExcel;
 use App\Models\ProductCategory;
+use App\Services\CatalogExcel\CatalogSheet;
+use App\Services\CatalogExcel\CategorySheet;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
@@ -11,6 +14,8 @@ use Livewire\Component;
 #[Layout('layouts.admin', ['title' => 'Product Categories'])]
 class Index extends Component
 {
+    use WithCatalogExcel;
+
     public bool $showForm = false;
 
     public ?int $editingId = null;
@@ -24,6 +29,11 @@ class Index extends Component
     public string $parent_id = '';
 
     public string $sort_order = '0';
+
+    protected function excelSheet(): CatalogSheet
+    {
+        return new CategorySheet;
+    }
 
     public function mount(): void
     {

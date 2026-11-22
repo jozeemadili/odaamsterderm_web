@@ -16,8 +16,13 @@
                 </button>
             @endforeach
         </div>
-        <x-ui.button wire:click="startCreating">+ Add catalog product</x-ui.button>
+        <div class="flex items-center gap-2">
+            @include('livewire.admin.partials.excel-button')
+            <x-ui.button wire:click="startCreating">+ Add catalog product</x-ui.button>
+        </div>
     </div>
+
+    @include('livewire.admin.partials.excel-panel', ['what' => 'products', 'images' => 'photos'])
 
     @if($showForm)
         <x-ui.card>

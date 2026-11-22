@@ -2,23 +2,25 @@
 
 namespace App\Livewire\Admin\Products;
 
+use App\Livewire\Concerns\WithCatalogExcel;
 use App\Livewire\Forms\ProductForm;
 use App\Models\AnimalType;
 use App\Models\Product;
 use App\Models\ProductCategory;
+use App\Services\CatalogExcel\CatalogSheet;
+use App\Services\CatalogExcel\ProductSheet;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Url;
 use Livewire\Component;
-use Livewire\WithFileUploads;
 use Livewire\WithPagination;
 
 #[Layout('layouts.admin', ['title' => 'Product Catalog'])]
 class Index extends Component
 {
-    use WithFileUploads;
+    use WithCatalogExcel;
     use WithPagination;
 
     public ProductForm $form;
@@ -48,6 +50,11 @@ class Index extends Component
     public ?int $reviewingId = null;
 
     public string $reviewNotes = '';
+
+    protected function excelSheet(): CatalogSheet
+    {
+        return new ProductSheet;
+    }
 
     public function mount(): void
     {

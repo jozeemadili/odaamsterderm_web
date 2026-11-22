@@ -1,8 +1,13 @@
 <div class="space-y-4">
     <div class="flex items-center justify-between gap-4">
         <p class="text-[13px] text-ink-mute max-w-2xl">Platform-wide categories for catalog products (Feed › Complete feed, Medicines › Dewormers…). A category says what a product is; animal, life stage and pack size are set on the product. Any category can be used for any animal, and marketplace filters only show categories that have products for the chosen animal.</p>
-        <x-ui.button wire:click="startCreating">+ Add category</x-ui.button>
+        <div class="flex shrink-0 items-center gap-2">
+            @include('livewire.admin.partials.excel-button')
+            <x-ui.button wire:click="startCreating">+ Add category</x-ui.button>
+        </div>
     </div>
+
+    @include('livewire.admin.partials.excel-panel', ['what' => 'categories', 'images' => null])
 
     @if(session('status'))
         <div class="rounded-lg bg-success-subtle border border-success/20 text-success px-4 py-2.5 text-[14px]">{{ session('status') }}</div>

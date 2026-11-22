@@ -2,18 +2,21 @@
 
 namespace App\Livewire\Admin\Producers;
 
+use App\Livewire\Concerns\WithCatalogExcel;
 use App\Models\Producer;
+use App\Services\CatalogExcel\CatalogSheet;
+use App\Services\CatalogExcel\ProducerSheet;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Url;
 use Livewire\Component;
-use Livewire\WithFileUploads;
 
 /** Factories / companies that make catalog products, with their logos. */
 #[Layout('layouts.admin', ['title' => 'Producers'])]
 class Index extends Component
 {
-    use WithFileUploads;
+    use WithCatalogExcel;
 
     public bool $showForm = false;
 
@@ -27,9 +30,26 @@ class Index extends Component
 
     public string $description = '';
 
+    public string $role = '';
+
+    public string $deals_in = '';
+
+    public string $phone = '';
+
+    public string $location = '';
+
     public $logo;
 
     public string $search = '';
+
+    /** '' | active | inactive | hidden | no_logo */
+    #[Url]
+    public string $filter = '';
+
+    protected function excelSheet(): CatalogSheet
+    {
+        return new ProducerSheet;
+    }
 
     public function mount(): void
     {
@@ -38,7 +58,7 @@ class Index extends Component
 
     public function startCreating(): void
     {
-        $this->reset(['editingId', 'name', 'website', 'description', 'logo']);
+        $this->reset(['editingId', 'name', 'website', 'description', 'logo', 'role', 'deals_in', 'phone', 'location']);
         $this->country = 'Tanzania';
         $this->resetErrorBag();
         $this->showForm = true;
@@ -53,6 +73,10 @@ class Index extends Component
         $this->country = (string) $producer->country;
         $this->website = (string) $producer->website;
         $this->description = (string) $producer->description;
+        $this->role = (string) $producer->role;
+        $this->deals_in = (string) $producer->deals_in;
+        $this->phone = (string) $producer->phone;
+        $this->location = (string) $producer->location;
         $this->logo = null;
         $this->resetErrorBag();
         $this->showForm = true;
@@ -67,6 +91,10 @@ class Index extends Component
             'country' => ['nullable', 'string', 'max:100'],
             'website' => ['nullable', 'url', 'max:255'],
             'description' => ['nullable', 'string', 'max:2000'],
+            'role' => ['nullable', 'string', 'max:255'],
+            'deals_in' => ['nullable', Rule::in(array_keys(Producer::DEALS))],
+            'phone' => ['nullable', 'string', 'max:50'],
+            'location' => ['nullable', 'string', 'max:255'],
             'logo' => ['nullable', 'image', 'max:2048'],
         ]);
 
@@ -75,6 +103,10 @@ class Index extends Component
             'country' => trim($this->country) ?: null,
             'website' => trim($this->website) ?: null,
             'description' => trim($this->description) ?: null,
+            'role' => trim($this->role) ?: null,
+            'deals_in' => $this->deals_in ?: null,
+            'phone' => trim($this->phone) ?: null,
+            'location' => trim($this->location) ?: null,
         ];
 
         if ($this->editingId) {
@@ -91,7 +123,7 @@ class Index extends Component
         }
 
         session()->flash('status', $this->editingId ? 'Producer updated.' : 'Producer added. Link it to products in Catalog → Products.');
-        $this->reset(['showForm', 'editingId', 'name', 'website', 'description', 'logo']);
+        $this->reset(['showForm', 'editingId', 'name', 'website', 'description', 'logo', 'role', 'deals_in', 'phone', 'location']);
     }
 
     public function removeLogo(int $id): void
@@ -135,13 +167,26 @@ class Index extends Component
 
     public function render()
     {
+        $withLogo = fn ($q) => $q->whereHas('media', fn ($m) => $m->where('collection_name', 'logo'));
+
         return view('livewire.admin.producers.index', [
             'producers' => Producer::query()
                 ->with('media')
                 ->withCount('products')
-                ->when($this->search, fn ($q) => $q->where('name', 'like', "%{$this->search}%"))
-                ->orderBy('name')
+                ->when($this->search, fn ($q) => $q->where(fn ($s) => $s->where('name', 'like', "%{$this->search}%")
+                    ->orWhere('role', 'like', "%{$this->search}%")->orWhere('country', 'like', "%{$this->search}%")))
+                ->when($this->filter === 'active', fn ($q) => $q->where('is_active', true))
+                ->when($this->filter === 'inactive', fn ($q) => $q->where('is_active', false))
+                ->when($this->filter === 'hidden', fn ($q) => $q->where('on_marketplace', false))
+                ->when($this->filter === 'no_logo', fn ($q) => $q->whereDoesntHave('media', fn ($m) => $m->where('collection_name', 'logo')))
+                ->orderByDesc('is_active')->orderBy('name')
                 ->get(),
+            'stats' => [
+                'all' => Producer::count(),
+                'active' => Producer::where('is_active', true)->count(),
+                'hidden' => Producer::where('on_marketplace', false)->count(),
+                'no_logo' => Producer::whereDoesntHave('media', fn ($m) => $m->where('collection_name', 'logo'))->count(),
+            ],
         ]);
     }
 }

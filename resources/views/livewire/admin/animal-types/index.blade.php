@@ -1,8 +1,13 @@
 <div class="space-y-4">
     <div class="flex items-center justify-between gap-4">
         <p class="text-[13px] text-ink-mute max-w-2xl">Animal types classify every catalog product and drive marketplace search. Use a group (e.g. Poultry) with animal types under it (e.g. Chicken); filtering by a group also finds its animal types.</p>
-        <x-ui.button wire:click="startCreating">+ Add animal type</x-ui.button>
+        <div class="flex shrink-0 items-center gap-2">
+            @include('livewire.admin.partials.excel-button')
+            <x-ui.button wire:click="startCreating">+ Add animal type</x-ui.button>
+        </div>
     </div>
+
+    @include('livewire.admin.partials.excel-panel', ['what' => 'animal types', 'images' => null])
 
     @if(session('status'))
         <div class="rounded-lg bg-success-subtle border border-success/20 text-success px-4 py-2.5 text-[14px]">{{ session('status') }}</div>
