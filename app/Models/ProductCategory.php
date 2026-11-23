@@ -9,14 +9,34 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\Support\LogOptions;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
 
 #[Fillable([
     'code', 'parent_id', 'name', 'name_sw', 'slug', 'description', 'tie_break_rule', 'required_attributes',
     'sort_order', 'is_active',
 ])]
-class ProductCategory extends Model
+class ProductCategory extends Model implements HasMedia
 {
-    use LogsActivity;
+    use InteractsWithMedia, LogsActivity;
+
+    /** Shown until a category has a photo, by main category code. */
+    private const EMOJI = ['C10' => '🌾', 'C20' => '🧪', 'C30' => '💊', 'C40' => '💉', 'C50' => '🧴', 'C60' => '🛠️', 'C70' => '🐣'];
+
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('image')->singleFile();
+    }
+
+    public function imageUrl(): ?string
+    {
+        return $this->getFirstMediaUrl('image') ?: null;
+    }
+
+    public function emoji(): string
+    {
+        return self::EMOJI[substr((string) $this->code, 0, 3)] ?? '📦';
+    }
 
     protected function casts(): array
     {

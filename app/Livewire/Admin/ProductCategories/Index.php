@@ -30,6 +30,10 @@ class Index extends Component
 
     public string $sort_order = '0';
 
+    public $image;
+
+    public string $search = '';
+
     protected function excelSheet(): CatalogSheet
     {
         return new CategorySheet;
@@ -42,7 +46,8 @@ class Index extends Component
 
     public function startCreating(?int $parentId = null): void
     {
-        $this->reset(['editingId', 'name', 'name_sw', 'description', 'sort_order']);
+        $this->reset(['editingId', 'name', 'name_sw', 'description', 'sort_order', 'image']);
+        $this->resetErrorBag();
         $this->parent_id = $parentId ? (string) $parentId : '';
         $this->showForm = true;
     }
@@ -57,6 +62,8 @@ class Index extends Component
         $this->description = (string) $category->description;
         $this->parent_id = (string) ($category->parent_id ?? '');
         $this->sort_order = (string) $category->sort_order;
+        $this->image = null;
+        $this->resetErrorBag();
         $this->showForm = true;
     }
 
@@ -68,6 +75,7 @@ class Index extends Component
             'description' => ['nullable', 'string', 'max:2000'],
             'parent_id' => ['nullable', Rule::exists('product_categories', 'id')->whereNull('parent_id'), Rule::notIn([$this->editingId])],
             'sort_order' => ['required', 'integer', 'min:0'],
+            'image' => ['nullable', 'image', 'max:4096'],
         ], [
             'parent_id.exists' => 'Choose a top-level category (sub-categories only go one level deep).',
         ]);
@@ -92,11 +100,15 @@ class Index extends Component
             $category->update($data);
             session()->flash('status', 'Category updated.');
         } else {
-            ProductCategory::create($data + ['slug' => $this->uniqueSlug($this->name), 'is_active' => true]);
+            $category = ProductCategory::create($data + ['slug' => $this->uniqueSlug($this->name), 'is_active' => true, 'code' => $this->newCode($data['parent_id'])]);
             session()->flash('status', 'Category added.');
         }
 
-        $this->reset(['showForm', 'editingId', 'name', 'name_sw', 'description', 'parent_id', 'sort_order']);
+        if ($this->image) {
+            $category->addMedia($this->image->getRealPath())->usingFileName($this->image->getClientOriginalName())->toMediaCollection('image');
+        }
+
+        $this->reset(['showForm', 'editingId', 'name', 'name_sw', 'description', 'parent_id', 'sort_order', 'image']);
     }
 
     public function toggleActive(int $id): void
@@ -123,14 +135,39 @@ class Index extends Component
         return $slug;
     }
 
+    /** C80 for a new main category, C3070 for a new subcategory. */
+    protected function newCode(?int $parentId): string
+    {
+        $parent = $parentId ? ProductCategory::find($parentId) : null;
+        $n = $parent
+            ? (ProductCategory::where('parent_id', $parent->id)->pluck('code')->map(fn ($c) => (int) Str::after((string) $c, $parent->code))->max() ?? 0)
+            : (ProductCategory::whereNull('parent_id')->pluck('code')->map(fn ($c) => (int) Str::after((string) $c, 'C'))->max() ?? 0);
+        do {
+            $n += 10;
+            $code = $parent ? $parent->code.str_pad((string) $n, 2, '0', STR_PAD_LEFT) : 'C'.$n;
+        } while (ProductCategory::where('code', $code)->exists());
+
+        return $code;
+    }
+
     public function render()
     {
+        $search = trim($this->search);
+
         return view('livewire.admin.product-categories.index', [
             'categories' => ProductCategory::whereNull('parent_id')
-                ->with(['children' => fn ($q) => $q->withCount('products')])
+                ->with(['media', 'children' => fn ($q) => $q->with('media')->withCount('products')])
                 ->withCount('products')
+                ->when($search !== '', fn ($q) => $q->where(fn ($w) => $w->where('name', 'like', "%{$search}%")->orWhere('name_sw', 'like', "%{$search}%")->orWhere('code', $search)
+                    ->orWhereHas('children', fn ($c) => $c->where('name', 'like', "%{$search}%")->orWhere('name_sw', 'like', "%{$search}%")->orWhere('code', $search))))
                 ->orderBy('sort_order')->orderBy('name')
                 ->get(),
+            'stats' => [
+                'main' => ProductCategory::whereNull('parent_id')->count(),
+                'sub' => ProductCategory::whereNotNull('parent_id')->count(),
+                'empty' => ProductCategory::whereNotNull('parent_id')->doesntHave('products')->count(),
+                'no_image' => ProductCategory::whereDoesntHave('media', fn ($m) => $m->where('collection_name', 'image'))->count(),
+            ],
         ]);
     }
 }

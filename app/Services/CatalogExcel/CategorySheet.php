@@ -20,6 +20,7 @@ class CategorySheet extends CatalogSheet
         ['Sort order', 10, false, 'Lower numbers show first.'],
         ['Active', 10, false, 'Yes / No'],
         ['Products', 10, false, 'For information only.'],
+        ['Image', 30, false, 'Photo file name inside the ZIP you upload with this sheet (e.g. dewormers.jpg), or a https:// link.'],
     ];
 
     public function name(): string
@@ -44,14 +45,14 @@ class CategorySheet extends CatalogSheet
 
         if ($withData) {
             $r = 2;
-            $all = ProductCategory::with('parent')->withCount('products')->get()
+            $all = ProductCategory::with(['parent', 'media'])->withCount('products')->get()
                 ->sortBy(fn ($c) => ($c->parent?->code ?? $c->code).'|'.($c->parent ? $c->code : ''));
             foreach ($all as $c) {
-                $sheet->fromArray([$c->code, $c->name, $c->name_sw, $c->parent ? self::label($c->parent) : '', $c->description, $c->sort_order, $c->is_active ? 'Yes' : 'No', $c->products_count], null, "A{$r}", true);
+                $sheet->fromArray([$c->code, $c->name, $c->name_sw, $c->parent ? self::label($c->parent) : '', $c->description, $c->sort_order, $c->is_active ? 'Yes' : 'No', $c->products_count, $c->imageUrl()], null, "A{$r}", true);
                 $r++;
             }
         } else {
-            $this->exampleRow($sheet, ['EXAMPLE', 'Dewormers', 'Dawa za minyoo', $mains->first() ? self::label($mains->first()) : '', 'Medicines that remove internal worms.', 20, 'Yes', '']);
+            $this->exampleRow($sheet, ['EXAMPLE', 'Dewormers', 'Dawa za minyoo', $mains->first() ? self::label($mains->first()) : '', 'Medicines that remove internal worms.', 20, 'Yes', '', 'dewormers.jpg']);
         }
 
         $this->readMeSheet($book, 'Product categories: bulk upload', [
@@ -59,6 +60,7 @@ class CategorySheet extends CatalogSheet
             ['Two levels', 'A row with no Main category is a main category (e.g. Medicines). A row with a Main category is a subcategory (e.g. Dewormers under Medicines). Subcategories cannot have their own subcategories.'],
             ['New main categories', 'To add a main category and its subcategories in one upload, put the main category first. The dropdown only lists main categories that already exist, so you may type the new name in the Main category cell.'],
             ['Blank cells', 'When updating, a blank cell leaves the current value unchanged, except Main category: blank makes it a main category.'],
+            ['Images', 'Put the photo file name in the Image column and upload a ZIP of the photos with the sheet, or paste a https:// link. JPG or PNG.'],
         ]);
 
         return $book;
@@ -67,6 +69,7 @@ class CategorySheet extends CatalogSheet
     public function import(string $xlsxPath, ?string $zipPath, User $by): ImportResult
     {
         $result = new ImportResult;
+        $zip = $this->openZip($zipPath, $result);
 
         foreach ($this->rows($xlsxPath, $this->sheetTitle(), $result) as $n => $row) {
             $v = Validator::make($row, ['name' => ['required', 'max:255'], 'swahili_name' => ['nullable', 'max:255'], 'sort_order' => ['nullable', 'integer', 'min:0']]);
@@ -122,7 +125,7 @@ class CategorySheet extends CatalogSheet
                 $category->update($data);
                 $result->updated++;
             } else {
-                ProductCategory::create($data + [
+                $category = ProductCategory::create($data + [
                     'code' => $this->newCode($parent),
                     'slug' => $this->slug(($parent ? $parent->name.' ' : '').$row['name']),
                     'is_active' => $data['is_active'] ?? true,
@@ -130,7 +133,19 @@ class CategorySheet extends CatalogSheet
                 ]);
                 $result->created++;
             }
+
+            $ref = $row['image'] ?? '';
+            if ($ref !== '' && $ref !== $category->imageUrl()) {
+                if ($file = $this->photo($ref, $zip)) {
+                    $category->addMedia($file)->toMediaCollection('image');
+                    $result->photos++;
+                } else {
+                    $result->warn($n, "Image \"{$ref}\" was not found".($zip ? ' in the ZIP' : ' (upload a ZIP of photos with the sheet)').' or is not an image.');
+                }
+            }
         }
+
+        $zip?->close();
 
         return $result;
     }

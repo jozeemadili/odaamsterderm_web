@@ -3,6 +3,8 @@
 namespace App\Support;
 
 use App\Models\Product;
+use App\Models\ProductCategory;
+use Illuminate\Database\Eloquent\Collection;
 
 /**
  * What a catalogue product must have, by category, so buyers and the AI get
@@ -41,6 +43,31 @@ class ProductRequirements
             'required' => $required,
             'recommended' => $recommended,
             'missing' => array_values(array_map(fn ($r) => $r['label'], array_filter($required, fn ($r) => ! $r['ok']))),
+        ];
+    }
+
+    /**
+     * What a product in this category must and should have, before any
+     * data is entered (withdrawal periods depend on the animals chosen).
+     *
+     * @return array{required: list<string>, when: list<string>, recommended: list<string>}
+     */
+    public static function forCategory(ProductCategory $category): array
+    {
+        $probe = new Product(['product_category_id' => $category->id]);
+        $probe->setRelation('category', $category);
+        $probe->setRelation('animalType', null);
+        foreach (['animalTypes', 'lifeStages', 'variants', 'media'] as $relation) {
+            $probe->setRelation($relation, new Collection);
+        }
+        $check = self::check($probe);
+        $labels = fn (array $rows) => array_values(array_map(fn ($r) => $r['label'], $rows));
+        $isMedicine = str_starts_with((string) $category->code, 'C30');
+
+        return [
+            'required' => array_values(array_filter($labels($check['required']), fn ($l) => ! str_contains($l, 'withdrawal'))),
+            'when' => $isMedicine ? ['Meat withdrawal (days): for food animals', 'Egg withdrawal (days): for poultry', 'Milk withdrawal (days): for cattle, goats, sheep'] : [],
+            'recommended' => $labels($check['recommended']),
         ];
     }
 
