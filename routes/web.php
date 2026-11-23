@@ -82,6 +82,7 @@ Route::middleware(['auth', 'internal'])->prefix('admin')->name('admin.')->group(
     Route::get('/catalog/categories', Admin\ProductCategories\Index::class)->name('product-categories.index');
     Route::get('/catalog/categories/{productCategory}', Admin\ProductCategories\Show::class)->name('product-categories.show');
     Route::get('/catalog/producers', Admin\Producers\Index::class)->name('producers.index');
+    Route::get('/catalog/producers/{producer}', Admin\Producers\Show::class)->name('producers.show');
     Route::get('/catalog/requests', Admin\ProductRequests\Index::class)->name('product-requests.index');
     Route::get('/chicks', Admin\Chicks\Index::class)->name('chicks.index');
     Route::get('/audit-log', Admin\AuditLog\Index::class)->name('audit-log.index');

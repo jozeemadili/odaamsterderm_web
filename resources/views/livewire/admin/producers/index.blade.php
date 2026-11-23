@@ -94,15 +94,15 @@
         @forelse($producers as $producer)
             <div wire:key="producer-{{ $producer->id }}" class="flex flex-col rounded-[18px] border border-hairline bg-canvas p-4 transition hover:border-primary/30 {{ $producer->is_active ? '' : 'opacity-60' }}">
                 <div class="flex items-start gap-3">
-                    <span class="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-[14px] border border-hairline bg-white">
+                    <a href="{{ route('admin.producers.show', $producer) }}" class="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-[14px] border border-hairline bg-white hover:border-primary/40">
                         @if($producer->logoUrl())
                             <img src="{{ $producer->logoUrl() }}" alt="" class="h-full w-full object-contain p-1">
                         @else
                             <span class="font-display text-[15px] font-bold text-primary">{{ \Illuminate\Support\Str::upper(\Illuminate\Support\Str::substr($producer->name, 0, 2)) }}</span>
                         @endif
-                    </span>
+                    </a>
                     <div class="min-w-0 flex-1">
-                        <p class="truncate text-[14.5px] font-semibold text-ink" title="{{ $producer->name }}">{{ $producer->name }}</p>
+                        <a href="{{ route('admin.producers.show', $producer) }}" class="block truncate text-[14.5px] font-semibold text-ink hover:text-primary" title="{{ $producer->name }}">{{ $producer->name }}</a>
                         <p class="truncate text-[12px] text-ink-mute">{{ collect([$producer->location, $producer->country])->filter()->unique()->join(', ') ?: '—' }}@if($producer->code) · {{ $producer->code }}@endif</p>
                         @if($producer->role)<p class="mt-0.5 line-clamp-2 text-[12px] text-ink-secondary">{{ $producer->role }}</p>@endif
                     </div>
@@ -115,7 +115,8 @@
                     @unless($producer->logoUrl())<span class="rounded-pill border border-dashed border-hairline px-2 py-0.5 text-ink-mute">No logo</span>@endunless
                 </div>
                 <div class="mt-auto flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-hairline pt-3 mt-3 text-[12px]">
-                    <button wire:click="startEditing({{ $producer->id }})" class="font-semibold text-primary hover:text-primary-deep">Edit</button>
+                    <a href="{{ route('admin.producers.show', $producer) }}" class="inline-flex items-center rounded-pill bg-primary px-3 py-1 font-semibold text-white hover:bg-primary-deep">View more →</a>
+                    <button wire:click="startEditing({{ $producer->id }})" class="text-ink-mute hover:text-ink">Edit</button>
                     @if($producer->website)<a href="{{ $producer->website }}" target="_blank" rel="noopener" class="text-ink-mute hover:text-ink">Website ↗</a>@endif
                     <span class="ml-auto"></span>
                     @if($producer->logoUrl())
