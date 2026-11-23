@@ -59,6 +59,8 @@ class AiUsage
             'status' => $response->refused ? AiRequest::STATUS_REFUSED : AiRequest::STATUS_OK,
             'input_tokens' => $response->inputTokens,
             'output_tokens' => $response->outputTokens,
+            'cache_read_tokens' => $response->cacheReadTokens,
+            'cache_write_tokens' => $response->cacheWriteTokens,
             'results_count' => $results,
             'duration_ms' => (int) ((microtime(true) - $started) * 1000),
         ]);

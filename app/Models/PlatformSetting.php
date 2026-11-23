@@ -19,6 +19,9 @@ class PlatformSetting extends Model
 
     public const AI_DAILY_LIMIT = 'ai.daily_limit';
 
+    /** Shillings per US dollar, for showing AI costs in TZS. */
+    public const AI_USD_TZS = 'ai.usd_tzs_rate';
+
     /** Show product prices to customers (off until sellers have set them). */
     public const MARKET_SHOW_PRICES = 'market.show_prices';
 
@@ -28,6 +31,7 @@ class PlatformSetting extends Model
         self::AI_SEARCH_GUESTS => true,
         self::AI_ORDER_ENABLED => false,
         self::AI_DAILY_LIMIT => 500,
+        self::AI_USD_TZS => 2660,
         self::MARKET_SHOW_PRICES => false,
     ];
 

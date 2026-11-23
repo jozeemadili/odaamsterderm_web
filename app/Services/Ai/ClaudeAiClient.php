@@ -45,17 +45,23 @@ class ClaudeAiClient implements AiClient
             throw new AiUnavailableException($e->getMessage(), previous: $e);
         }
 
-        $usage = [$message->usage->inputTokens + (int) $message->usage->cacheReadInputTokens + (int) $message->usage->cacheCreationInputTokens, $message->usage->outputTokens];
+        // Fresh input, output, and cached prompt tokens apart: they are priced differently.
+        $usage = [
+            'inputTokens' => (int) $message->usage->inputTokens,
+            'outputTokens' => (int) $message->usage->outputTokens,
+            'cacheReadTokens' => (int) $message->usage->cacheReadInputTokens,
+            'cacheWriteTokens' => (int) $message->usage->cacheCreationInputTokens,
+        ];
 
         if ($message->stopReason === 'refusal') {
-            return new AiResponse([], $this->model, $usage[0], $usage[1], refused: true);
+            return new AiResponse([], $this->model, ...$usage, refused: true);
         }
 
         foreach ($message->content as $block) {
             if ($block->type === 'text') {
                 $data = json_decode($block->text, true);
                 if (is_array($data)) {
-                    return new AiResponse($data, $this->model, $usage[0], $usage[1]);
+                    return new AiResponse($data, $this->model, ...$usage);
                 }
             }
         }

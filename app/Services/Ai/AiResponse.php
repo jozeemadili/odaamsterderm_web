@@ -11,5 +11,7 @@ final class AiResponse
         public readonly int $inputTokens = 0,
         public readonly int $outputTokens = 0,
         public readonly bool $refused = false,
+        public readonly int $cacheReadTokens = 0,
+        public readonly int $cacheWriteTokens = 0,
     ) {}
 }
