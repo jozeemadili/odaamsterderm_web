@@ -78,6 +78,7 @@ Route::middleware(['auth', 'internal'])->prefix('admin')->name('admin.')->group(
     Route::get('/marketplace/stores', Admin\Stores\Index::class)->name('stores.index');
     Route::get('/reports/marketplace', Admin\Reports\Marketplace::class)->name('reports.marketplace');
     Route::get('/catalog/animal-types', Admin\AnimalTypes\Index::class)->name('animal-types.index');
+    Route::get('/catalog/animal-types/{animalType}', Admin\AnimalTypes\Show::class)->name('animal-types.show');
     Route::get('/catalog/categories', Admin\ProductCategories\Index::class)->name('product-categories.index');
     Route::get('/catalog/producers', Admin\Producers\Index::class)->name('producers.index');
     Route::get('/catalog/requests', Admin\ProductRequests\Index::class)->name('product-requests.index');

@@ -22,6 +22,7 @@ class AnimalTypeSheet extends CatalogSheet
         ['Description', 40, false, ''],
         ['Sort order', 10, false, 'Lower numbers show first.'],
         ['Active', 10, false, 'Yes / No'],
+        ['Image', 30, false, 'Photo file name inside the ZIP you upload with this sheet (e.g. chicken.jpg), or a https:// link.'],
     ];
 
     private const STAGE_COLUMNS = [
@@ -32,6 +33,7 @@ class AnimalTypeSheet extends CatalogSheet
         ['Description', 40, false, ''],
         ['Sort order', 10, false, ''],
         ['Active', 10, false, 'Yes / No'],
+        ['Image', 30, false, 'Photo file name inside the ZIP you upload with this sheet (e.g. chicken.jpg), or a https:// link.'],
     ];
 
     public function name(): string
@@ -60,18 +62,18 @@ class AnimalTypeSheet extends CatalogSheet
 
         if ($withData) {
             $r = 2;
-            foreach (AnimalType::with('parent')->get()->sortBy(fn ($a) => sprintf('%05d|%s|%05d', $a->parent?->sort_order ?? $a->sort_order, $a->parent?->code ?? $a->code, $a->parent ? $a->sort_order : 0)) as $a) {
-                $sheet->fromArray([$a->code, $a->name, $a->name_sw, $a->parent ? self::label($a->parent) : '', $a->description, $a->sort_order, $a->is_active ? 'Yes' : 'No'], null, "A{$r}", true);
+            foreach (AnimalType::with(['parent', 'media'])->get()->sortBy(fn ($a) => sprintf('%05d|%s|%05d', $a->parent?->sort_order ?? $a->sort_order, $a->parent?->code ?? $a->code, $a->parent ? $a->sort_order : 0)) as $a) {
+                $sheet->fromArray([$a->code, $a->name, $a->name_sw, $a->parent ? self::label($a->parent) : '', $a->description, $a->sort_order, $a->is_active ? 'Yes' : 'No', $a->imageUrl()], null, "A{$r}", true);
                 $r++;
             }
             $r = 2;
-            foreach (LifeStage::with('animalType')->orderBy('animal_type_id')->orderBy('sort_order')->get() as $s) {
-                $stages->fromArray([$s->code, $s->animalType ? self::label($s->animalType) : '', $s->name, $s->name_sw, $s->description, $s->sort_order, $s->is_active ? 'Yes' : 'No'], null, "A{$r}", true);
+            foreach (LifeStage::with(['animalType', 'media'])->orderBy('animal_type_id')->orderBy('sort_order')->get() as $s) {
+                $stages->fromArray([$s->code, $s->animalType ? self::label($s->animalType) : '', $s->name, $s->name_sw, $s->description, $s->sort_order, $s->is_active ? 'Yes' : 'No', $s->imageUrl()], null, "A{$r}", true);
                 $r++;
             }
         } else {
-            $this->exampleRow($sheet, ['EXAMPLE', 'Dairy cattle', 'Ng\'ombe wa maziwa', $mains->first() ? self::label($mains->first()) : '', 'Cows kept for milk.', 10, 'Yes']);
-            $this->exampleRow($stages, ['EXAMPLE', $mains->first() ? self::label($mains->first()) : '', 'Starter / chick (0–4 wks)', 'Vifaranga (wiki 0–4)', '', 10, 'Yes']);
+            $this->exampleRow($sheet, ['EXAMPLE', 'Dairy cattle', 'Ng\'ombe wa maziwa', $mains->first() ? self::label($mains->first()) : '', 'Cows kept for milk.', 10, 'Yes', 'dairy-cattle.jpg']);
+            $this->exampleRow($stages, ['EXAMPLE', $mains->first() ? self::label($mains->first()) : '', 'Starter / chick (0–4 wks)', 'Vifaranga (wiki 0–4)', '', 10, 'Yes', 'starter.jpg']);
         }
 
         $this->readMeSheet($book, 'Animal types and growth stages: bulk upload', [
@@ -79,6 +81,7 @@ class AnimalTypeSheet extends CatalogSheet
             ['Two levels', 'A row with no Main animal is a main group (Poultry, Cattle…). A row with a Main animal is a type under it (Chicken, Dairy cattle…).'],
             ['Growth stages', 'Stages belong to a main animal group (Poultry: Starter, Grower…). Leave Animal blank for a stage that fits any animal.'],
             ['Blank cells', 'When updating, a blank cell leaves the current value unchanged, except Main animal: blank makes it a main group.'],
+            ['Images', 'Put the photo file name in the Image column and upload a ZIP of the photos with the sheet, or paste a https:// link. JPG or PNG.'],
         ]);
 
         return $book;
@@ -87,6 +90,7 @@ class AnimalTypeSheet extends CatalogSheet
     public function import(string $xlsxPath, ?string $zipPath, User $by): ImportResult
     {
         $result = new ImportResult;
+        $zip = $this->openZip($zipPath, $result);
 
         foreach ($this->rows($xlsxPath, $this->sheetTitle(), $result) as $n => $row) {
             if (! $this->valid($row, $n, $result)) {
@@ -120,7 +124,7 @@ class AnimalTypeSheet extends CatalogSheet
                 $animal->update($data);
                 $result->updated++;
             } else {
-                AnimalType::create($data + [
+                $animal = AnimalType::create($data + [
                     'code' => $this->code('AN-', $row['name'], fn ($c) => AnimalType::where('code', $c)->exists()),
                     'slug' => $this->slug($row['name'], fn ($s) => AnimalType::where('slug', $s)->exists()),
                     'is_active' => $data['is_active'] ?? true,
@@ -128,6 +132,7 @@ class AnimalTypeSheet extends CatalogSheet
                 ]);
                 $result->created++;
             }
+            $this->image($animal, $row['image'] ?? '', $zip, $n, $result);
         }
 
         // Growth stages: row numbers are offset so messages say which sheet.
@@ -159,7 +164,7 @@ class AnimalTypeSheet extends CatalogSheet
                 $result->updated++;
             } else {
                 $prefix = 'LS-'.($animal ? Str::upper(Str::substr(Str::after($animal->code, 'AN-'), 0, 3)) : 'ALL').'-';
-                LifeStage::create($data + [
+                $stage = LifeStage::create($data + [
                     'code' => $this->code($prefix, $row['name'], fn ($c) => LifeStage::where('code', $c)->exists()),
                     'slug' => $this->slug(($animal?->name ?? 'any').' '.$row['name'], fn ($s) => LifeStage::where('slug', $s)->exists()),
                     'is_active' => $data['is_active'] ?? true,
@@ -167,9 +172,26 @@ class AnimalTypeSheet extends CatalogSheet
                 ]);
                 $result->created++;
             }
+            $this->image($stage, $row['image'] ?? '', $zip, $key, $result);
         }
 
+        $zip?->close();
+
         return $result;
+    }
+
+    /** @param  AnimalType|LifeStage  $model */
+    private function image($model, string $ref, ?\ZipArchive $zip, int $row, ImportResult $result): void
+    {
+        if ($ref === '' || $ref === $model->imageUrl()) {
+            return;
+        }
+        if ($file = $this->photo($ref, $zip)) {
+            $model->addMedia($file)->toMediaCollection('image');
+            $result->photos++;
+        } else {
+            $result->warn($row, "Image \"{$ref}\" was not found".($zip ? ' in the ZIP' : ' (upload a ZIP of photos with the sheet)').' or is not an image.');
+        }
     }
 
     public static function label(AnimalType $a): string

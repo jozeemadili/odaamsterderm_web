@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\Support\LogOptions;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
 
 /**
  * A stage of an animal group's life ("Grower" for poultry is LS-POU-GRW,
@@ -16,9 +18,19 @@ use Spatie\Activitylog\Support\LogOptions;
  * Feed › Starter / Grower sub-categories. No animal type = all animals.
  */
 #[Fillable(['code', 'animal_type_id', 'slug', 'name', 'name_sw', 'description', 'sort_order', 'is_active'])]
-class LifeStage extends Model
+class LifeStage extends Model implements HasMedia
 {
-    use LogsActivity;
+    use InteractsWithMedia, LogsActivity;
+
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('image')->singleFile();
+    }
+
+    public function imageUrl(): ?string
+    {
+        return $this->getFirstMediaUrl('image') ?: null;
+    }
 
     protected function casts(): array
     {

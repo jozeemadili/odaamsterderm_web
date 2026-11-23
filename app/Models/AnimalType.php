@@ -10,11 +10,35 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\Support\LogOptions;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
 
 #[Fillable(['code', 'parent_id', 'name', 'name_sw', 'slug', 'description', 'sort_order', 'is_active'])]
-class AnimalType extends Model
+class AnimalType extends Model implements HasMedia
 {
-    use LogsActivity;
+    use InteractsWithMedia, LogsActivity;
+
+    /** Shown when an animal has no photo yet. */
+    private const EMOJI = [
+        'AN-POU' => '🐔', 'AN-CHK' => '🐓', 'AN-OPO' => '🦆', 'AN-CAT' => '🐄', 'AN-DCT' => '🐄', 'AN-BCT' => '🐂',
+        'AN-GTS' => '🐐', 'AN-GOT' => '🐐', 'AN-SHP' => '🐑', 'AN-PIG' => '🐖', 'AN-FSH' => '🐟', 'AN-TIL' => '🐟',
+        'AN-CAF' => '🐟', 'AN-OTH' => '🐇',
+    ];
+
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('image')->singleFile();
+    }
+
+    public function imageUrl(): ?string
+    {
+        return $this->getFirstMediaUrl('image') ?: null;
+    }
+
+    public function emoji(): string
+    {
+        return self::EMOJI[$this->code] ?? ($this->parent ? $this->parent->emoji() : '🐾');
+    }
 
     protected function casts(): array
     {
