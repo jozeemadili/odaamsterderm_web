@@ -45,8 +45,8 @@ class TaxonomyImportTest extends TestCase
     {
         $this->artisan('catalog:import-taxonomy')->assertSuccessful();
 
-        $this->assertSame(14, AnimalType::count());
-        $this->assertSame(26, LifeStage::count());
+        $this->assertSame(14 + 2, AnimalType::count()); // the workbook, plus Dogs and Cats from their migration
+        $this->assertSame(26 + 8, LifeStage::count());
         $this->assertSame(38, ProductCategory::count());
         $this->assertSame(44, ProductAttribute::count());
         $this->assertSame(118, ProductAttributeValue::count());
@@ -206,7 +206,7 @@ class TaxonomyImportTest extends TestCase
         $this->artisan('catalog:import-taxonomy')->assertSuccessful();
 
         $this->assertSame(38, ProductCategory::count());
-        $this->assertSame(26, LifeStage::count());
+        $this->assertSame(26 + 8, LifeStage::count()); // plus the dog and cat stages
         $this->assertSame('Dewormers', ProductCategory::where('code', 'C3020')->value('name'));
     }
 

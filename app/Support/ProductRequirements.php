@@ -14,12 +14,12 @@ use Illuminate\Database\Eloquent\Collection;
  */
 class ProductRequirements
 {
-    /** Animal codes whose meat/eggs/milk people eat. */
+    /** Animal codes whose meat/eggs/milk people eat; NOT_FOOD are pets and others. */
     private const POULTRY = ['AN-POU', 'AN-CHK', 'AN-OPO'];
 
     private const MILKED = ['AN-CAT', 'AN-DCT', 'AN-GTS', 'AN-GOT', 'AN-SHP'];
 
-    private const NOT_FOOD = ['AN-OTH'];
+    private const NOT_FOOD = ['AN-OTH', 'AN-DOG', 'AN-FEL'];
 
     /**
      * @return array{score:int, required:list<array{key:string,label:string,ok:bool}>, recommended:list<array{key:string,label:string,ok:bool}>, missing:list<string>}

@@ -22,7 +22,7 @@ class AnimalType extends Model implements HasMedia
     private const EMOJI = [
         'AN-POU' => '🐔', 'AN-CHK' => '🐓', 'AN-OPO' => '🦆', 'AN-CAT' => '🐄', 'AN-DCT' => '🐄', 'AN-BCT' => '🐂',
         'AN-GTS' => '🐐', 'AN-GOT' => '🐐', 'AN-SHP' => '🐑', 'AN-PIG' => '🐖', 'AN-FSH' => '🐟', 'AN-TIL' => '🐟',
-        'AN-CAF' => '🐟', 'AN-OTH' => '🐇',
+        'AN-CAF' => '🐟', 'AN-OTH' => '🐇', 'AN-DOG' => '🐕', 'AN-FEL' => '🐈',
     ];
 
     public function registerMediaCollections(): void
